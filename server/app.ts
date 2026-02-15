@@ -56,6 +56,7 @@ app.get('/api/health', async (_req, res) => {
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('Unhandled error:', err);
     res.status(500).json({ error: 'Internal server error' });
+    void _next;
 });
 
 export default app;
