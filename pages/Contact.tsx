@@ -3,7 +3,7 @@ import { PageView } from '../types';
 
 interface ContactProps {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    navigate: (page: PageView) => void;
+    navigate: (_: PageView) => void;
 }
 
 const Contact: React.FC<ContactProps> = () => {
