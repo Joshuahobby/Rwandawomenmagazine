@@ -1,0 +1,280 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+
+
+// ─── 1. Roles ──────────────────────────────────────────────
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // Admin, Editor, Author, Contributor
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  users       User[]
+
+  @@map("roles")
+}
+
+// ─── 2. Users ──────────────────────────────────────────────
+model User {
+  id            String    @id @default(uuid())
+  fullName      String    @map("full_name")
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  roleId        Int       @map("role_id")
+  bio           String?
+  profileImage  String?   @map("profile_image")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  role          Role      @relation(fields: [roleId], references: [id])
+  articles      Article[]
+  revisions     ArticleRevision[]
+  media         Media[]
+
+  @@map("users")
+}
+
+// ─── 3. Categories ─────────────────────────────────────────
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  color       String    @default("#d800b4")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  articles    Article[]
+
+  @@map("categories")
+}
+
+// ─── 4. Articles ───────────────────────────────────────────
+model Article {
+  id            String    @id @default(uuid())
+  title         String
+  slug          String    @unique
+  excerpt       String?
+  content       String?   @db.Text
+  featuredImage String?   @map("featured_image")
+  categoryId    Int       @map("category_id")
+  authorId      String    @map("author_id")
+  status        ArticleStatus @default(draft)
+  isFeatured    Boolean   @default(false) @map("is_featured")
+  publishedAt   DateTime? @map("published_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  category      Category  @relation(fields: [categoryId], references: [id])
+  author        User      @relation(fields: [authorId], references: [id])
+  tags          ArticleTag[]
+  revisions     ArticleRevision[]
+  seoMeta       SeoMeta?
+  views         ArticleView[]
+  comments      Comment[]
+
+  @@map("articles")
+}
+
+enum ArticleStatus {
+  draft
+  review
+  published
+  archived
+}
+
+// ─── 5. Article Revisions ──────────────────────────────────
+model ArticleRevision {
+  id               String   @id @default(uuid())
+  articleId        String   @map("article_id")
+  editorId         String   @map("editor_id")
+  contentSnapshot  String   @db.Text @map("content_snapshot")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  article          Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  editor           User     @relation(fields: [editorId], references: [id])
+
+  @@map("article_revisions")
+}
+
+// ─── 6. Tags ───────────────────────────────────────────────
+model Tag {
+  id        Int          @id @default(autoincrement())
+  name      String       @unique
+  slug      String       @unique
+  createdAt DateTime     @default(now()) @map("created_at")
+  articles  ArticleTag[]
+
+  @@map("tags")
+}
+
+// ─── 7. Article–Tags Pivot ─────────────────────────────────
+model ArticleTag {
+  articleId String  @map("article_id")
+  tagId     Int     @map("tag_id")
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
+
+// ─── 8. Media ──────────────────────────────────────────────
+model Media {
+  id         String   @id @default(uuid())
+  fileName   String   @map("file_name")
+  filePath   String   @map("file_path")
+  fileType   String   @map("file_type") // image, pdf, video
+  fileSize   Int      @map("file_size")
+  uploadedBy String   @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  uploader   User     @relation(fields: [uploadedBy], references: [id])
+
+  @@map("media")
+}
+
+// ─── 9. SEO Metadata ──────────────────────────────────────
+model SeoMeta {
+  id              String   @id @default(uuid())
+  articleId       String   @unique @map("article_id")
+  metaTitle       String?  @map("meta_title")
+  metaDescription String?  @map("meta_description")
+  ogImage         String?  @map("og_image")
+  keywords        String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  article         Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("seo_meta")
+}
+
+// ─── 10. Static Pages ─────────────────────────────────────
+model Page {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  content     String?   @db.Text
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("pages")
+}
+
+// ─── 11. Newsletter Subscribers ───────────────────────────
+model Subscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  source    String   @default("website") // website, event, campaign
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("subscribers")
+}
+
+// ─── 12. Article Views ────────────────────────────────────
+model ArticleView {
+  id        String   @id @default(uuid())
+  articleId String   @map("article_id")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  viewedAt  DateTime @default(now()) @map("viewed_at")
+
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("article_views")
+}
+
+// ─── 13. Comments ─────────────────────────────────────────
+model Comment {
+  id         String   @id @default(uuid())
+  articleId  String   @map("article_id")
+  name       String
+  email      String
+  comment    String   @db.Text
+  isApproved Boolean  @default(false) @map("is_approved")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  article    Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+// ─── 14. Award Categories ─────────────────────────────────
+model AwardCategory {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  slug        String        @unique
+  description String?       @db.Text
+  criteria    String?       @db.Text
+  icon        String        @default("emoji_events")
+  group       CategoryGroup @default(INDIVIDUAL)
+  sortOrder   Int           @default(0) @map("sort_order")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  nominations Nomination[]
+
+  @@map("award_categories")
+}
+
+enum CategoryGroup {
+  INDIVIDUAL
+  CORPORATE
+  SME
+}
+
+// ─── 15. Nominations ──────────────────────────────────────
+model Nomination {
+  id                    String           @id @default(uuid())
+  categoryId            Int              @map("category_id")
+  nomineeName           String           @map("nominee_name")
+  nomineeTitle          String?          @map("nominee_title")
+  nomineeOrganization   String?          @map("nominee_organization")
+  sector                String?
+  achievements          String           @db.Text
+  measurableResults     String?          @db.Text @map("measurable_results")
+  supportingDocUrl      String?          @map("supporting_doc_url")
+  nominatorName         String           @map("nominator_name")
+  nominatorEmail        String           @map("nominator_email")
+  nominatorPhone        String?          @map("nominator_phone")
+  status                NominationStatus @default(pending)
+  createdAt             DateTime         @default(now()) @map("created_at")
+  identityHash          String?          @unique @map("identity_hash")
+
+  category              AwardCategory    @relation(fields: [categoryId], references: [id])
+  votes                 Vote[]
+
+  @@map("nominations")
+}
+
+enum NominationStatus {
+  pending
+  approved
+  shortlisted
+  finalist
+  rejected
+}
+
+// ─── 16. Votes ────────────────────────────────────────────
+model Vote {
+  id               String     @id @default(uuid())
+  nominationId     String     @map("nomination_id")
+  voterIp          String     @map("voter_ip")
+  voterFingerprint String?    @map("voter_fingerprint")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  identityHash     String     @unique @map("identity_hash")
+
+  nomination       Nomination @relation(fields: [nominationId], references: [id], onDelete: Cascade)
+
+  @@map("votes")
+}
