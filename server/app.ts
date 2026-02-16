@@ -30,9 +30,8 @@ app.use((req, _res, next) => {
     next();
 });
 
-// Serve uploaded files - using absolute path relative to process.cwd() or direct path
-// In Vercel, UPLOAD_DIR might be problematic if it's outside the function bundle
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
+// Serve uploaded files - point to the public directory where they now reside
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
