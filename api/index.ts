@@ -11,6 +11,10 @@ try {
 } catch (error) {
     console.error(`[${new Date().toISOString()}] API Entry: FATAL ERROR DURING STARTUP`);
     console.error("Error Message:", error.message);
-    console.error("Error Stack:", error.stack);
+    if (error.stack) {
+        error.stack.split('\n').forEach((line: string) => console.error('STACK:', line));
+    } else {
+        console.error("No stack trace available");
+    }
     throw error;
 }
