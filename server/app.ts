@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import { env } from './config/env.js';
 import prisma from './config/db.js';
 
 // Route imports
@@ -25,8 +24,15 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.resolve(env.UPLOAD_DIR)));
+// Request logging for debugging routing
+app.use((req, _res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
+// Serve uploaded files - using absolute path relative to process.cwd() or direct path
+// In Vercel, UPLOAD_DIR might be problematic if it's outside the function bundle
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 // API Routes
 app.use('/api/auth', authRoutes);

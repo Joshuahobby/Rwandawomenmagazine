@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { listTags, createTag, deleteTag, tagSchema } from '../controllers/tags.controller';
-import { authenticate } from '../middleware/auth';
-import { requireRole } from '../middleware/roles';
-import { validate } from '../middleware/validate';
+import { listTags, createTag, deleteTag, tagSchema } from '../controllers/tags.controller.js';
+import { authenticate } from '../middleware/auth.js';
+import { requireRole } from '../middleware/roles.js';
+import { validate } from '../middleware/validate.js';
 
 const router = Router();
 

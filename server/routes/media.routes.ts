@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { uploadMedia, listMedia, deleteMedia } from '../controllers/media.controller';
-import { authenticate } from '../middleware/auth';
-import { requireRole } from '../middleware/roles';
-import { upload } from '../middleware/upload';
+import { uploadMedia, listMedia, deleteMedia } from '../controllers/media.controller.js';
+import { authenticate } from '../middleware/auth.js';
+import { requireRole } from '../middleware/roles.js';
+import { upload } from '../middleware/upload.js';
 
 const router = Router();
 

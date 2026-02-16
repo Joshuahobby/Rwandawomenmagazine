@@ -6,7 +6,11 @@
             "destination": "/api/index.ts"
         },
         {
-            "source": "/(.*)",
+            "source": "/uploads/(.*)",
+            "destination": "/api/index.ts"
+        },
+        {
+            "source": "/((?!api|uploads).*)",
             "destination": "/index.html"
         }
     ],

@@ -4,10 +4,10 @@ import {
     getNominations,
     updateNominationStatus,
     getCategories // Assuming we might want a ticket here too or use the same one
-} from '../controllers/nominations.controller';
-import { issueTicket } from '../controllers/votes.controller';
-import { authenticate } from '../middleware/auth';
-import { detectFraud } from '../middleware/fraud.middleware';
+} from '../controllers/nominations.controller.js';
+import { issueTicket } from '../controllers/votes.controller.js';
+import { authenticate } from '../middleware/auth.js';
+import { detectFraud } from '../middleware/fraud.middleware.js';
 
 const router = Router();
 
