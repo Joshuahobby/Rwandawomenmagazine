@@ -1,5 +1,12 @@
-console.log('API Entry: Starting up...');
-import app from '../server/app';
-console.log('API Entry: App imported');
+console.log(`[${new Date().toISOString()}] API Entry: Starting up...`);
+try {
+    console.log(`[${new Date().toISOString()}] API Entry: Importing app...`);
+    const app = require('../server/app').default;
+    console.log(`[${new Date().toISOString()}] API Entry: App imported successfully`);
 
-export default app;
+    module.exports = app;
+} catch (error) {
+    console.error(`[${new Date().toISOString()}] API Entry: FATAL ERROR DURING STARTUP`);
+    console.error(error);
+    throw error;
+}
