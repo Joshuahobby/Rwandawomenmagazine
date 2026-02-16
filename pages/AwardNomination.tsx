@@ -15,7 +15,7 @@ interface CategoryOption {
     group: string;
 }
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API = '/api';
 
 // Fallback static categories for when API isn't available yet
 const STATIC_CATEGORIES: { INDIVIDUAL: CategoryOption[]; CORPORATE: CategoryOption[]; SME: CategoryOption[] } = {

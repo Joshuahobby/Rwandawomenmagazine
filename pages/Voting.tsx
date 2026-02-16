@@ -23,7 +23,7 @@ interface CategoryResult {
     nominees: NomineeResult[];
 }
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API = '/api';
 
 const GROUP_LABELS: Record<string, string> = {
     INDIVIDUAL: 'Individual Awards',
