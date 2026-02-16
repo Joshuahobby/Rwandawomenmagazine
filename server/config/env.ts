@@ -1,8 +1,7 @@
-import dotenv from 'dotenv';
 import path from 'path';
 
-// Load .env.local
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+// Environment variables are managed by Vercel in production.
+// .env.local is only used locally.
 
 export const env = {
   DATABASE_URL: process.env.DATABASE_URL!,
