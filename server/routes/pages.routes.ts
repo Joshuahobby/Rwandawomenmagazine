@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { listPages, getPage, createPage, updatePage, deletePage, pageSchema } from '../controllers/pages.controller.js';
-import { authenticate } from '../middleware/auth.js';
-import { requireRole } from '../middleware/roles.js';
-import { validate } from '../middleware/validate.js';
+import { listPages, getPage, createPage, updatePage, deletePage, pageSchema } from '../controllers/pages.controller';
+import { authenticate } from '../middleware/auth';
+import { requireRole } from '../middleware/roles';
+import { validate } from '../middleware/validate';
 
 const router = Router();
 

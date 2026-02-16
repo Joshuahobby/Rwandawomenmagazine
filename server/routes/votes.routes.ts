@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { castVote, getResults, getCategoryResults, issueTicket } from '../controllers/votes.controller.js';
-import { detectFraud } from '../middleware/fraud.middleware.js';
+import { castVote, getResults, getCategoryResults, issueTicket } from '../controllers/votes.controller';
+import { detectFraud } from '../middleware/fraud.middleware';
 
 const router = Router();
 

@@ -3,10 +3,10 @@ import {
     listArticles, getArticleById, getArticle, createArticle, updateArticle,
     updateStatus, deleteArticle, getRevisions,
     createArticleSchema, updateArticleSchema, statusSchema,
-} from '../controllers/articles.controller.js';
-import { authenticate } from '../middleware/auth.js';
-import { requireRole } from '../middleware/roles.js';
-import { validate } from '../middleware/validate.js';
+} from '../controllers/articles.controller';
+import { authenticate } from '../middleware/auth';
+import { requireRole } from '../middleware/roles';
+import { validate } from '../middleware/validate';
 
 const router = Router();
 

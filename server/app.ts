@@ -1,21 +1,21 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import prisma from './config/db.js';
+import prisma from './config/db';
 
 // Route imports
-import authRoutes from './routes/auth.routes.js';
-import articlesRoutes from './routes/articles.routes.js';
-import categoriesRoutes from './routes/categories.routes.js';
-import tagsRoutes from './routes/tags.routes.js';
-import mediaRoutes from './routes/media.routes.js';
-import usersRoutes from './routes/users.routes.js';
-import pagesRoutes from './routes/pages.routes.js';
-import subscribersRoutes from './routes/subscribers.routes.js';
-import commentsRoutes from './routes/comments.routes.js';
-import analyticsRoutes from './routes/analytics.routes.js';
-import nominationsRoutes from './routes/nominations.routes.js';
-import votesRoutes from './routes/votes.routes.js';
+import authRoutes from './routes/auth.routes';
+import articlesRoutes from './routes/articles.routes';
+import categoriesRoutes from './routes/categories.routes';
+import tagsRoutes from './routes/tags.routes';
+import mediaRoutes from './routes/media.routes';
+import usersRoutes from './routes/users.routes';
+import pagesRoutes from './routes/pages.routes';
+import subscribersRoutes from './routes/subscribers.routes';
+import commentsRoutes from './routes/comments.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import nominationsRoutes from './routes/nominations.routes';
+import votesRoutes from './routes/votes.routes';
 
 const app = express();
 
