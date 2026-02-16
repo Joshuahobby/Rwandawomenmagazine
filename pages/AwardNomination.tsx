@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PageView } from '../types';
 
 interface AwardNominationProps {
-    navigate: (page: PageView) => void;
+    navigate: (_view: PageView) => void;
 }
 
 interface CategoryOption {
@@ -78,6 +78,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
         nominatorEmail: '',
         nominatorPhone: '',
     });
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -136,8 +137,9 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
             }
 
             setIsSubmitted(true);
-        } catch (err: any) {
-            setError(err.message || 'Failed to submit. Please try again.');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to submit. Please try again.';
+            setError(message);
         } finally {
             setIsSubmitting(false);
         }
@@ -188,328 +190,393 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
         <div className="animate-fade-in font-sans">
 
             {/* Hero */}
-            <section className="relative bg-surface-dark dark:bg-black text-white py-20 lg:py-28 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-transparent"></div>
-                <div className="container mx-auto px-4 relative z-10">
-                    <div className="flex flex-wrap items-center gap-3 mb-6">
-                        <span className="text-[10px] font-bold uppercase tracking-widest bg-primary text-white px-3 py-1">Nominations Open</span>
-                        <span className="text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white/90 px-3 py-1">RWIBA 2026 — 5th Anniversary</span>
+            <section className="relative bg-black text-white py-24 lg:py-32 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-black/50 to-black"></div>
+                <div className="absolute inset-0 opacity-20 bg-[url('/patterns/noise.png')]"></div>
+                <div className="container mx-auto px-4 relative z-10 text-center">
+                    <div className="inline-flex items-center gap-3 mb-6 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 backdrop-blur-sm">
+                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/90">Nominations Open until March 10</span>
                     </div>
-                    <h1 className="font-display text-5xl lg:text-7xl font-black uppercase leading-[0.85] tracking-tighter mb-6">
-                        Nominate a<br /><span className="text-primary">Leader</span>
+                    <h1 className="font-display text-5xl lg:text-7xl font-black uppercase leading-none tracking-tighter mb-6">
+                        Nominate a <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-pink-400">Leader</span>
                     </h1>
-                    <p className="text-lg text-gray-300 max-w-2xl leading-relaxed">
-                        Recognize an outstanding Rwandan woman, male champion, or organization making a difference. Choose from 27 award categories across Individual, Corporate, and SME sectors.
+                    <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                        Recognize an outstanding Rwandan woman, male champion, or organization making a difference. Choose from <span className="text-white font-bold">28 award categories</span> across Individual, Corporate, and SME sectors.
                     </p>
                 </div>
             </section>
 
-            <div className="container mx-auto px-4 py-16 lg:py-20">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+            <div className="container mx-auto px-4 py-16 lg:py-24">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-                    {/* Main Content */}
-                    <div className="lg:col-span-2">
-                        {/* Category Selection */}
-                        <h2 className="font-display text-3xl font-bold uppercase tracking-tight mb-6 text-text-light dark:text-text-dark">
-                            1. Select Award Category
-                        </h2>
+                    {/* Left Sidebar - Context & Info */}
+                    <div className="lg:col-span-4 space-y-8 order-2 lg:order-1">
 
-                        {/* Tab Switcher */}
-                        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 mb-6">
-                            {([['INDIVIDUAL', 'Individual (18)'], ['CORPORATE', 'Corporate (5)'], ['SME', 'SME (5)']] as const).map(([key, label]) => (
+                        {/* Selected Category Info (Sticky) */}
+                        <div className="lg:sticky lg:top-8 space-y-8">
+
+                            {/* Intro/Welcome (if no category selected) */}
+                            {!selectedCategory && (
+                                <div className="bg-surface-light dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 p-8 rounded-2xl">
+                                    <h3 className="font-display text-xl font-bold uppercase mb-4 text-primary">How to Nominate</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                                        Select a category from the right to view details and submit your nomination. You can nominate multiple candidates across different categories.
+                                    </p>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                                            <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">1</span>
+                                            <span>Choose a Category</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                                            <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">2</span>
+                                            <span>Fill Nominee Details</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                                            <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">3</span>
+                                            <span>Submit Nomination</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Selected Category Details */}
+                            {selectedCategory && (
+                                <div className="bg-primary text-white p-8 rounded-2xl animate-fade-in shadow-xl shadow-primary/20">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <span className="material-icons text-3xl bg-white/20 p-2 rounded-lg">{selectedCategory.icon}</span>
+                                        <h3 className="font-display text-lg font-bold uppercase leading-tight">{selectedCategory.name}</h3>
+                                    </div>
+                                    <div className="space-y-6">
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">Description</h4>
+                                            <p className="text-sm leading-relaxed opacity-90">{selectedCategory.description}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">Criteria</h4>
+                                            <p className="text-sm leading-relaxed opacity-90">{selectedCategory.criteria}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsModalOpen(true)}
+                                            className="w-full bg-white text-primary py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <span className="material-icons text-sm">edit</span>
+                                            Nominate Now
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Judging Weights */}
+                            <div className="bg-surface-light dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 p-8 rounded-2xl">
+                                <h3 className="font-display text-lg font-bold uppercase tracking-tight mb-6 text-text-light dark:text-text-dark flex items-center gap-2">
+                                    <span className="material-icons text-primary text-lg">scale</span>
+                                    Judging Criteria
+                                </h3>
+                                <div className="space-y-5">
+                                    {JUDGING_CRITERIA.map((j) => (
+                                        <div key={j.label}>
+                                            <div className="flex justify-between text-xs mb-2">
+                                                <span className="font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400">{j.label}</span>
+                                                <span className="font-bold text-primary">{j.pct}%</span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
+                                                <div
+                                                    className="bg-primary h-full rounded-full transition-all duration-1000 ease-out"
+                                                    // eslint-disable-next-line
+                                                    style={{ width: `${j.pct}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Key Dates */}
+                            <div className="bg-surface-light dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 p-8 rounded-2xl">
+                                <h3 className="font-display text-lg font-bold uppercase tracking-tight mb-6 text-text-light dark:text-text-dark flex items-center gap-2">
+                                    <span className="material-icons text-primary text-lg">event</span>
+                                    Timeline
+                                </h3>
+                                <div className="space-y-6">
+                                    {[
+                                        { date: 'Feb 15, 2026', label: 'Nominations Open', active: true },
+                                        { date: 'Mar 10, 2026', label: 'Nominations Close' },
+                                        { date: 'Mar 15, 2026', label: 'Public Voting Opens' },
+                                        { date: 'Mar 27, 2026', label: 'Awards Ceremony' },
+                                    ].map((item, i) => (
+                                        <div key={i} className={`flex gap-4 relative ${item.active ? 'opacity-100' : 'opacity-60'}`}>
+                                            {i !== 3 && <div className="absolute left-[11px] top-7 bottom-[-24px] w-px bg-gray-200 dark:bg-white/10"></div>}
+                                            <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold z-10 ${item.active ? 'bg-primary text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'}`}>
+                                                {i + 1}
+                                            </div>
+                                            <div>
+                                                <div className={`text-[10px] font-bold uppercase tracking-widest mb-0.5 ${item.active ? 'text-primary' : 'text-gray-500'}`}>{item.date}</div>
+                                                <div className="text-sm font-medium text-text-light dark:text-text-dark">{item.label}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {/* Right Content - Categories */}
+                    <div className="lg:col-span-8 order-1 lg:order-2">
+
+                        {/* Section Header */}
+                        <div className="mb-10">
+                            <h2 className="font-display text-3xl font-bold uppercase tracking-tight mb-4 text-text-light dark:text-text-dark">
+                                Select a Category
+                            </h2>
+                            <p className="text-gray-500 dark:text-gray-400">
+                                Choose the most appropriate category for your nominee. Click on any card to view details and start the nomination.
+                            </p>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="flex flex-wrap gap-2 mb-8 bg-gray-100 dark:bg-white/5 p-1.5 rounded-xl inline-flex">
+                            {([['INDIVIDUAL', 'Individual'], ['CORPORATE', 'Corporate'], ['SME', 'SME']] as const).map(([key, label]) => (
                                 <button
                                     key={key}
                                     onClick={() => { setActiveTab(key); setSelectedCategory(null); }}
-                                    className={`flex-1 px-4 py-2.5 text-xs font-bold uppercase tracking-widest transition-all ${activeTab === key
-                                        ? 'bg-primary text-white'
-                                        : 'text-gray-500 dark:text-gray-400 hover:text-text-light dark:hover:text-text-dark'
-                                        }`}
-                                >{label}</button>
-                            ))}
-                        </div>
-
-                        {/* Category Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-16">
-                            {activeCats.map((cat) => (
-                                <button
-                                    key={cat.id}
-                                    type="button"
-                                    onClick={() => setSelectedCategory(cat)}
-                                    className={`text-left p-4 border transition-all duration-200 group ${selectedCategory?.id === cat.id
-                                        ? 'border-primary bg-primary/5 dark:bg-primary/10'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-primary/50'
+                                    className={`px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === key
+                                        ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-md'
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
                                         }`}
                                 >
-                                    <div className="flex items-start gap-3">
-                                        <span className={`material-icons text-xl flex-shrink-0 transition-colors ${selectedCategory?.id === cat.id ? 'text-primary' : 'text-gray-400 group-hover:text-primary'}`}>{cat.icon}</span>
-                                        <div>
-                                            <h4 className="font-display text-xs font-bold uppercase tracking-wider mb-1 text-text-light dark:text-text-dark leading-snug">{cat.name}</h4>
-                                            <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">{cat.description}</p>
-                                        </div>
-                                    </div>
-                                    {selectedCategory?.id === cat.id && (
-                                        <span className="material-icons text-primary text-sm mt-2 block">check_circle</span>
-                                    )}
+                                    {label} <span className="opacity-50 ml-1 text-[10px]">({categories[key]?.length || 0})</span>
                                 </button>
                             ))}
                         </div>
 
-                        {/* Nomination Form */}
-                        <h2 className="font-display text-3xl font-bold uppercase tracking-tight mb-8 text-text-light dark:text-text-dark">
-                            2. Nomination Details
-                        </h2>
-
-                        {error && (
-                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 mb-6 text-sm">
-                                {error}
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Nominee */}
-                            <div className="border-l-2 border-primary pl-6">
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Nominee Information</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Full Name *</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            value={formData.nomineeName}
-                                            onChange={(e) => handleChange('nomineeName', e.target.value)}
-                                            className="w-full bg-transparent border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm focus:outline-none focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400"
-                                            placeholder="e.g. Marie Uwimana"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Title / Position</label>
-                                        <input
-                                            type="text"
-                                            value={formData.nomineeTitle}
-                                            onChange={(e) => handleChange('nomineeTitle', e.target.value)}
-                                            className="w-full bg-transparent border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm focus:outline-none focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400"
-                                            placeholder="e.g. CEO, Founder"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Organization</label>
-                                        <input
-                                            type="text"
-                                            value={formData.nomineeOrganization}
-                                            onChange={(e) => handleChange('nomineeOrganization', e.target.value)}
-                                            className="w-full bg-transparent border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm focus:outline-none focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400"
-                                            placeholder="e.g. Tech Innovations Rwanda"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Sector / Industry *</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            value={formData.sector}
-                                            onChange={(e) => handleChange('sector', e.target.value)}
-                                            className="w-full bg-transparent border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm focus:outline-none focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400"
-                                            placeholder="e.g. Technology, Agriculture, Finance"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Achievements */}
-                            <div className="border-l-2 border-primary pl-6">
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Achievements & Impact</h3>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Description of Achievements *</label>
-                                    <textarea
-                                        required
-                                        rows={5}
-                                        value={formData.achievements}
-                                        onChange={(e) => handleChange('achievements', e.target.value)}
-                                        className="w-full bg-transparent border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm focus:outline-none focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400 resize-none"
-                                        placeholder="Describe the nominee's key achievements, leadership, and contributions..."
-                                    />
-                                </div>
-                                <div className="mt-4">
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Measurable Results / Impact</label>
-                                    <textarea
-                                        rows={3}
-                                        value={formData.measurableResults}
-                                        onChange={(e) => handleChange('measurableResults', e.target.value)}
-                                        className="w-full bg-transparent border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm focus:outline-none focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400 resize-none"
-                                        placeholder="e.g. Created 200 jobs, increased revenue by 150%, impacted 5,000 women..."
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Nominator Info */}
-                            <div className="border-l-2 border-gray-300 dark:border-gray-600 pl-6">
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">Your Information (Nominator)</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Your Name *</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            value={formData.nominatorName}
-                                            onChange={(e) => handleChange('nominatorName', e.target.value)}
-                                            className="w-full bg-transparent border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm focus:outline-none focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400"
-                                            placeholder="Your full name"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Email *</label>
-                                        <input
-                                            required
-                                            type="email"
-                                            value={formData.nominatorEmail}
-                                            onChange={(e) => handleChange('nominatorEmail', e.target.value)}
-                                            className="w-full bg-transparent border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm focus:outline-none focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400"
-                                            placeholder="you@example.com"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Phone</label>
-                                        <input
-                                            type="tel"
-                                            value={formData.nominatorPhone}
-                                            onChange={(e) => handleChange('nominatorPhone', e.target.value)}
-                                            className="w-full bg-transparent border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm focus:outline-none focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400"
-                                            placeholder="+250 7XX XXX XXX"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={isSubmitting || !selectedCategory}
-                                className="bg-primary text-white px-10 py-4 text-sm font-bold uppercase tracking-widest hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        Submitting...
-                                    </>
-                                ) : (
-                                    <>
-                                        <span className="material-icons text-sm">send</span>
-                                        Submit Nomination
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    </div>
-
-                    {/* Sidebar */}
-                    <div className="lg:col-span-1">
-                        {/* Selected Category Detail */}
-                        {selectedCategory && (
-                            <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 p-6 mb-8 animate-fade-in">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <span className="material-icons text-primary text-xl">{selectedCategory.icon}</span>
-                                    <h3 className="font-display text-sm font-bold uppercase tracking-wider text-text-light dark:text-text-dark">{selectedCategory.name}</h3>
-                                </div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{selectedCategory.description}</p>
-                                {selectedCategory.criteria && (
-                                    <div>
-                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Evaluation Criteria</h4>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">{selectedCategory.criteria}</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Judging Criteria */}
-                        <div className="bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-800 p-6 mb-8">
-                            <h3 className="font-display text-lg font-bold uppercase tracking-tight mb-6 text-text-light dark:text-text-dark">
-                                <span className="material-icons text-primary mr-2 align-middle text-base">score</span>
-                                Judging Weights
-                            </h3>
-                            <div className="space-y-4">
-                                {JUDGING_CRITERIA.map((j) => (
-                                    <div key={j.label}>
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span className="font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400">{j.label}</span>
-                                            <span className="font-bold text-primary">{j.pct}%</span>
+                        {/* Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {activeCats.map((cat) => (
+                                <button
+                                    key={cat.id}
+                                    type="button"
+                                    onClick={() => { setSelectedCategory(cat); setIsModalOpen(true); }}
+                                    className={`group relative text-left p-6 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${selectedCategory?.id === cat.id
+                                        ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-lg shadow-primary/10'
+                                        : 'border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 hover:border-primary/30'
+                                        }`}
+                                >
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${selectedCategory?.id === cat.id
+                                            ? 'bg-primary text-white'
+                                            : 'bg-gray-100 dark:bg-white/5 text-gray-500 group-hover:bg-primary group-hover:text-white'
+                                            }`}>
+                                            <span className="material-icons text-2xl">{cat.icon}</span>
                                         </div>
-                                        <div className="w-full bg-gray-200 dark:bg-gray-700 h-1.5">
-                                            <div
-                                                className="bg-primary h-full transition-all duration-700"
-                                                ref={(el) => { if (el) el.style.width = `${j.pct}%`; }}
-                                            ></div>
-                                        </div>
-
-
+                                        {selectedCategory?.id === cat.id && (
+                                            <span className="material-icons text-primary animate-scale-in">check_circle</span>
+                                        )}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
 
-                        {/* Key Dates */}
-                        <div className="bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-800 p-6 mb-8">
-                            <h3 className="font-display text-lg font-bold uppercase tracking-tight mb-6 text-text-light dark:text-text-dark">
-                                <span className="material-icons text-primary mr-2 align-middle text-base">timeline</span>
-                                Key Dates
-                            </h3>
-                            <div className="space-y-5">
-                                {[
-                                    { date: 'Feb 15, 2026', label: 'Nominations Open' },
-                                    { date: 'Mar 10, 2026', label: 'Nominations Close' },
-                                    { date: 'Mar 15, 2026', label: 'Public Voting Opens' },
-                                    { date: 'Mar 24, 2026', label: 'Voting Closes' },
-                                    { date: 'Mar 27, 2026', label: 'Awards Ceremony' },
-                                ].map((item, i) => (
-                                    <div key={i} className="flex gap-3">
-                                        <div className="flex-shrink-0 w-7 h-7 bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">{i + 1}</div>
-                                        <div>
-                                            <div className="text-[10px] font-bold uppercase tracking-widest text-primary">{item.date}</div>
-                                            <div className="text-sm text-text-light dark:text-text-dark">{item.label}</div>
-                                        </div>
+                                    <h4 className="font-display text-sm font-bold uppercase tracking-wide mb-2 text-text-light dark:text-text-dark group-hover:text-primary transition-colors pr-4">
+                                        {cat.name}
+                                    </h4>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
+                                        {cat.description}
+                                    </p>
+
+                                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 flex items-center text-primary text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span>Nominate in this category</span>
+                                        <span className="material-icons text-sm ml-1">arrow_forward</span>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Guidelines */}
-                        <div className="bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-800 p-6 mb-8">
-                            <h3 className="font-display text-lg font-bold uppercase tracking-tight mb-4 text-text-light dark:text-text-dark">
-                                <span className="material-icons text-primary mr-2 align-middle text-base">info</span>
-                                Nomination Guidelines
-                            </h3>
-                            <ul className="space-y-3">
-                                {[
-                                    'Nominee name and organization required',
-                                    'Specify sector / industry',
-                                    'Describe achievements and measurable impact',
-                                    'Supporting documents encouraged',
-                                    'Self-nominations accepted',
-                                    'Nominations close March 10, 2026',
-                                ].map((item, i) => (
-                                    <li key={i} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                        <span className="material-icons text-primary text-xs mt-0.5">check</span>
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Need Help */}
-                        <div className="bg-primary text-white p-6">
-                            <h3 className="font-display text-lg font-bold uppercase mb-3">Need Help?</h3>
-                            <p className="text-sm text-white/80 mb-4">Questions about the nomination process or award categories?</p>
-                            <button
-                                onClick={() => navigate('CONTACT')}
-                                className="border border-white text-white px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-primary transition-all w-full"
-                            >
-                                Contact Us
-                            </button>
+                                </button>
+                            ))}
                         </div>
                     </div>
-
                 </div>
             </div>
+            {/* Nomination Modal */}
+            {isModalOpen && selectedCategory && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+                    <div
+                        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+                        onClick={() => setIsModalOpen(false)}
+                    ></div>
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col relative animate-fade-in-up">
+
+                        {/* Modal Header */}
+                        <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                    <span className="material-icons">{selectedCategory.icon}</span>
+                                </div>
+                                <div>
+                                    <h2 className="font-display text-lg font-bold uppercase tracking-tight text-text-light dark:text-text-dark">Nominate Candidate</h2>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">{selectedCategory.name}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="w-8 h-8 rounded-full bg-gray-200 dark:bg-white/10 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
+                            >
+                                <span className="material-icons text-sm">close</span>
+                            </button>
+                        </div>
+
+                        {/* Modal Body (Scrollable) */}
+                        <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+
+                            {error && (
+                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 mb-6 text-sm rounded-lg flex items-center gap-2">
+                                    <span className="material-icons text-sm">error</span>
+                                    {error}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit} className="space-y-8">
+
+                                {/* Section 1: Nominee Details */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">1. Nominee Details</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Full Name *</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                value={formData.nomineeName}
+                                                onChange={(e) => handleChange('nomineeName', e.target.value)}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                placeholder="Enter full name"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Current Title/Position</label>
+                                            <input
+                                                type="text"
+                                                value={formData.nomineeTitle}
+                                                onChange={(e) => handleChange('nomineeTitle', e.target.value)}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                placeholder="e.g. CEO, Director"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Organization</label>
+                                            <input
+                                                type="text"
+                                                value={formData.nomineeOrganization}
+                                                onChange={(e) => handleChange('nomineeOrganization', e.target.value)}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                placeholder="Organization Name"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Sector / Industry *</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                value={formData.sector}
+                                                onChange={(e) => handleChange('sector', e.target.value)}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                placeholder="e.g. Technology, Finance"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 2: Impact & Achievements */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">2. Impact & Achievements</h3>
+
+                                    <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-lg flex gap-3 text-blue-700 dark:text-blue-400 text-xs leading-relaxed mb-2">
+                                        <span className="material-icons text-sm mt-0.5">info</span>
+                                        <p>Please provide detailed examples of leadership, innovation, and impact. Use specific metrics where possible (e.g., "Increased revenue by 40%", "Mentored 50 women").</p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Key Achievements *</label>
+                                        <textarea
+                                            required
+                                            rows={6}
+                                            value={formData.achievements}
+                                            onChange={(e) => handleChange('achievements', e.target.value)}
+                                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
+                                            placeholder="Describe why this nominee deserves this award..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Measurable Results</label>
+                                        <textarea
+                                            rows={3}
+                                            value={formData.measurableResults}
+                                            onChange={(e) => handleChange('measurableResults', e.target.value)}
+                                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
+                                            placeholder="List concrete impact statistics..."
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Section 3: Nominator Info */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">3. Your Details</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Your Name *</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                value={formData.nominatorName}
+                                                onChange={(e) => handleChange('nominatorName', e.target.value)}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                placeholder="Full Name"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Email Address *</label>
+                                            <input
+                                                required
+                                                type="email"
+                                                value={formData.nominatorEmail}
+                                                onChange={(e) => handleChange('nominatorEmail', e.target.value)}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                placeholder="email@example.com"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Phone Number</label>
+                                            <input
+                                                type="tel"
+                                                value={formData.nominatorPhone}
+                                                onChange={(e) => handleChange('nominatorPhone', e.target.value)}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                placeholder="+250..."
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Submit Button */}
+                                <div className="pt-4 border-t border-gray-100 dark:border-white/10 flex items-center justify-end gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="bg-primary text-white px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    >
+                                        {isSubmitting ? 'Submitting...' : 'Submit Nomination'}
+                                        {!isSubmitting && <span className="material-icons text-sm">send</span>}
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };
