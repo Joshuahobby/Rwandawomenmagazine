@@ -1,3 +1,4 @@
+console.log('[TRACE] Loading server/app.ts');
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
