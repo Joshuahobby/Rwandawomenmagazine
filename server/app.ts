@@ -50,17 +50,32 @@ app.use('/api/votes', votesRoutes);
 // Health check
 app.get('/api/health', async (_req, res) => {
     try {
+        console.log('[Health] Checking database connection...');
         await prisma.$queryRaw`SELECT 1`;
+        console.log('[Health] Database connected.');
         res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
-    } catch {
-        res.status(503).json({ status: 'error', database: 'disconnected' });
+    } catch (error) {
+        console.error('[Health] Database connection failed:', error);
+        res.status(503).json({
+            status: 'error',
+            database: 'disconnected',
+            error: error instanceof Error ? error.message : String(error)
+        });
     }
 });
 
 // Error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Unhandled error at:', _req.url);
+    console.error('Error name:', err.name);
+    console.error('Error message:', err.message);
+    console.error('Error stack:', err.stack);
+
+    res.status(500).json({
+        error: 'Internal server error',
+        message: err.message,
+        path: _req.url
+    });
     void _next;
 });
 

@@ -331,12 +331,12 @@ async function main() {
     console.log('Creating Article Categories & Articles...');
 
     const articleCategories = [
-        { name: 'Business', slug: 'business', description: 'Business news and insights', color: '#DE1A83' },
-        { name: 'Technology', slug: 'technology', description: 'Tech trends and innovation', color: '#3B82F6' },
-        { name: 'Lifestyle', slug: 'lifestyle', description: 'Health, fashion, and living', color: '#10B981' },
-        { name: 'Culture', slug: 'culture', description: 'Art, music, and heritage', color: '#8B5CF6' },
-        { name: 'Events', slug: 'events', description: 'Upcoming events and coverage', color: '#F59E0B' },
-        { name: 'Health', slug: 'health', description: 'Wellness and medical news', color: '#EF4444' },
+        { name: 'Leadership & Empowerment', slug: 'leadership-empowerment', description: 'Women in leadership and community empowerment', color: '#DE1A83' },
+        { name: 'Business & Economy', slug: 'business-economy', description: 'Business news and economic insights', color: '#3B82F6' },
+        { name: 'Culture & Heritage', slug: 'culture-heritage', description: 'Art, music, and Rwandan heritage', color: '#10B981' },
+        { name: 'Health & Wellness', slug: 'health-wellness', description: 'Wellness and medical news', color: '#8B5CF6' },
+        { name: 'Tech & Innovation', slug: 'tech-innovation', description: 'Tech trends and innovation', color: '#F59E0B' },
+        { name: 'Education', slug: 'education', description: 'Educational news and developments', color: '#EF4444' },
     ];
 
     for (const cat of articleCategories) {
