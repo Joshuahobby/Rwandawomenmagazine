@@ -3,6 +3,7 @@ import { Article } from '../types';
 import api from '../services/api';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import NominationBanner from '../components/NominationBanner';
 
 interface HomeProps {
 }
@@ -151,6 +152,9 @@ const Home: React.FC<HomeProps> = () => {
 
   return (
     <div className="animate-fade-in font-sans">
+      
+      {/* Nomination Banner */}
+      <NominationBanner />
 
       {/* Secondary Nav / Categories */}
       <div className="border-b border-gray-200 dark:border-gray-800 bg-surface-light dark:bg-surface-dark overflow-x-auto">
