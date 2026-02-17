@@ -194,7 +194,10 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                 {/* Hero */}
                 <section className="relative bg-black text-white py-24 lg:py-32 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-black/50 to-black"></div>
-                    <div className="absolute inset-0 opacity-20 bg-[url('/patterns/noise.png')]"></div>
+                    <div
+                        className="absolute inset-0 opacity-20"
+                        style={{ backgroundImage: `url('data:image/svg+xml,%3Csvg viewBox=\"0 0 200 200\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cfilter id=\"n\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.65\" numOctaves=\"3\" stitchTiles=\"stitch\"/%3E%3C/filter%3E%3Crect width=\"100%25\" height=\"100%25\" filter=\"url(%23n)\" opacity=\"0.4\"/%3E%3C/svg%3E')` }}
+                    ></div>
                     <div className="container mx-auto px-4 relative z-10 text-center">
                         <div className="inline-flex items-center gap-3 mb-6 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 backdrop-blur-sm">
                             <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
@@ -207,7 +210,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                             Recognize an outstanding Rwandan woman, male champion, or organization making a difference. Choose from <span className="text-white font-bold">28 award categories</span> across Individual, Corporate, and SME sectors.
                         </p>
                     </div>
-                </section>
+                </section >
 
                 <div className="container mx-auto px-4 py-16 lg:py-24">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -394,192 +397,194 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* Nomination Modal */}
-            {isModalOpen && selectedCategory && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-                    <div
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
-                        onClick={() => setIsModalOpen(false)}
-                    ></div>
-                    <div className="bg-white dark:bg-zinc-900 w-full max-w-4xl min-h-[500px] max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col relative z-10 animate-fade-in-up">
+            {
+                isModalOpen && selectedCategory && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+                        <div
+                            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+                            onClick={() => setIsModalOpen(false)}
+                        ></div>
+                        <div className="bg-white dark:bg-zinc-900 w-full max-w-4xl min-h-[500px] max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col relative z-10 animate-fade-in-up">
 
-                        {/* Modal Header */}
-                        <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                                    <span className="material-icons">{selectedCategory.icon}</span>
+                            {/* Modal Header */}
+                            <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                        <span className="material-icons">{selectedCategory.icon}</span>
+                                    </div>
+                                    <div>
+                                        <h2 className="font-display text-lg font-bold uppercase tracking-tight text-text-light dark:text-text-dark">Nominate Candidate</h2>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">{selectedCategory.name}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h2 className="font-display text-lg font-bold uppercase tracking-tight text-text-light dark:text-text-dark">Nominate Candidate</h2>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">{selectedCategory.name}</p>
-                                </div>
+                                <button
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="w-8 h-8 rounded-full bg-gray-200 dark:bg-white/10 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
+                                >
+                                    <span className="material-icons text-sm">close</span>
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="w-8 h-8 rounded-full bg-gray-200 dark:bg-white/10 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
-                            >
-                                <span className="material-icons text-sm">close</span>
-                            </button>
-                        </div>
 
-                        {/* Modal Body (Scrollable) */}
-                        <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+                            {/* Modal Body (Scrollable) */}
+                            <div className="flex-1 overflow-y-auto p-6 sm:p-8">
 
-                            {error && (
-                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 mb-6 text-sm rounded-lg flex items-center gap-2">
-                                    <span className="material-icons text-sm">error</span>
-                                    {error}
-                                </div>
-                            )}
+                                {error && (
+                                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 mb-6 text-sm rounded-lg flex items-center gap-2">
+                                        <span className="material-icons text-sm">error</span>
+                                        {error}
+                                    </div>
+                                )}
 
-                            <form onSubmit={handleSubmit} className="space-y-8">
+                                <form onSubmit={handleSubmit} className="space-y-8">
 
-                                {/* Section 1: Nominee Details */}
-                                <div className="space-y-4">
-                                    <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">1. Nominee Details</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Section 1: Nominee Details */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">1. Nominee Details</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Full Name *</label>
+                                                <input
+                                                    required
+                                                    type="text"
+                                                    value={formData.nomineeName}
+                                                    onChange={(e) => handleChange('nomineeName', e.target.value)}
+                                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                    placeholder="Enter full name"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Current Title/Position</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.nomineeTitle}
+                                                    onChange={(e) => handleChange('nomineeTitle', e.target.value)}
+                                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                    placeholder="e.g. CEO, Director"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Organization</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.nomineeOrganization}
+                                                    onChange={(e) => handleChange('nomineeOrganization', e.target.value)}
+                                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                    placeholder="Organization Name"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Sector / Industry *</label>
+                                                <input
+                                                    required
+                                                    type="text"
+                                                    value={formData.sector}
+                                                    onChange={(e) => handleChange('sector', e.target.value)}
+                                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                    placeholder="e.g. Technology, Finance"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Section 2: Impact & Achievements */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">2. Impact & Achievements</h3>
+
+                                        <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-lg flex gap-3 text-blue-700 dark:text-blue-400 text-xs leading-relaxed mb-2">
+                                            <span className="material-icons text-sm mt-0.5">info</span>
+                                            <p>Please provide detailed examples of leadership, innovation, and impact. Use specific metrics where possible (e.g., "Increased revenue by 40%", "Mentored 50 women").</p>
+                                        </div>
+
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Full Name *</label>
-                                            <input
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Key Achievements *</label>
+                                            <textarea
                                                 required
-                                                type="text"
-                                                value={formData.nomineeName}
-                                                onChange={(e) => handleChange('nomineeName', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                                                placeholder="Enter full name"
+                                                rows={6}
+                                                value={formData.achievements}
+                                                onChange={(e) => handleChange('achievements', e.target.value)}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
+                                                placeholder="Describe why this nominee deserves this award..."
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Current Title/Position</label>
-                                            <input
-                                                type="text"
-                                                value={formData.nomineeTitle}
-                                                onChange={(e) => handleChange('nomineeTitle', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                                                placeholder="e.g. CEO, Director"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Organization</label>
-                                            <input
-                                                type="text"
-                                                value={formData.nomineeOrganization}
-                                                onChange={(e) => handleChange('nomineeOrganization', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                                                placeholder="Organization Name"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Sector / Industry *</label>
-                                            <input
-                                                required
-                                                type="text"
-                                                value={formData.sector}
-                                                onChange={(e) => handleChange('sector', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                                                placeholder="e.g. Technology, Finance"
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Measurable Results</label>
+                                            <textarea
+                                                rows={3}
+                                                value={formData.measurableResults}
+                                                onChange={(e) => handleChange('measurableResults', e.target.value)}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
+                                                placeholder="List concrete impact statistics..."
                                             />
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Section 2: Impact & Achievements */}
-                                <div className="space-y-4">
-                                    <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">2. Impact & Achievements</h3>
-
-                                    <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-lg flex gap-3 text-blue-700 dark:text-blue-400 text-xs leading-relaxed mb-2">
-                                        <span className="material-icons text-sm mt-0.5">info</span>
-                                        <p>Please provide detailed examples of leadership, innovation, and impact. Use specific metrics where possible (e.g., "Increased revenue by 40%", "Mentored 50 women").</p>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Key Achievements *</label>
-                                        <textarea
-                                            required
-                                            rows={6}
-                                            value={formData.achievements}
-                                            onChange={(e) => handleChange('achievements', e.target.value)}
-                                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
-                                            placeholder="Describe why this nominee deserves this award..."
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Measurable Results</label>
-                                        <textarea
-                                            rows={3}
-                                            value={formData.measurableResults}
-                                            onChange={(e) => handleChange('measurableResults', e.target.value)}
-                                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
-                                            placeholder="List concrete impact statistics..."
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Section 3: Nominator Info */}
-                                <div className="space-y-4">
-                                    <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">3. Your Details</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Your Name *</label>
-                                            <input
-                                                required
-                                                type="text"
-                                                value={formData.nominatorName}
-                                                onChange={(e) => handleChange('nominatorName', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                                                placeholder="Full Name"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Email Address *</label>
-                                            <input
-                                                required
-                                                type="email"
-                                                value={formData.nominatorEmail}
-                                                onChange={(e) => handleChange('nominatorEmail', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                                                placeholder="email@example.com"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Phone Number</label>
-                                            <input
-                                                type="tel"
-                                                value={formData.nominatorPhone}
-                                                onChange={(e) => handleChange('nominatorPhone', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                                                placeholder="+250..."
-                                            />
+                                    {/* Section 3: Nominator Info */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">3. Your Details</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Your Name *</label>
+                                                <input
+                                                    required
+                                                    type="text"
+                                                    value={formData.nominatorName}
+                                                    onChange={(e) => handleChange('nominatorName', e.target.value)}
+                                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                    placeholder="Full Name"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Email Address *</label>
+                                                <input
+                                                    required
+                                                    type="email"
+                                                    value={formData.nominatorEmail}
+                                                    onChange={(e) => handleChange('nominatorEmail', e.target.value)}
+                                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                    placeholder="email@example.com"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Phone Number</label>
+                                                <input
+                                                    type="tel"
+                                                    value={formData.nominatorPhone}
+                                                    onChange={(e) => handleChange('nominatorPhone', e.target.value)}
+                                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                                    placeholder="+250..."
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Submit Button */}
-                                <div className="pt-4 border-t border-gray-100 dark:border-white/10 flex items-center justify-end gap-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="bg-primary text-white px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                    >
-                                        {isSubmitting ? 'Submitting...' : 'Submit Nomination'}
-                                        {!isSubmitting && <span className="material-icons text-sm">send</span>}
-                                    </button>
-                                </div>
+                                    {/* Submit Button */}
+                                    <div className="pt-4 border-t border-gray-100 dark:border-white/10 flex items-center justify-end gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsModalOpen(false)}
+                                            className="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="bg-primary text-white px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        >
+                                            {isSubmitting ? 'Submitting...' : 'Submit Nomination'}
+                                            {!isSubmitting && <span className="material-icons text-sm">send</span>}
+                                        </button>
+                                    </div>
 
-                            </form>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </>
     );
 };
