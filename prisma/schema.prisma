@@ -242,7 +242,7 @@ model Nomination {
   nomineeTitle          String?          @map("nominee_title")
   nomineeOrganization   String?          @map("nominee_organization")
   sector                String?
-  achievements          String           @db.Text
+  achievements          String?          @db.Text
   measurableResults     String?          @db.Text @map("measurable_results")
   supportingDocUrl      String?          @map("supporting_doc_url")
   nominatorName         String           @map("nominator_name")

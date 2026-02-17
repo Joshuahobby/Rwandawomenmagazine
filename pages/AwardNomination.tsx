@@ -73,8 +73,6 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
         nomineeTitle: '',
         nomineeOrganization: '',
         sector: '',
-        achievements: '',
-        measurableResults: '',
         nominatorName: '',
         nominatorEmail: '',
         nominatorPhone: '',
@@ -167,7 +165,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                             onClick={() => {
                                 setIsSubmitted(false);
                                 setSelectedCategory(null);
-                                setFormData({ nomineeName: '', nomineeTitle: '', nomineeOrganization: '', sector: '', achievements: '', measurableResults: '', nominatorName: '', nominatorEmail: '', nominatorPhone: '' });
+                                setFormData({ nomineeName: '', nomineeTitle: '', nomineeOrganization: '', sector: '', nominatorName: '', nominatorEmail: '', nominatorPhone: '' });
                             }}
                             className="border border-black dark:border-white text-text-light dark:text-text-dark px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all"
                         >
@@ -489,41 +487,11 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                                         </div>
                                     </div>
 
-                                    {/* Section 2: Impact & Achievements */}
-                                    <div className="space-y-4">
-                                        <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">2. Impact & Achievements</h3>
 
-                                        <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-lg flex gap-3 text-blue-700 dark:text-blue-400 text-xs leading-relaxed mb-2">
-                                            <span className="material-icons text-sm mt-0.5">info</span>
-                                            <p>Please provide detailed examples of leadership, innovation, and impact. Use specific metrics where possible (e.g., "Increased revenue by 40%", "Mentored 50 women").</p>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Key Achievements *</label>
-                                            <textarea
-                                                required
-                                                rows={6}
-                                                value={formData.achievements}
-                                                onChange={(e) => handleChange('achievements', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
-                                                placeholder="Describe why this nominee deserves this award..."
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Measurable Results</label>
-                                            <textarea
-                                                rows={3}
-                                                value={formData.measurableResults}
-                                                onChange={(e) => handleChange('measurableResults', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
-                                                placeholder="List concrete impact statistics..."
-                                            />
-                                        </div>
-                                    </div>
 
                                     {/* Section 3: Nominator Info */}
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">3. Your Details</h3>
+                                        <h3 className="text-sm font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">2. Your Details</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div>
                                                 <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Your Name *</label>
