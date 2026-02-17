@@ -1,4 +1,5 @@
-import { PrismaClient, CategoryGroup } from '@prisma/client';
+import { PrismaClient, CategoryGroup, ArticleStatus, NominationStatus } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -263,16 +264,154 @@ const categories = [
 ];
 
 async function main() {
-    console.log('Start seeding award categories...');
-    for (const cat of categories) {
-        const result = await prisma.awardCategory.upsert({
+    console.log('🌱 Start seeding...');
+
+    // 1. Roles
+    console.log('Creating Roles...');
+    const adminRole = await prisma.role.upsert({
+        where: { name: 'Admin' },
+        update: {},
+        create: { name: 'Admin', description: 'Administrator with full access' },
+    });
+    const editorRole = await prisma.role.upsert({
+        where: { name: 'Editor' },
+        update: {},
+        create: { name: 'Editor', description: 'Can edit and publish content' },
+    });
+    const authorRole = await prisma.role.upsert({
+        where: { name: 'Author' },
+        update: {},
+        create: { name: 'Author', description: 'Can write and submit content' },
+    });
+
+    // 2. Users
+    console.log('Creating Users...');
+    const passwordHash = await bcrypt.hash('password123', 10);
+
+    const adminUser = await prisma.user.upsert({
+        where: { email: 'admin@rwandawomenmagazine.com' },
+        update: {},
+        create: {
+            email: 'admin@rwandawomenmagazine.com',
+            fullName: 'Admin User',
+            passwordHash,
+            roleId: adminRole.id,
+            bio: 'System Administrator',
+            isActive: true,
+        },
+    });
+
+    const editorUser = await prisma.user.upsert({
+        where: { email: 'editor@rwandawomenmagazine.com' },
+        update: {},
+        create: {
+            email: 'editor@rwandawomenmagazine.com',
+            fullName: 'Editor User',
+            passwordHash,
+            roleId: editorRole.id,
+            bio: 'Content Editor',
+            isActive: true,
+        },
+    });
+
+    const authorUser = await prisma.user.upsert({
+        where: { email: 'author@rwandawomenmagazine.com' },
+        update: {},
+        create: {
+            email: 'author@rwandawomenmagazine.com',
+            fullName: 'Author User',
+            passwordHash,
+            roleId: authorRole.id,
+            bio: 'Content Creator',
+            isActive: true,
+        },
+    });
+
+    // 3. Article Categories & Articles
+    console.log('Creating Article Categories & Articles...');
+
+    const articleCategories = [
+        { name: 'Business', slug: 'business', description: 'Business news and insights', color: '#DE1A83' },
+        { name: 'Technology', slug: 'technology', description: 'Tech trends and innovation', color: '#3B82F6' },
+        { name: 'Lifestyle', slug: 'lifestyle', description: 'Health, fashion, and living', color: '#10B981' },
+        { name: 'Culture', slug: 'culture', description: 'Art, music, and heritage', color: '#8B5CF6' },
+        { name: 'Events', slug: 'events', description: 'Upcoming events and coverage', color: '#F59E0B' },
+        { name: 'Health', slug: 'health', description: 'Wellness and medical news', color: '#EF4444' },
+    ];
+
+    for (const cat of articleCategories) {
+        const category = await prisma.category.upsert({
             where: { slug: cat.slug },
             update: cat,
             create: cat,
         });
-        console.log(`Created/Updated category: ${result.name}`);
+
+        // Create 2 articles per category
+        for (let i = 1; i <= 2; i++) {
+            await prisma.article.upsert({
+                where: { slug: `${cat.slug}-article-${i}` },
+                update: {},
+                create: {
+                    title: `${cat.name} Article ${i}: The Future of ${cat.name}`,
+                    slug: `${cat.slug}-article-${i}`,
+                    excerpt: `This is a sample excerpt for a ${cat.name} article. It describes the content briefly.`,
+                    content: `<p>This is the full content for the <strong>${cat.name}</strong> article. It explores various aspects of the topic and provides in-depth analysis.</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>`,
+                    featuredImage: `https://placehold.co/600x400?text=${cat.name}+${i}`,
+                    status: ArticleStatus.published,
+                    authorId: authorUser.id,
+                    categoryId: category.id,
+                    isFeatured: i === 1, // Make the first one featured
+                    publishedAt: new Date(),
+                },
+            });
+        }
+        console.log(`Created Category: ${cat.name} with articles.`);
     }
-    console.log('Seeding finished.');
+
+    // 5. Comments
+    console.log('Creating Comments...');
+    const firstArticle = await prisma.article.findFirst();
+    if (firstArticle) {
+        await prisma.comment.create({
+            data: {
+                articleId: firstArticle.id,
+                name: 'Jane Doe',
+                email: 'jane@example.com',
+                comment: 'Great initiative! Looking forward to reading more.',
+                isApproved: true,
+            },
+        });
+    }
+
+    // 6. Award Categories
+    console.log('Seeding Award Categories...');
+    for (const cat of categories) {
+        await prisma.awardCategory.upsert({
+            where: { slug: cat.slug },
+            update: cat,
+            create: cat,
+        });
+    }
+
+    // 7. Nominations
+    console.log('Creating Sample Nominations...');
+    const awardCat = await prisma.awardCategory.findFirst({ where: { slug: 'women-breaking-barriers' } });
+    if (awardCat) {
+        await prisma.nomination.create({
+            data: {
+                categoryId: awardCat.id,
+                nomineeName: 'Sarah K.',
+                nomineeTitle: 'CEO',
+                nomineeOrganization: 'Construction Ltd',
+                achievements: 'Led major infrastructure projects.',
+                nominatorName: 'John Doe',
+                nominatorEmail: 'john@example.com',
+                status: NominationStatus.approved,
+            },
+        });
+    }
+
+    console.log('✅ Seeding finished.');
 }
 
 main()
