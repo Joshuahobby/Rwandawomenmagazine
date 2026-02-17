@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { PageView, Article } from '../types';
+import { Link, useParams } from 'react-router-dom';
+import { Article } from '../types';
 import api from '../services/api';
 
 interface CategoryPageProps {
-    navigate: (page: PageView, id?: string | null) => void;
-    categorySlug: string | null;
 }
 
 const CATEGORY_META: Record<string, { label: string; description: string; accent: string; icon: string }> = {
@@ -48,7 +47,8 @@ const CATEGORY_META: Record<string, { label: string; description: string; accent
 
 const ALL_CATEGORIES = Object.keys(CATEGORY_META);
 
-const CategoryPage: React.FC<CategoryPageProps> = ({ navigate, categorySlug }) => {
+const CategoryPage: React.FC<CategoryPageProps> = () => {
+    const { slug: categorySlug } = useParams<{ slug: string }>();
     const [articles, setArticles] = useState<Article[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -121,7 +121,10 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ navigate, categorySlug }) =
                             <>
                                 {/* Featured first article */}
                                 {articles[0] && (
-                                    <article className="group cursor-pointer mb-12 pb-12 border-b border-gray-200 dark:border-gray-800" onClick={() => navigate('ARTICLE', articles[0].id)}>
+                                    <Link
+                                        to={`/article/${articles[0].slug}`}
+                                        className="group cursor-pointer mb-12 pb-12 border-b border-gray-200 dark:border-gray-800 block text-inherit decoration-none"
+                                    >
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div className="aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
                                                 <img alt={articles[0].title} src={articles[0].featuredImage || fallbackImage} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" />
@@ -139,20 +142,24 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ navigate, categorySlug }) =
                                                 </div>
                                             </div>
                                         </div>
-                                    </article>
+                                    </Link>
                                 )}
 
                                 {/* Article grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                     {articles.slice(1).map((article) => (
-                                        <article key={article.id} className="group cursor-pointer" onClick={() => navigate('ARTICLE', article.id)}>
+                                        <Link
+                                            to={`/article/${article.slug}`}
+                                            key={article.id}
+                                            className="group cursor-pointer block text-inherit decoration-none"
+                                        >
                                             <div className="aspect-[16/9] overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
                                                 <img alt={article.title} src={article.featuredImage || fallbackImage} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-500" />
                                             </div>
                                             <span className="text-[10px] font-bold uppercase text-gray-400 block mb-1">{new Date(article.publishedAt || article.createdAt).toLocaleDateString()}</span>
                                             <h3 className="font-display text-lg font-bold leading-tight mb-2 group-hover:text-primary transition-colors text-text-light dark:text-text-dark">{article.title}</h3>
                                             <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{article.excerpt}</p>
-                                        </article>
+                                        </Link>
                                     ))}
                                 </div>
 
@@ -192,17 +199,17 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ navigate, categorySlug }) =
                                     const catMeta = CATEGORY_META[catSlug];
                                     const isActive = catSlug === slug;
                                     return (
-                                        <button
+                                        <Link
                                             key={catSlug}
-                                            onClick={() => navigate('CATEGORY', catSlug)}
-                                            className={`w-full text-left flex items-center gap-3 px-3 py-2.5 text-sm transition-colors ${isActive
-                                                    ? 'bg-primary/10 text-primary font-bold border-l-2 border-primary'
-                                                    : 'text-gray-600 dark:text-gray-400 hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                                            to={`/category/${catSlug}`}
+                                            className={`w-full text-left flex items-center gap-3 px-3 py-2.5 text-sm transition-colors decoration-none ${isActive
+                                                ? 'bg-primary/10 text-primary font-bold border-l-2 border-primary'
+                                                : 'text-gray-600 dark:text-gray-400 hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-800/50'
                                                 }`}
                                         >
                                             <span className={`material-icons text-sm ${isActive ? 'text-primary' : 'text-gray-400'}`}>{catMeta.icon}</span>
                                             {catMeta.label}
-                                        </button>
+                                        </Link>
                                     );
                                 })}
                             </div>
@@ -213,12 +220,12 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ navigate, categorySlug }) =
                             <span className="material-icons text-3xl mb-3 block opacity-80">mail</span>
                             <h3 className="font-display text-lg font-bold uppercase mb-2">Stay Updated</h3>
                             <p className="text-sm text-white/80 mb-4">Get the latest stories from {meta.label} delivered to your inbox.</p>
-                            <button
-                                onClick={() => navigate('NEWSLETTER')}
-                                className="border border-white text-white px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-primary transition-all w-full"
+                            <Link
+                                to="/newsletter"
+                                className="border border-white text-white px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-primary transition-all w-full decoration-none inline-block text-center"
                             >
                                 Subscribe
-                            </button>
+                            </Link>
                         </div>
                     </div>
 

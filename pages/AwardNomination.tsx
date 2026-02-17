@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { PageView } from '../types';
 
 interface AwardNominationProps {
-    navigate: (_view: PageView) => void;
+    /* eslint-disable */
+    navigate: (view: PageView) => void;
 }
 
 interface CategoryOption {
@@ -15,7 +16,7 @@ interface CategoryOption {
     group: string;
 }
 
-const API = '/api';
+const API = '';
 
 // Fallback static categories for when API isn't available yet
 const STATIC_CATEGORIES: { INDIVIDUAL: CategoryOption[]; CORPORATE: CategoryOption[]; SME: CategoryOption[] } = {
@@ -187,219 +188,222 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
     const activeCats = categories[activeTab] || [];
 
     return (
-        <div className="animate-fade-in font-sans">
+        <>
+            <div className="animate-fade-in font-sans">
 
-            {/* Hero */}
-            <section className="relative bg-black text-white py-24 lg:py-32 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-black/50 to-black"></div>
-                <div className="absolute inset-0 opacity-20 bg-[url('/patterns/noise.png')]"></div>
-                <div className="container mx-auto px-4 relative z-10 text-center">
-                    <div className="inline-flex items-center gap-3 mb-6 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 backdrop-blur-sm">
-                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/90">Nominations Open until March 10</span>
+                {/* Hero */}
+                <section className="relative bg-black text-white py-24 lg:py-32 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-black/50 to-black"></div>
+                    <div className="absolute inset-0 opacity-20 bg-[url('/patterns/noise.png')]"></div>
+                    <div className="container mx-auto px-4 relative z-10 text-center">
+                        <div className="inline-flex items-center gap-3 mb-6 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 backdrop-blur-sm">
+                            <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/90">Nominations Open until March 10</span>
+                        </div>
+                        <h1 className="font-display text-5xl lg:text-7xl font-black uppercase leading-none tracking-tighter mb-6">
+                            Nominate a <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-pink-400">Leader</span>
+                        </h1>
+                        <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                            Recognize an outstanding Rwandan woman, male champion, or organization making a difference. Choose from <span className="text-white font-bold">28 award categories</span> across Individual, Corporate, and SME sectors.
+                        </p>
                     </div>
-                    <h1 className="font-display text-5xl lg:text-7xl font-black uppercase leading-none tracking-tighter mb-6">
-                        Nominate a <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-pink-400">Leader</span>
-                    </h1>
-                    <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                        Recognize an outstanding Rwandan woman, male champion, or organization making a difference. Choose from <span className="text-white font-bold">28 award categories</span> across Individual, Corporate, and SME sectors.
-                    </p>
-                </div>
-            </section>
+                </section>
 
-            <div className="container mx-auto px-4 py-16 lg:py-24">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                <div className="container mx-auto px-4 py-16 lg:py-24">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-                    {/* Left Sidebar - Context & Info */}
-                    <div className="lg:col-span-4 space-y-8 order-2 lg:order-1">
+                        {/* Left Sidebar - Context & Info */}
+                        <div className="lg:col-span-4 space-y-8 order-2 lg:order-1">
 
-                        {/* Selected Category Info (Sticky) */}
-                        <div className="lg:sticky lg:top-8 space-y-8">
+                            {/* Selected Category Info (Sticky) */}
+                            <div className="lg:sticky lg:top-8 space-y-8">
 
-                            {/* Intro/Welcome (if no category selected) */}
-                            {!selectedCategory && (
-                                <div className="bg-surface-light dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 p-8 rounded-2xl">
-                                    <h3 className="font-display text-xl font-bold uppercase mb-4 text-primary">How to Nominate</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-                                        Select a category from the right to view details and submit your nomination. You can nominate multiple candidates across different categories.
-                                    </p>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                                            <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">1</span>
-                                            <span>Choose a Category</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                                            <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">2</span>
-                                            <span>Fill Nominee Details</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                                            <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">3</span>
-                                            <span>Submit Nomination</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Selected Category Details */}
-                            {selectedCategory && (
-                                <div className="bg-primary text-white p-8 rounded-2xl animate-fade-in shadow-xl shadow-primary/20">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <span className="material-icons text-3xl bg-white/20 p-2 rounded-lg">{selectedCategory.icon}</span>
-                                        <h3 className="font-display text-lg font-bold uppercase leading-tight">{selectedCategory.name}</h3>
-                                    </div>
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">Description</h4>
-                                            <p className="text-sm leading-relaxed opacity-90">{selectedCategory.description}</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">Criteria</h4>
-                                            <p className="text-sm leading-relaxed opacity-90">{selectedCategory.criteria}</p>
-                                        </div>
-                                        <button
-                                            onClick={() => setIsModalOpen(true)}
-                                            className="w-full bg-white text-primary py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <span className="material-icons text-sm">edit</span>
-                                            Nominate Now
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Judging Weights */}
-                            <div className="bg-surface-light dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 p-8 rounded-2xl">
-                                <h3 className="font-display text-lg font-bold uppercase tracking-tight mb-6 text-text-light dark:text-text-dark flex items-center gap-2">
-                                    <span className="material-icons text-primary text-lg">scale</span>
-                                    Judging Criteria
-                                </h3>
-                                <div className="space-y-5">
-                                    {JUDGING_CRITERIA.map((j) => (
-                                        <div key={j.label}>
-                                            <div className="flex justify-between text-xs mb-2">
-                                                <span className="font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400">{j.label}</span>
-                                                <span className="font-bold text-primary">{j.pct}%</span>
+                                {/* Intro/Welcome (if no category selected) */}
+                                {!selectedCategory && (
+                                    <div className="bg-surface-light dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 p-8 rounded-2xl">
+                                        <h3 className="font-display text-xl font-bold uppercase mb-4 text-primary">How to Nominate</h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                                            Select a category from the right to view details and submit your nomination. You can nominate multiple candidates across different categories.
+                                        </p>
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                                                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">1</span>
+                                                <span>Choose a Category</span>
                                             </div>
-                                            <div className="w-full bg-gray-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
-                                                <div
-                                                    className="bg-primary h-full rounded-full transition-all duration-1000 ease-out"
-                                                    // eslint-disable-next-line
-                                                    style={{ width: `${j.pct}%` }}
-                                                ></div>
+                                            <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                                                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">2</span>
+                                                <span>Fill Nominee Details</span>
+                                            </div>
+                                            <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                                                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">3</span>
+                                                <span>Submit Nomination</span>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
+                                    </div>
+                                )}
 
-                            {/* Key Dates */}
-                            <div className="bg-surface-light dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 p-8 rounded-2xl">
-                                <h3 className="font-display text-lg font-bold uppercase tracking-tight mb-6 text-text-light dark:text-text-dark flex items-center gap-2">
-                                    <span className="material-icons text-primary text-lg">event</span>
-                                    Timeline
-                                </h3>
-                                <div className="space-y-6">
-                                    {[
-                                        { date: 'Feb 15, 2026', label: 'Nominations Open', active: true },
-                                        { date: 'Mar 10, 2026', label: 'Nominations Close' },
-                                        { date: 'Mar 15, 2026', label: 'Public Voting Opens' },
-                                        { date: 'Mar 27, 2026', label: 'Awards Ceremony' },
-                                    ].map((item, i) => (
-                                        <div key={i} className={`flex gap-4 relative ${item.active ? 'opacity-100' : 'opacity-60'}`}>
-                                            {i !== 3 && <div className="absolute left-[11px] top-7 bottom-[-24px] w-px bg-gray-200 dark:bg-white/10"></div>}
-                                            <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold z-10 ${item.active ? 'bg-primary text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'}`}>
-                                                {i + 1}
+                                {/* Selected Category Details */}
+                                {selectedCategory && (
+                                    <div className="bg-primary text-white p-8 rounded-2xl animate-fade-in shadow-xl shadow-primary/20">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <span className="material-icons text-3xl bg-white/20 p-2 rounded-lg">{selectedCategory.icon}</span>
+                                            <h3 className="font-display text-lg font-bold uppercase leading-tight">{selectedCategory.name}</h3>
+                                        </div>
+                                        <div className="space-y-6">
+                                            <div>
+                                                <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">Description</h4>
+                                                <p className="text-sm leading-relaxed opacity-90">{selectedCategory.description}</p>
                                             </div>
                                             <div>
-                                                <div className={`text-[10px] font-bold uppercase tracking-widest mb-0.5 ${item.active ? 'text-primary' : 'text-gray-500'}`}>{item.date}</div>
-                                                <div className="text-sm font-medium text-text-light dark:text-text-dark">{item.label}</div>
+                                                <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">Criteria</h4>
+                                                <p className="text-sm leading-relaxed opacity-90">{selectedCategory.criteria}</p>
                                             </div>
+                                            <button
+                                                onClick={() => setIsModalOpen(true)}
+                                                className="w-full bg-white text-primary py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <span className="material-icons text-sm">edit</span>
+                                                Nominate Now
+                                            </button>
                                         </div>
-                                    ))}
+                                    </div>
+                                )}
+
+                                {/* Judging Weights */}
+                                <div className="bg-surface-light dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 p-8 rounded-2xl">
+                                    <h3 className="font-display text-lg font-bold uppercase tracking-tight mb-6 text-text-light dark:text-text-dark flex items-center gap-2">
+                                        <span className="material-icons text-primary text-lg">scale</span>
+                                        Judging Criteria
+                                    </h3>
+                                    <div className="space-y-5">
+                                        {JUDGING_CRITERIA.map((j) => (
+                                            <div key={j.label}>
+                                                <div className="flex justify-between text-xs mb-2">
+                                                    <span className="font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400">{j.label}</span>
+                                                    <span className="font-bold text-primary">{j.pct}%</span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="bg-primary h-full rounded-full transition-all duration-1000 ease-out progress-bar-fill"
+                                                        /* eslint-disable */
+                                                        style={{ '--progress-width': `${j.pct}%` } as any}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
+
+                                {/* Key Dates */}
+                                <div className="bg-surface-light dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 p-8 rounded-2xl">
+                                    <h3 className="font-display text-lg font-bold uppercase tracking-tight mb-6 text-text-light dark:text-text-dark flex items-center gap-2">
+                                        <span className="material-icons text-primary text-lg">event</span>
+                                        Timeline
+                                    </h3>
+                                    <div className="space-y-6">
+                                        {[
+                                            { date: 'Feb 15, 2026', label: 'Nominations Open', active: true },
+                                            { date: 'Mar 10, 2026', label: 'Nominations Close' },
+                                            { date: 'Mar 15, 2026', label: 'Public Voting Opens' },
+                                            { date: 'Mar 27, 2026', label: 'Awards Ceremony' },
+                                        ].map((item, i) => (
+                                            <div key={i} className={`flex gap-4 relative ${item.active ? 'opacity-100' : 'opacity-60'}`}>
+                                                {i !== 3 && <div className="absolute left-[11px] top-7 bottom-[-24px] w-px bg-gray-200 dark:bg-white/10"></div>}
+                                                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold z-10 ${item.active ? 'bg-primary text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'}`}>
+                                                    {i + 1}
+                                                </div>
+                                                <div>
+                                                    <div className={`text-[10px] font-bold uppercase tracking-widest mb-0.5 ${item.active ? 'text-primary' : 'text-gray-500'}`}>{item.date}</div>
+                                                    <div className="text-sm font-medium text-text-light dark:text-text-dark">{item.label}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        {/* Right Content - Categories */}
+                        <div className="lg:col-span-8 order-1 lg:order-2">
+
+                            {/* Section Header */}
+                            <div className="mb-10">
+                                <h2 className="font-display text-3xl font-bold uppercase tracking-tight mb-4 text-text-light dark:text-text-dark">
+                                    Select a Category
+                                </h2>
+                                <p className="text-gray-500 dark:text-gray-400">
+                                    Choose the most appropriate category for your nominee. Click on any card to view details and start the nomination.
+                                </p>
                             </div>
 
-                        </div>
-                    </div>
+                            {/* Tabs */}
+                            <div className="flex flex-wrap gap-2 mb-8 bg-gray-100 dark:bg-white/5 p-1.5 rounded-xl inline-flex">
+                                {([['INDIVIDUAL', 'Individual'], ['CORPORATE', 'Corporate'], ['SME', 'SME']] as const).map(([key, label]) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => { setActiveTab(key); setSelectedCategory(null); }}
+                                        className={`px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === key
+                                            ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-md'
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
+                                            }`}
+                                    >
+                                        {label} <span className="opacity-50 ml-1 text-[10px]">({categories[key]?.length || 0})</span>
+                                    </button>
+                                ))}
+                            </div>
 
-                    {/* Right Content - Categories */}
-                    <div className="lg:col-span-8 order-1 lg:order-2">
-
-                        {/* Section Header */}
-                        <div className="mb-10">
-                            <h2 className="font-display text-3xl font-bold uppercase tracking-tight mb-4 text-text-light dark:text-text-dark">
-                                Select a Category
-                            </h2>
-                            <p className="text-gray-500 dark:text-gray-400">
-                                Choose the most appropriate category for your nominee. Click on any card to view details and start the nomination.
-                            </p>
-                        </div>
-
-                        {/* Tabs */}
-                        <div className="flex flex-wrap gap-2 mb-8 bg-gray-100 dark:bg-white/5 p-1.5 rounded-xl inline-flex">
-                            {([['INDIVIDUAL', 'Individual'], ['CORPORATE', 'Corporate'], ['SME', 'SME']] as const).map(([key, label]) => (
-                                <button
-                                    key={key}
-                                    onClick={() => { setActiveTab(key); setSelectedCategory(null); }}
-                                    className={`px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === key
-                                        ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-md'
-                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
-                                        }`}
-                                >
-                                    {label} <span className="opacity-50 ml-1 text-[10px]">({categories[key]?.length || 0})</span>
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {activeCats.map((cat) => (
-                                <button
-                                    key={cat.id}
-                                    type="button"
-                                    onClick={() => { setSelectedCategory(cat); setIsModalOpen(true); }}
-                                    className={`group relative text-left p-6 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${selectedCategory?.id === cat.id
-                                        ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-lg shadow-primary/10'
-                                        : 'border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 hover:border-primary/30'
-                                        }`}
-                                >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${selectedCategory?.id === cat.id
-                                            ? 'bg-primary text-white'
-                                            : 'bg-gray-100 dark:bg-white/5 text-gray-500 group-hover:bg-primary group-hover:text-white'
-                                            }`}>
-                                            <span className="material-icons text-2xl">{cat.icon}</span>
+                            {/* Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {activeCats.map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        type="button"
+                                        onClick={() => { setSelectedCategory(cat); setIsModalOpen(true); }}
+                                        className={`group relative text-left p-6 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${selectedCategory?.id === cat.id
+                                            ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-lg shadow-primary/10'
+                                            : 'border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 hover:border-primary/30'
+                                            }`}
+                                    >
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${selectedCategory?.id === cat.id
+                                                ? 'bg-primary text-white'
+                                                : 'bg-gray-100 dark:bg-white/5 text-gray-500 group-hover:bg-primary group-hover:text-white'
+                                                }`}>
+                                                <span className="material-icons text-2xl">{cat.icon}</span>
+                                            </div>
+                                            {selectedCategory?.id === cat.id && (
+                                                <span className="material-icons text-primary animate-scale-in">check_circle</span>
+                                            )}
                                         </div>
-                                        {selectedCategory?.id === cat.id && (
-                                            <span className="material-icons text-primary animate-scale-in">check_circle</span>
-                                        )}
-                                    </div>
 
-                                    <h4 className="font-display text-sm font-bold uppercase tracking-wide mb-2 text-text-light dark:text-text-dark group-hover:text-primary transition-colors pr-4">
-                                        {cat.name}
-                                    </h4>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
-                                        {cat.description}
-                                    </p>
+                                        <h4 className="font-display text-sm font-bold uppercase tracking-wide mb-2 text-text-light dark:text-text-dark group-hover:text-primary transition-colors pr-4">
+                                            {cat.name}
+                                        </h4>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
+                                            {cat.description}
+                                        </p>
 
-                                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 flex items-center text-primary text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span>Nominate in this category</span>
-                                        <span className="material-icons text-sm ml-1">arrow_forward</span>
-                                    </div>
-                                </button>
-                            ))}
+                                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 flex items-center text-primary text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span>Nominate in this category</span>
+                                            <span className="material-icons text-sm ml-1">arrow_forward</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
             {/* Nomination Modal */}
             {isModalOpen && selectedCategory && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
                     <div
-                        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
                         onClick={() => setIsModalOpen(false)}
                     ></div>
-                    <div className="bg-white dark:bg-zinc-900 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col relative animate-fade-in-up">
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-4xl min-h-[500px] max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col relative z-10 animate-fade-in-up">
 
                         {/* Modal Header */}
                         <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
@@ -576,8 +580,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                     </div>
                 </div>
             )}
-
-        </div>
+        </>
     );
 };
 

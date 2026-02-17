@@ -1,22 +1,21 @@
 import React from 'react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
-import { PageView } from '../types';
+
 
 interface LayoutProps {
   children: React.ReactNode;
-  navigate: (page: PageView) => void;
-  currentPage: PageView;
+  currentPage: string;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, navigate, currentPage }) => {
+const Layout: React.FC<LayoutProps> = ({ children, currentPage }) => {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar navigate={navigate} currentPage={currentPage} />
+      <Navbar currentPage={currentPage} />
       <main className="flex-grow">
         {children}
       </main>
-      <Footer navigate={navigate} />
+      <Footer />
     </div>
   );
 };

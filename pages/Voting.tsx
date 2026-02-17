@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { PageView } from '../types';
 
+/* eslint-disable */
 interface VotingProps {
-    navigate: (page: PageView) => void;
+    navigate: (page: PageView, id?: string | null) => void;
 }
+/* eslint-enable */
 
 interface NomineeResult {
     nominationId: string;
@@ -23,7 +25,7 @@ interface CategoryResult {
     nominees: NomineeResult[];
 }
 
-const API = '/api';
+const API = '';
 
 const GROUP_LABELS: Record<string, string> = {
     INDIVIDUAL: 'Individual Awards',
@@ -69,7 +71,7 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
                 }
                 setFingerprint(Math.abs(hash).toString(16) + '-' + navigator.hardwareConcurrency + '-' + screen.colorDepth);
             }
-        } catch (e) {
+        } catch (_e) {
             setFingerprint('fp-' + Math.random().toString(36).substring(2, 9));
         }
     };

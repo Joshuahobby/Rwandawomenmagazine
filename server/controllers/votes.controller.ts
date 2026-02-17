@@ -21,7 +21,7 @@ export const issueTicket = async (req: Request, res: Response) => {
         );
 
         res.json({ ticket });
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: 'Failed to issue voting ticket' });
     }
 };
@@ -46,12 +46,12 @@ export const castVote = async (req: Request, res: Response) => {
 
         // 1. Verify Signed Ticket
         try {
-            const decoded = jwt.verify(ticket, TICKET_SECRET) as any;
+            const decoded = jwt.verify(ticket, TICKET_SECRET) as { ip: string };
             if (decoded.ip !== voterIp) {
                 res.status(403).json({ error: 'Invalid security ticket (IP mismatch)' });
                 return;
             }
-        } catch (err) {
+        } catch {
             res.status(403).json({ error: 'Session expired or invalid ticket. Please refresh.' });
             return;
         }
@@ -88,8 +88,6 @@ export const castVote = async (req: Request, res: Response) => {
             .update(`${voterIp}|${fingerprint || 'unknown'}|${nomination.categoryId}|${dateStr}`)
             .digest('hex');
 
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
         const vote = await prisma.vote.create({
             data: {
                 nominationId,
@@ -100,13 +98,14 @@ export const castVote = async (req: Request, res: Response) => {
         });
 
         res.status(201).json({ success: true, voteId: vote.id });
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const error = err as { code?: string; message: string };
         // Handle unique constraint violation (fallback)
-        if (err.code === 'P2002') {
+        if (error.code === 'P2002') {
             res.status(409).json({ error: 'You have already voted in this category' });
             return;
         }
-        console.error('Error casting vote:', err);
+        console.error('Error casting vote:', error);
         res.status(500).json({ error: 'Failed to cast vote' });
     }
 };

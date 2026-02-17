@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
-import Home from './pages/Home';
-import Article from './pages/Article';
-import Search from './pages/Search';
-import Archive from './pages/Archive';
-import Dashboard from './pages/Dashboard';
-import Editor from './pages/Editor';
-import Subscribe from './pages/Subscribe';
-import Contact from './pages/Contact';
-import About from './pages/About';
-import Partners from './pages/Partners';
-import MemberProfile from './pages/MemberProfile';
-import Login from './pages/Login';
-import Events from './pages/Events';
-import AwardNomination from './pages/AwardNomination';
-import Newsletter from './pages/Newsletter';
-import CategoryPage from './pages/CategoryPage';
-import Voting from './pages/Voting';
-import { PageView } from './types';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { PageView } from './types';
+
+// Lazy Load Pages
+const Home = React.lazy(() => import('./pages/Home'));
+const Article = React.lazy(() => import('./pages/Article'));
+const Search = React.lazy(() => import('./pages/Search'));
+const Archive = React.lazy(() => import('./pages/Archive'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Editor = React.lazy(() => import('./pages/Editor'));
+const Subscribe = React.lazy(() => import('./pages/Subscribe'));
+const Contact = React.lazy(() => import('./pages/Contact'));
+const About = React.lazy(() => import('./pages/About'));
+const Partners = React.lazy(() => import('./pages/Partners'));
+const MemberProfile = React.lazy(() => import('./pages/MemberProfile'));
+const Login = React.lazy(() => import('./pages/Login'));
+const Events = React.lazy(() => import('./pages/Events'));
+const AwardNomination = React.lazy(() => import('./pages/AwardNomination'));
+const Newsletter = React.lazy(() => import('./pages/Newsletter'));
+const CategoryPage = React.lazy(() => import('./pages/CategoryPage'));
+const Voting = React.lazy(() => import('./pages/Voting'));
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<PageView>('HOME');
+  const navigateHook = useNavigate();
+  const location = useLocation();
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -29,15 +33,32 @@ export default function App() {
   // Simple scroll to top on page change
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [currentPage]);
+  }, [location.pathname]);
 
   const navigate = (page: PageView, id?: string | null) => {
     if (id) {
       setEditingArticleId(id);
-    } else if (page !== 'EDITOR') {
-      setEditingArticleId(null);
     }
-    setCurrentPage(page);
+
+    switch (page) {
+      case 'HOME': navigateHook('/'); break;
+      case 'ARTICLE': navigateHook(`/article/${id}`); break;
+      case 'CATEGORY': navigateHook(`/category/${id}`); break;
+      case 'SEARCH': navigateHook('/search'); break;
+      case 'EVENTS': navigateHook('/events'); break;
+      case 'VOTING': navigateHook('/voting'); break;
+      case 'NOMINATION': navigateHook('/nomination'); break;
+      case 'LOGIN': navigateHook('/login'); break;
+      case 'DASHBOARD': navigateHook('/dashboard'); break;
+      case 'EDITOR': navigateHook(`/editor${id ? `/${id}` : ''}`); break;
+      case 'NEWSLETTER': navigateHook('/newsletter'); break;
+      case 'ABOUT': navigateHook('/about'); break;
+      case 'CONTACT': navigateHook('/contact'); break;
+      case 'SUBSCRIBE': navigateHook('/subscribe'); break;
+      case 'PARTNERS': navigateHook('/partners'); break;
+      case 'MEMBER_PROFILE': navigateHook('/member-profile'); break;
+      case 'ARCHIVE': navigateHook('/archive'); break;
+    }
   };
 
   // Loading state
@@ -49,42 +70,55 @@ export default function App() {
     );
   }
 
-  // Handle protected routes
-  if ((currentPage === 'DASHBOARD' || currentPage === 'EDITOR') && !isAuthenticated) {
+  // Handle protected routes (simplified for now, ideally use a ProtectedRoute component)
+  const isProtectedPath = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/editor');
+  if (isProtectedPath && !isAuthenticated) {
     return <Login navigate={navigate} />;
   }
 
-  if (currentPage === 'LOGIN') {
-    return <Login navigate={navigate} />;
-  }
-
-  // Editor and Dashboard typically don't share the main public layout in full
-  if (currentPage === 'DASHBOARD' && isAuthenticated) {
+  // Dashboard and Editor layouts
+  if (location.pathname === '/dashboard' && isAuthenticated) {
     return <Dashboard navigate={navigate} />;
   }
 
-  if (currentPage === 'EDITOR' && isAuthenticated) {
-    return <Editor navigate={navigate} articleId={editingArticleId} />;
+  if (location.pathname.startsWith('/editor') && isAuthenticated) {
+    // Extract ID from path if possible, or use editingArticleId
+    const pathParts = location.pathname.split('/');
+    const idFromPath = pathParts.length > 2 ? pathParts[2] : null;
+    return <Editor navigate={navigate} articleId={idFromPath || editingArticleId} />;
+  }
+
+  if (location.pathname === '/login') {
+    return <Login navigate={navigate} />;
   }
 
 
   // The rest use the standard public layout
+  // The rest use the standard public layout
   return (
-    <Layout navigate={navigate} currentPage={currentPage}>
-      {currentPage === 'HOME' && <Home navigate={navigate} />}
-      {currentPage === 'ARTICLE' && <Article navigate={navigate} articleId={editingArticleId} />}
-      {currentPage === 'SEARCH' && <Search navigate={navigate} />}
-      {currentPage === 'ARCHIVE' && <Archive navigate={navigate} />}
-      {currentPage === 'SUBSCRIBE' && <Subscribe navigate={navigate} />}
-      {currentPage === 'CONTACT' && <Contact navigate={navigate} />}
-      {currentPage === 'ABOUT' && <About navigate={navigate} />}
-      {currentPage === 'PARTNERS' && <Partners navigate={navigate} />}
-      {currentPage === 'MEMBER_PROFILE' && <MemberProfile navigate={navigate} />}
-      {currentPage === 'EVENTS' && <Events navigate={navigate} />}
-      {currentPage === 'NOMINATION' && <AwardNomination navigate={navigate} />}
-      {currentPage === 'NEWSLETTER' && <Newsletter navigate={navigate} />}
-      {currentPage === 'CATEGORY' && <CategoryPage navigate={navigate} categorySlug={editingArticleId} />}
-      {currentPage === 'VOTING' && <Voting navigate={navigate} />}
+    <Layout currentPage={location.pathname}>
+      <React.Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      }>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/article/:slug" element={<Article />} />
+          <Route path="/category/:slug" element={<CategoryPage />} />
+          <Route path="/search" element={<Search navigate={navigate} />} />
+          <Route path="/archive" element={<Archive navigate={navigate} />} />
+          <Route path="/subscribe" element={<Subscribe navigate={navigate} />} />
+          <Route path="/contact" element={<Contact navigate={navigate} />} />
+          <Route path="/about" element={<About navigate={navigate} />} />
+          <Route path="/partners" element={<Partners navigate={navigate} />} />
+          <Route path="/member-profile" element={<MemberProfile navigate={navigate} />} />
+          <Route path="/events" element={<Events navigate={navigate} />} />
+          <Route path="/nomination" element={<AwardNomination navigate={navigate} />} />
+          <Route path="/newsletter" element={<Newsletter navigate={navigate} />} />
+          <Route path="/voting" element={<Voting navigate={navigate} />} />
+        </Routes>
+      </React.Suspense>
     </Layout>
   );
 }

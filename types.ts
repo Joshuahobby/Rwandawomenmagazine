@@ -20,6 +20,11 @@ export type PageView =
   | 'CATEGORY'
   | 'VOTING';
 
+export interface Tag {
+  id: number;
+  name: string;
+  slug: string;
+}
 
 export interface Article {
   id: string;
@@ -43,7 +48,7 @@ export interface Article {
   };
   createdAt: string;
   publishedAt?: string;
-  tags?: any[];
+  tags?: Tag[];
 }
 
 export interface Media {
@@ -72,4 +77,14 @@ export interface TeamMember {
   name: string;
   role: string;
   image: string;
+}
+
+export interface Comment {
+  id: string;
+  articleId: string;
+  name: string;
+  email: string;
+  comment: string;
+  isApproved: boolean;
+  createdAt: string;
 }

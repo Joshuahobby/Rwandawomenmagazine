@@ -64,9 +64,9 @@ app.get('/api/health', async (_req, res) => {
     }
 });
 
-// Error handler
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    console.error('Unhandled error at:', _req.url);
+// Error handler — Express requires all 4 args to identify this as an error handler
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    console.error('Unhandled error at:', req.url);
     console.error('Error name:', err.name);
     console.error('Error message:', err.message);
     console.error('Error stack:', err.stack);
@@ -74,9 +74,8 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
     res.status(500).json({
         error: 'Internal server error',
         message: err.message,
-        path: _req.url
+        path: req.url
     });
-    void _next;
 });
 
 export default app;

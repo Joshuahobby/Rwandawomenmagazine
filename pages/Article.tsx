@@ -1,28 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { PageView, Article as ArticleType } from '../types';
+import { Link, useParams } from 'react-router-dom';
+import type { Article as ArticleType, Comment as CommentType } from '../types';
 import api from '../services/api';
 
 interface ArticleProps {
-    navigate: (page: PageView, id?: string) => void;
-    articleId?: string | null;
 }
 
-const Article: React.FC<ArticleProps> = ({ navigate, articleId }) => {
+const Article: React.FC<ArticleProps> = () => {
+    const { slug } = useParams<{ slug: string }>();
     const [article, setArticle] = useState<ArticleType | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     // Comments state
-    const [comments, setComments] = useState<any[]>([]);
+    const [comments, setComments] = useState<CommentType[]>([]);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
     const [commentForm, setCommentForm] = useState({ name: '', email: '', comment: '' });
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const [commentFeedback, setCommentFeedback] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
 
-    const fetchComments = useCallback(async (id: string) => {
+    const fetchComments = useCallback(async (articleId: string) => {
         setIsCommentsLoading(true);
         try {
-            const response = await api.get(`/comments/${id}?approved=true`);
+            const response = await api.get(`/comments/${articleId}?approved=true`);
             setComments(response.data || []);
         } catch (err) {
             console.error('Failed to fetch comments:', err);
@@ -33,16 +33,19 @@ const Article: React.FC<ArticleProps> = ({ navigate, articleId }) => {
 
     useEffect(() => {
         const fetchArticle = async () => {
-            if (!articleId) {
+            if (!slug) {
                 setError('Article not found');
                 setIsLoading(false);
                 return;
             }
 
             try {
-                const response = await api.get(`/articles/id/${articleId}`);
-                setArticle(response.data);
-                fetchComments(articleId);
+                const response = await api.get(`/articles/${slug}`);
+                const articleData = response.data;
+                setArticle(articleData);
+                if (articleData.id) {
+                    fetchComments(articleData.id);
+                }
             } catch (err) {
                 console.error('Failed to fetch article:', err);
                 setError('Failed to load article');
@@ -52,23 +55,23 @@ const Article: React.FC<ArticleProps> = ({ navigate, articleId }) => {
         };
 
         fetchArticle();
-    }, [articleId, fetchComments]);
+    }, [slug, fetchComments]);
 
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!articleId || isSubmittingComment) return;
+        if (!article?.id || isSubmittingComment) return;
 
         setIsSubmittingComment(true);
         setCommentFeedback(null);
 
         try {
-            await api.post(`/comments/${articleId}`, commentForm);
+            await api.post(`/comments/${article.id}`, commentForm);
             setCommentFeedback({
                 type: 'success',
                 msg: 'Thank you! Your comment has been submitted and is awaiting moderation.'
             });
             setCommentForm({ name: '', email: '', comment: '' });
-        } catch (err) {
+        } catch {
             setCommentFeedback({
                 type: 'error',
                 msg: 'Failed to post comment. Please try again.'
@@ -94,9 +97,9 @@ const Article: React.FC<ArticleProps> = ({ navigate, articleId }) => {
             <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Article Not Found</h2>
-                    <button onClick={() => navigate('HOME')} className="text-primary hover:underline">
+                    <Link to="/" className="text-primary hover:underline">
                         Go back home
-                    </button>
+                    </Link>
                 </div>
             </div>
         );
@@ -184,7 +187,7 @@ const Article: React.FC<ArticleProps> = ({ navigate, articleId }) => {
                             <div className="flex justify-center md:justify-start space-x-4 text-sm font-medium">
                                 <button className="text-gray-400 hover:text-primary transition-colors cursor-pointer">Follow</button>
                                 <span className="text-gray-300">•</span>
-                                <button onClick={() => navigate('HOME')} className="text-gray-400 hover:text-primary transition-colors cursor-pointer">More Articles</button>
+                                <Link to="/" className="text-gray-400 hover:text-primary transition-colors cursor-pointer decoration-none">More Articles</Link>
                             </div>
                         </div>
                     </div>

@@ -3,13 +3,6 @@ import { AuthRequest } from './auth';
 
 type RoleName = 'Admin' | 'Editor' | 'Author' | 'Contributor';
 
-const ROLE_HIERARCHY: Record<RoleName, number> = {
-    Admin: 4,
-    Editor: 3,
-    Author: 2,
-    Contributor: 1,
-};
-
 /**
  * Require at least the given role level.
  * E.g. requireRole('Editor') allows Editor and Admin.

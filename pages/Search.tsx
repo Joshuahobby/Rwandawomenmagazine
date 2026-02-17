@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { PageView, Article } from '../types';
 import api from '../services/api';
 
+/* eslint-disable */
 interface SearchProps {
     navigate: (page: PageView, id?: string | null) => void;
 }
+/* eslint-enable */
 
 const Search: React.FC<SearchProps> = ({ navigate }) => {
     const [searchQuery, setSearchQuery] = useState('Leadership');
@@ -90,7 +92,7 @@ const Search: React.FC<SearchProps> = ({ navigate }) => {
                             <h4 className="font-bold text-lg text-gray-800 dark:text-gray-200">Category</h4>
                             <div className="space-y-3">
                                 <label className="flex items-center cursor-pointer group">
-                                    <input type="checkbox" className="form-checkbox h-5 w-5 text-primary border-gray-300 rounded focus:ring-primary" checked />
+                                    <input type="checkbox" className="form-checkbox h-5 w-5 text-primary border-gray-300 rounded focus:ring-primary" defaultChecked />
                                     <span className="ml-3 text-lg text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors">All Categories</span>
                                 </label>
                                 {/* Results will be filtered by search query which includes categories in backend */}

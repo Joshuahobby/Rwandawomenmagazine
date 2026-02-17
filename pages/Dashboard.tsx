@@ -26,6 +26,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
     });
     const [recentArticles, setRecentArticles] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -56,14 +57,29 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
         navigate('HOME');
     };
 
+    const closeSidebar = () => setIsSidebarOpen(false);
+
+    const handleTabChange = (tab: any) => {
+        setActiveTab(tab);
+        closeSidebar();
+    };
+
     const handleEditArticle = (id: string) => {
         navigate('EDITOR', id);
     };
 
     return (
         <div className="flex h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 font-display overflow-hidden animate-fade-in">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/50 md:hidden backdrop-blur-sm transition-opacity"
+                    onClick={closeSidebar}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="w-64 bg-background-dark flex flex-col h-full border-r border-white/5">
+            <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-background-dark flex flex-col h-full border-r border-white/5 transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="h-24 flex items-center justify-center px-4 border-b border-white/10 cursor-pointer" onClick={() => navigate('HOME')}>
                     <img
                         src="/uploads/logo.png"
@@ -74,49 +90,49 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                 <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
                     <p className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Main Menu</p>
                     <button
-                        onClick={() => setActiveTab('OVERVIEW')}
+                        onClick={() => handleTabChange('OVERVIEW')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'OVERVIEW' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                     >
                         <span className="material-icons text-xl">dashboard</span>
                         <span className="font-medium text-sm">Overview</span>
                     </button>
                     <button
-                        onClick={() => setActiveTab('ARTICLES')}
+                        onClick={() => handleTabChange('ARTICLES')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'ARTICLES' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                     >
                         <span className="material-icons text-xl">article</span>
                         <span className="font-medium text-sm">Articles</span>
                     </button>
                     <button
-                        onClick={() => setActiveTab('MEDIA')}
+                        onClick={() => handleTabChange('MEDIA')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'MEDIA' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                     >
                         <span className="material-icons text-xl">perm_media</span>
                         <span className="font-medium text-sm">Media Library</span>
                     </button>
                     <button
-                        onClick={() => setActiveTab('COMMENTS')}
+                        onClick={() => handleTabChange('COMMENTS')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'COMMENTS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                     >
                         <span className="material-icons text-xl">forum</span>
                         <span className="font-medium text-sm">Comments</span>
                     </button>
                     <button
-                        onClick={() => setActiveTab('SUBSCRIBERS')}
+                        onClick={() => handleTabChange('SUBSCRIBERS')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'SUBSCRIBERS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                     >
                         <span className="material-icons text-xl">mail</span>
                         <span className="font-medium text-sm">Subscribers</span>
                     </button>
                     <button
-                        onClick={() => setActiveTab('NOMINATIONS')}
+                        onClick={() => handleTabChange('NOMINATIONS')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'NOMINATIONS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                     >
                         <span className="material-icons text-xl">emoji_events</span>
                         <span className="font-medium text-sm">RWIBA 2026</span>
                     </button>
                     <button
-                        onClick={() => setActiveTab('USERS')}
+                        onClick={() => handleTabChange('USERS')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'USERS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                     >
                         <span className="material-icons text-xl">people</span>
@@ -125,7 +141,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                     <div className="pt-6 mt-6 border-t border-white/10">
                         <p className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Settings</p>
                         <button
-                            onClick={() => setActiveTab('SETTINGS')}
+                            onClick={() => handleTabChange('SETTINGS')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'SETTINGS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                         >
                             <span className="material-icons text-xl">settings</span>
@@ -156,39 +172,47 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
             </aside>
 
             {/* Main */}
-            <main className="flex-1 p-8 overflow-y-auto bg-background-light dark:bg-background-dark">
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-gray-100 dark:border-white/5">
-                    <div>
-                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                            {(() => {
-                                switch (activeTab) {
-                                    case 'OVERVIEW': return `Welcome back, ${user?.fullName.split(' ')[0]}!`;
-                                    case 'ARTICLES': return 'Content Management';
-                                    case 'MEDIA': return 'Media Library';
-                                    case 'USERS': return 'Team Management';
-                                    case 'COMMENTS': return 'Comments Moderation';
-                                    case 'SUBSCRIBERS': return 'Newsletter Subscribers';
-                                    case 'NOMINATIONS': return 'RWIBA 2026 Awards';
-                                    case 'SETTINGS': return 'Settings';
-                                    default: return 'Dashboard';
-                                }
-                            })()}
-                        </h2>
-                        <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                            {(() => {
-                                switch (activeTab) {
-                                    case 'OVERVIEW': return "Here's what's happening with your content today.";
-                                    case 'ARTICLES': return "Manage your articles, drafts, and archives.";
-                                    case 'MEDIA': return "Manage and organize your visual assets.";
-                                    case 'USERS': return "Manage platform users, roles, and access.";
-                                    case 'COMMENTS': return "Review and manage community discussions.";
-                                    case 'SUBSCRIBERS': return "View and export your audience list.";
-                                    case 'NOMINATIONS': return "Manage nominations and voting progress.";
-                                    case 'SETTINGS': return "Manage your dashboard preferences.";
-                                    default: return "Access your administrative tools.";
-                                }
-                            })()}
-                        </p>
+            <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-background-light dark:bg-background-dark w-full">
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-10 pb-4 md:pb-6 border-b border-gray-100 dark:border-white/5">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="md:hidden p-2 -ml-2 text-slate-500 hover:text-primary transition-colors"
+                        >
+                            <span className="material-icons text-2xl">menu</span>
+                        </button>
+                        <div>
+                            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                {(() => {
+                                    switch (activeTab) {
+                                        case 'OVERVIEW': return `Welcome back, ${user?.fullName.split(' ')[0]}!`;
+                                        case 'ARTICLES': return 'Content Management';
+                                        case 'MEDIA': return 'Media Library';
+                                        case 'USERS': return 'Team Management';
+                                        case 'COMMENTS': return 'Comments Moderation';
+                                        case 'SUBSCRIBERS': return 'Newsletter Subscribers';
+                                        case 'NOMINATIONS': return 'RWIBA 2026 Awards';
+                                        case 'SETTINGS': return 'Settings';
+                                        default: return 'Dashboard';
+                                    }
+                                })()}
+                            </h2>
+                            <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                                {(() => {
+                                    switch (activeTab) {
+                                        case 'OVERVIEW': return "Here's what's happening with your content today.";
+                                        case 'ARTICLES': return "Manage your articles, drafts, and archives.";
+                                        case 'MEDIA': return "Manage and organize your visual assets.";
+                                        case 'USERS': return "Manage platform users, roles, and access.";
+                                        case 'COMMENTS': return "Review and manage community discussions.";
+                                        case 'SUBSCRIBERS': return "View and export your audience list.";
+                                        case 'NOMINATIONS': return "Manage nominations and voting progress.";
+                                        case 'SETTINGS': return "Manage your dashboard preferences.";
+                                        default: return "Access your administrative tools.";
+                                    }
+                                })()}
+                            </p>
+                        </div>
                     </div>
                     {(activeTab === 'OVERVIEW' || activeTab === 'ARTICLES') && (
                         <div className="flex items-center gap-4">
@@ -233,7 +257,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                         <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-slate-100 dark:border-white/5 overflow-hidden">
                             <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white">Recent Activity</h3>
-                                <button onClick={() => setActiveTab('ARTICLES')} className="text-sm text-primary font-medium hover:underline">View All</button>
+                                <button onClick={() => handleTabChange('ARTICLES')} className="text-sm text-primary font-medium hover:underline">View All</button>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
@@ -310,7 +334,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                     <DashboardSettings navigate={navigate} />
                 ) : null}
             </main>
-        </div>
+        </div >
     );
 };
 

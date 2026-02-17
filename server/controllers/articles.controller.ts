@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
+import { Prisma, ArticleStatus } from '@prisma/client';
 import { generateSlug } from '../services/slug';
 
 export const createArticleSchema = z.object({
@@ -39,7 +40,7 @@ export const listArticles = async (req: Request, res: Response) => {
         const status = (req.query.status as string) || 'published';
         const search = req.query.search as string;
 
-        const where: any = { status: status as any };
+        const where: Prisma.ArticleWhereInput = { status: status as ArticleStatus };
         if (categorySlug) where.category = { slug: categorySlug };
         if (featured) where.isFeatured = true;
         if (tagSlug) where.tags = { some: { tag: { slug: tagSlug } } };
@@ -68,7 +69,7 @@ export const listArticles = async (req: Request, res: Response) => {
         return res.json({
             articles: articles.map((a) => ({
                 ...a,
-                tags: a.tags?.map((t: any) => t.tag) || [],
+                tags: a.tags?.map((t: { tag: { id: number; name: string; slug: string } }) => t.tag) || [],
             })),
             pagination: {
                 page,
@@ -107,7 +108,7 @@ export const getArticleById = async (req: Request, res: Response) => {
             ...article,
             tags: article.tags.map((t) => t.tag),
         });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to fetch article' });
     }
 };
@@ -133,7 +134,7 @@ export const getArticle = async (req: Request, res: Response) => {
             ...article,
             tags: article.tags.map((t) => t.tag),
         });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to fetch article' });
     }
 };
@@ -150,23 +151,30 @@ export const createArticle = async (req: AuthRequest, res: Response) => {
             return res.status(409).json({ error: 'An article with a similar title already exists' });
         }
 
+        const articleData: Prisma.ArticleCreateInput = {
+            title,
+            slug,
+            excerpt,
+            content,
+            featuredImage,
+            category: { connect: { id: categoryId } },
+            author: { connect: { id: req.user!.id } },
+            isFeatured: isFeatured || false,
+            tags: tags?.length
+                ? { create: tags.map((tagId: number) => ({ tag: { connect: { id: tagId } } })) }
+                : undefined,
+            seoMeta: seo
+                ? { create: seo }
+                : undefined,
+        };
+
+        if (req.body.status === 'published') {
+            articleData.status = 'published';
+            articleData.publishedAt = new Date();
+        }
+
         const article = await prisma.article.create({
-            data: {
-                title,
-                slug,
-                excerpt,
-                content,
-                featuredImage,
-                categoryId,
-                authorId: req.user!.id,
-                isFeatured: isFeatured || false,
-                tags: tags?.length
-                    ? { create: tags.map((tagId: number) => ({ tagId })) }
-                    : undefined,
-                seoMeta: seo
-                    ? { create: seo }
-                    : undefined,
-            },
+            data: articleData,
             include: { category: true, author: { select: { id: true, fullName: true } }, tags: { include: { tag: true } } },
         });
 
@@ -202,7 +210,7 @@ export const updateArticle = async (req: AuthRequest, res: Response) => {
             });
         }
 
-        const updateData: any = {};
+        const updateData: Prisma.ArticleUpdateInput = {};
         if (title) {
             updateData.title = title;
             updateData.slug = generateSlug(title);
@@ -210,7 +218,7 @@ export const updateArticle = async (req: AuthRequest, res: Response) => {
         if (excerpt !== undefined) updateData.excerpt = excerpt;
         if (content !== undefined) updateData.content = content;
         if (featuredImage !== undefined) updateData.featuredImage = featuredImage;
-        if (categoryId) updateData.categoryId = categoryId;
+        if (categoryId) updateData.category = { connect: { id: categoryId } };
         if (isFeatured !== undefined) updateData.isFeatured = isFeatured;
 
         // Update tags
@@ -252,7 +260,7 @@ export const updateStatus = async (req: AuthRequest, res: Response) => {
         const id = req.params.id as string;
         const { status } = req.body;
 
-        const updateData: any = { status };
+        const updateData: Prisma.ArticleUpdateInput = { status };
         if (status === 'published') {
             updateData.publishedAt = new Date();
         }
@@ -263,7 +271,7 @@ export const updateStatus = async (req: AuthRequest, res: Response) => {
         });
 
         return res.json(article);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to update status' });
     }
 };
@@ -277,7 +285,7 @@ export const deleteArticle = async (req: Request, res: Response) => {
             data: { status: 'archived' },
         });
         return res.json({ message: 'Article archived' });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to archive article' });
     }
 };
@@ -292,7 +300,7 @@ export const getRevisions = async (req: Request, res: Response) => {
             include: { editor: { select: { id: true, fullName: true } } },
         });
         return res.json(revisions);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to fetch revisions' });
     }
 };

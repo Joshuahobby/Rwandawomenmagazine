@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import prisma from '../config/db';
+import { NominationStatus } from '@prisma/client';
 import { env } from '../config/env';
 
 const TICKET_SECRET = env.JWT_SECRET || 'fallback-voting-secret';
@@ -55,12 +56,12 @@ export const createNomination = async (req: Request, res: Response) => {
 
         // 1. Verify Signed Ticket
         try {
-            const decoded = jwt.verify(ticket, TICKET_SECRET) as any;
+            const decoded = jwt.verify(ticket, TICKET_SECRET) as { ip: string };
             if (decoded.ip !== clientIp) {
                 res.status(403).json({ error: 'Invalid security ticket (IP mismatch)' });
                 return;
             }
-        } catch (err) {
+        } catch {
             res.status(403).json({ error: 'Session expired or invalid ticket. Please refresh.' });
             return;
         }
@@ -70,15 +71,8 @@ export const createNomination = async (req: Request, res: Response) => {
         // Limit: 1 nomination per IP per 24 hours to prevent spam
         const recentNomination = await prisma.nomination.findFirst({
             where: {
-                // Here we could also track by nominatorEmail, but IP is better for fraud
-                OR: [
-                    { nominatorEmail },
-                    {
-                        // We'll need to add a field for IP if we want to track it, 
-                        // or just use nominatorEmail which is already there.
-                        // Actually, let's just stick to nominatorEmail for now as per schema
-                    }
-                ],
+                categoryId: Number(categoryId),
+                nominatorEmail: nominatorEmail,
                 createdAt: { gte: twentyFourHoursAgo }
             }
         });
@@ -91,7 +85,7 @@ export const createNomination = async (req: Request, res: Response) => {
         // High-End Hardening: Date-based identity hash to prevent race conditions
         const dateStr = new Date().toISOString().split('T')[0];
         const idHash = crypto.createHash('sha256')
-            .update(`${clientIp}|${nominatorEmail}|${dateStr}`)
+            .update(`${clientIp}|${nominatorEmail}|${categoryId}|${dateStr}`)
             .digest('hex');
 
         const nomination = await prisma.nomination.create({
@@ -113,8 +107,8 @@ export const createNomination = async (req: Request, res: Response) => {
         });
 
         res.status(201).json(nomination);
-    } catch (err: any) {
-        if (err.code === 'P2002') {
+    } catch (err: unknown) {
+        if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
             res.status(429).json({ error: 'You have already submitted a nomination today' });
             return;
         }
@@ -131,9 +125,13 @@ export const getNominations = async (req: Request, res: Response) => {
         const limit = Math.max(1, Math.min(parseInt(req.query.limit as string) || 20, 100));
         const skip = (page - 1) * limit;
 
-        const where: any = {};
+        interface NominationWhere {
+            categoryId?: number;
+            status?: NominationStatus;
+        }
+        const where: NominationWhere = {};
         if (categoryId && categoryId !== '') where.categoryId = Number(categoryId);
-        if (status && status !== '') where.status = status as string;
+        if (status && status !== '') where.status = status as NominationStatus;
 
         const [nominations, total] = await Promise.all([
             prisma.nomination.findMany({
@@ -150,11 +148,11 @@ export const getNominations = async (req: Request, res: Response) => {
         ]);
 
         res.json({ nominations, total, page, totalPages: Math.ceil(total / limit) });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error fetching nominations:', err);
         res.status(500).json({
             error: 'Failed to fetch nominations',
-            details: process.env.NODE_ENV === 'development' ? err.message : undefined
+            details: (process.env.NODE_ENV === 'development' && err instanceof Error) ? err.message : undefined
         });
     }
 };

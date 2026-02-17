@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { PageView, Article } from '../types';
+import { Article } from '../types';
 import api from '../services/api';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface HomeProps {
-  navigate: (page: PageView) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ navigate }) => {
+const Home: React.FC<HomeProps> = () => {
   const [featuredArticle, setFeaturedArticle] = useState<Article | null>(null);
   const [latestArticles, setLatestArticles] = useState<Article[]>([]);
   const [leadershipArticles, setLeadershipArticles] = useState<Article[]>([]);
@@ -34,12 +34,17 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
     try {
       await api.post('/subscribers', { email, source: 'home_page' });
       setSubscribed(true);
-    } catch (err: any) {
-      console.error('Subscription failed:', err);
-      if (err.response?.status === 409) {
-        setSubscribeError('Already subscribed!');
-        setSubscribed(true);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error('Subscription failed:', err);
+        if (err.response?.status === 409) {
+          setSubscribeError('Already subscribed!');
+          setSubscribed(true);
+        } else {
+          setSubscribeError('Failed. Please try again.');
+        }
       } else {
+        console.error('Subscription failed:', err);
         setSubscribeError('Failed. Please try again.');
       }
     } finally {
@@ -110,18 +115,18 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
   const fallbackImage = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop";
 
   // Reusable: Section header
-  const SectionHeader = ({ title, onViewAll, dark = false }: { title: string; onViewAll: () => void; dark?: boolean }) => (
+  const SectionHeader = ({ title, viewAllPath, dark = false }: { title: string; viewAllPath: string; dark?: boolean }) => (
     <div className={`flex justify-between items-end mb-10 border-b pb-4 ${dark ? 'border-gray-700' : 'border-gray-200 dark:border-gray-700'}`}>
       <h2 className={`font-display text-4xl lg:text-5xl font-bold uppercase tracking-tight ${dark ? 'text-white' : 'text-text-light dark:text-text-dark'}`}>{title}</h2>
-      <button onClick={onViewAll} className={`hidden sm:flex items-center gap-2 text-xs uppercase tracking-widest hover:text-primary transition-colors ${dark ? 'text-gray-400' : 'text-text-light dark:text-text-dark'}`}>
+      <Link to={viewAllPath} className={`hidden sm:flex items-center gap-2 text-xs uppercase tracking-widest hover:text-primary transition-colors ${dark ? 'text-gray-400' : 'text-text-light dark:text-text-dark'}`}>
         View All <span className="material-icons text-sm">north_east</span>
-      </button>
+      </Link>
     </div>
   );
 
   // Reusable: Article card (horizontal)
   const ArticleCardHorizontal: React.FC<{ article: Article }> = ({ article }) => (
-    <article className="flex gap-4 group cursor-pointer" onClick={() => navigate('ARTICLE', article.id)}>
+    <Link to={`/article/${article.slug}`} className="flex gap-4 group cursor-pointer text-inherit decoration-none">
       <div className="w-1/3 aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
         <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-500" src={article.featuredImage || fallbackImage} />
       </div>
@@ -130,18 +135,18 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
         <h4 className="font-display text-lg font-medium mb-1 group-hover:text-primary transition-colors text-text-light dark:text-text-dark">{article.title}</h4>
         <span className="text-[10px] text-gray-500 block">{new Date(article.publishedAt || article.createdAt).toLocaleDateString()}</span>
       </div>
-    </article>
+    </Link>
   );
 
   // Reusable: Article card (compact list item)
   const ArticleListItem = ({ article, dark = false }: { article: Article; dark?: boolean }) => (
-    <article className="group cursor-pointer" onClick={() => navigate('ARTICLE', article.id)}>
+    <Link to={`/article/${article.slug}`} className="group cursor-pointer block text-inherit decoration-none">
       <div className="flex items-center gap-3 mb-1">
         <span className={`text-[10px] font-bold uppercase ${dark ? 'text-gray-400' : 'text-gray-400'}`}>{article.category?.name}</span>
         <span className="text-[10px] text-gray-500">{new Date(article.publishedAt || article.createdAt).toLocaleDateString()}</span>
       </div>
       <h4 className={`font-display text-lg font-medium leading-snug group-hover:text-primary transition-colors ${dark ? 'text-white' : 'text-text-light dark:text-text-dark'}`}>{article.title}</h4>
-    </article>
+    </Link>
   );
 
   return (
@@ -150,13 +155,13 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
       {/* Secondary Nav / Categories */}
       <div className="border-b border-gray-200 dark:border-gray-800 bg-surface-light dark:bg-surface-dark overflow-x-auto">
         <div className="container mx-auto px-4 py-3 flex gap-6 whitespace-nowrap text-xs font-bold text-gray-500 dark:text-gray-400">
-          <button className="text-primary border-b-2 border-primary pb-0.5 tracking-widest" onClick={() => navigate('SEARCH')}>ALL</button>
-          <button className="hover:text-primary transition-colors tracking-widest uppercase" onClick={() => navigate('SEARCH')}>Leadership</button>
-          <button className="hover:text-primary transition-colors tracking-widest uppercase" onClick={() => navigate('SEARCH')}>Business</button>
-          <button className="hover:text-primary transition-colors tracking-widest uppercase" onClick={() => navigate('SEARCH')}>Culture</button>
-          <button className="hover:text-primary transition-colors tracking-widest uppercase" onClick={() => navigate('SEARCH')}>Health</button>
-          <button className="hover:text-primary transition-colors tracking-widest uppercase" onClick={() => navigate('SEARCH')}>Tech & Innovation</button>
-          <button className="hover:text-primary transition-colors tracking-widest uppercase" onClick={() => navigate('SEARCH')}>Education</button>
+          <Link to="/search" className="text-primary border-b-2 border-primary pb-0.5 tracking-widest decoration-none">ALL</Link>
+          <Link to="/category/leadership-empowerment" className="hover:text-primary transition-colors tracking-widest uppercase decoration-none">Leadership</Link>
+          <Link to="/category/business-economy" className="hover:text-primary transition-colors tracking-widest uppercase decoration-none">Business</Link>
+          <Link to="/category/culture-heritage" className="hover:text-primary transition-colors tracking-widest uppercase decoration-none">Culture</Link>
+          <Link to="/category/health-wellness" className="hover:text-primary transition-colors tracking-widest uppercase decoration-none">Health</Link>
+          <Link to="/category/tech-innovation" className="hover:text-primary transition-colors tracking-widest uppercase decoration-none">Tech & Innovation</Link>
+          <Link to="/category/education" className="hover:text-primary transition-colors tracking-widest uppercase decoration-none">Education</Link>
         </div>
       </div>
 
@@ -172,7 +177,7 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
               Sto-<br />ries
             </h1>
             {latestArticles[0] && (
-              <article className="group cursor-pointer" onClick={() => navigate('ARTICLE', latestArticles[0].id)}>
+              <Link to={`/article/${latestArticles[0].slug}`} className="group cursor-pointer block text-inherit decoration-none">
                 <div className="aspect-[3/4] overflow-hidden mb-4 relative bg-gray-100 dark:bg-gray-800">
                   <img alt={latestArticles[0].title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={latestArticles[0].featuredImage || fallbackImage} />
                 </div>
@@ -183,14 +188,14 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
                 <h3 className="font-display text-lg leading-tight group-hover:underline decoration-primary underline-offset-4 text-text-light dark:text-text-dark">
                   {latestArticles[0].title}
                 </h3>
-              </article>
+              </Link>
             )}
           </div>
 
           {/* Column 2: Main Featured Story */}
           <div className="lg:col-span-6 flex flex-col justify-between">
             {featuredArticle && (
-              <article className="h-full flex flex-col group cursor-pointer" onClick={() => navigate('ARTICLE', featuredArticle.id)}>
+              <Link to={`/article/${featuredArticle.slug}`} className="h-full flex flex-col group cursor-pointer text-inherit decoration-none">
                 <div className="flex-grow relative overflow-hidden mb-6 aspect-[4/3] lg:aspect-auto bg-gray-100 dark:bg-gray-800">
                   <img alt={featuredArticle.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={featuredArticle.featuredImage || fallbackImage} />
                   <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 text-xs font-bold uppercase tracking-widest">Featured</div>
@@ -208,7 +213,7 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
                     Written by <span className="text-text-light dark:text-text-dark">{featuredArticle.author.fullName}</span>
                   </div>
                 </div>
-              </article>
+              </Link>
             )}
           </div>
 
@@ -220,15 +225,7 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
             <div className="space-y-8">
               {latestArticles.map((item, i) => (
                 <React.Fragment key={item.id}>
-                  <article className="group cursor-pointer" onClick={() => navigate('ARTICLE', item.id)}>
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="text-[10px] font-bold uppercase bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-text-light dark:text-text-dark">{item.category.name}</span>
-                      <span className="text-[10px] text-gray-400">{new Date(item.publishedAt || item.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <h3 className="font-display text-xl leading-snug group-hover:text-primary transition-colors text-text-light dark:text-text-dark">
-                      {item.title}
-                    </h3>
-                  </article>
+                  <ArticleListItem article={item} />
                   {i < latestArticles.length - 1 && <hr className="border-gray-100 dark:border-gray-800" />}
                 </React.Fragment>
               ))}
@@ -241,10 +238,10 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
         ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-surface-dark dark:bg-black text-white -mx-4 px-4 py-16 mb-20">
           <div className="container mx-auto">
-            <SectionHeader title="Leadership & Empowerment" onViewAll={() => navigate('SEARCH')} dark />
+            <SectionHeader title="Leadership & Empowerment" viewAllPath="/category/leadership-empowerment" dark />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8">
               {leadershipArticles[0] && (
-                <article className="lg:col-span-7 group cursor-pointer" onClick={() => navigate('ARTICLE', leadershipArticles[0].id)}>
+                <Link to={`/article/${leadershipArticles[0].slug}`} className="lg:col-span-7 group cursor-pointer text-inherit decoration-none block">
                   <div className="overflow-hidden mb-6 relative aspect-[16/9] bg-gray-900">
                     <img alt={leadershipArticles[0].title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100" src={leadershipArticles[0].featuredImage || fallbackImage} />
                   </div>
@@ -257,7 +254,7 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
                     <span className="material-icons text-xs text-primary">auto_awesome</span>
                     <span>Written by {leadershipArticles[0].author.fullName}</span>
                   </div>
-                </article>
+                </Link>
               )}
               <div className="lg:col-span-5 flex flex-col gap-8">
                 {leadershipArticles.slice(1).map((item) => (
@@ -275,10 +272,10 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
             2. BUSINESS & ECONOMY — Card grid layout
         ═══════════════════════════════════════════════════════════════ */}
         <section className="mb-20">
-          <SectionHeader title="Business & Economy" onViewAll={() => navigate('SEARCH')} />
+          <SectionHeader title="Business & Economy" viewAllPath="/category/business-economy" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {businessArticles.map((article) => (
-              <article key={article.id} className="group cursor-pointer" onClick={() => navigate('ARTICLE', article.id)}>
+              <Link to={`/article/${article.slug}`} key={article.id} className="group cursor-pointer block text-inherit decoration-none">
                 <div className="aspect-[4/3] overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
                   <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={article.featuredImage || fallbackImage} />
                 </div>
@@ -288,7 +285,7 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
                 </div>
                 <h3 className="font-display text-xl font-bold leading-tight mb-2 group-hover:text-primary transition-colors text-text-light dark:text-text-dark">{article.title}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{article.excerpt}</p>
-              </article>
+              </Link>
             ))}
             {businessArticles.length === 0 && (
               <div className="col-span-3 text-center py-16 text-gray-400 italic">No articles in Business & Economy yet. Check back soon!</div>
@@ -300,9 +297,9 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
             3. CULTURE & HERITAGE — Alternating editorial layout
         ═══════════════════════════════════════════════════════════════ */}
         <section className="mb-20 border-t border-gray-200 dark:border-gray-700 pt-16">
-          <SectionHeader title="Culture & Heritage" onViewAll={() => navigate('SEARCH')} />
+          <SectionHeader title="Culture & Heritage" viewAllPath="/category/culture-heritage" />
           {cultureArticles[0] && (
-            <article className="group relative aspect-[21/9] w-full overflow-hidden mb-8 cursor-pointer" onClick={() => navigate('ARTICLE', cultureArticles[0].id)}>
+            <Link to={`/article/${cultureArticles[0].slug}`} className="group relative aspect-[21/9] w-full overflow-hidden mb-8 cursor-pointer block text-inherit decoration-none">
               <img alt={cultureArticles[0].title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-1000" src={cultureArticles[0].featuredImage || fallbackImage} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-8 lg:p-12">
                 <div className="max-w-2xl">
@@ -311,11 +308,11 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
                   <p className="text-white/80 hidden lg:block line-clamp-2">{cultureArticles[0].excerpt}</p>
                 </div>
               </div>
-            </article>
+            </Link>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {cultureArticles.slice(1).map((item) => (
-              <article key={item.id} className="flex gap-4 group cursor-pointer" onClick={() => navigate('ARTICLE', item.id)}>
+              <Link to={`/article/${item.slug}`} key={item.id} className="flex gap-4 group cursor-pointer text-inherit decoration-none">
                 <div className="w-1/2 aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <img alt={item.title} className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-500" src={item.featuredImage || fallbackImage} />
                 </div>
@@ -324,7 +321,7 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
                   <h4 className="font-display text-2xl font-bold mb-2 group-hover:text-primary transition-colors text-text-light dark:text-text-dark">{item.title}</h4>
                   <span className="text-xs text-gray-400">Written by {item.author.fullName}</span>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
           {cultureArticles.length === 0 && (
@@ -342,20 +339,20 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
                 <span className="material-icons text-4xl text-emerald-600 mr-3 align-middle">favorite</span>
                 Health & Wellness
               </h2>
-              <button onClick={() => navigate('SEARCH')} className="hidden sm:flex items-center gap-2 text-xs uppercase tracking-widest hover:text-emerald-600 transition-colors text-emerald-700 dark:text-emerald-300">
+              <Link to="/category/health-wellness" className="hidden sm:flex items-center gap-2 text-xs uppercase tracking-widest hover:text-emerald-600 transition-colors text-emerald-700 dark:text-emerald-300 decoration-none">
                 View All <span className="material-icons text-sm">north_east</span>
-              </button>
+              </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {healthArticles.map((article) => (
-                <article key={article.id} className="group cursor-pointer bg-white dark:bg-gray-900 p-6 border border-emerald-100 dark:border-emerald-900/30 hover:shadow-lg transition-shadow duration-300" onClick={() => navigate('ARTICLE', article.id)}>
+                <Link to={`/article/${article.slug}`} key={article.id} className="group cursor-pointer bg-white dark:bg-gray-900 p-6 border border-emerald-100 dark:border-emerald-900/30 hover:shadow-lg transition-shadow duration-300 block text-inherit decoration-none">
                   <div className="aspect-[16/9] overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
                     <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={article.featuredImage || fallbackImage} />
                   </div>
                   <span className="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400 mb-2 block">{article.category?.name}</span>
                   <h4 className="font-display text-xl font-bold leading-tight mb-2 group-hover:text-emerald-600 transition-colors text-text-light dark:text-text-dark">{article.title}</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{article.excerpt}</p>
-                </article>
+                </Link>
               ))}
               {healthArticles.length === 0 && (
                 <div className="col-span-3 text-center py-16 text-gray-400 italic">No articles in Health & Wellness yet. Check back soon!</div>
@@ -373,13 +370,13 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
               <span className="material-icons text-3xl text-indigo-500 mr-3 align-middle">rocket_launch</span>
               Tech & Innovation
             </h2>
-            <button onClick={() => navigate('SEARCH')} className="hidden sm:flex items-center gap-2 text-xs uppercase tracking-widest hover:text-primary transition-colors text-text-light dark:text-text-dark">
+            <Link to="/category/tech-innovation" className="hidden sm:flex items-center gap-2 text-xs uppercase tracking-widest hover:text-primary transition-colors text-text-light dark:text-text-dark decoration-none">
               View All <span className="material-icons text-sm">north_east</span>
-            </button>
+            </Link>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {techArticles[0] && (
-              <article className="group cursor-pointer" onClick={() => navigate('ARTICLE', techArticles[0].id)}>
+              <Link to={`/article/${techArticles[0].slug}`} className="group cursor-pointer block text-inherit decoration-none">
                 <div className="aspect-[16/9] overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
                   <img alt={techArticles[0].title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={techArticles[0].featuredImage || fallbackImage} />
                 </div>
@@ -389,7 +386,7 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
                 </div>
                 <h3 className="font-display text-2xl lg:text-3xl font-bold leading-tight mb-3 group-hover:text-primary transition-colors text-text-light dark:text-text-dark">{techArticles[0].title}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">{techArticles[0].excerpt}</p>
-              </article>
+              </Link>
             )}
             <div className="flex flex-col gap-6">
               {techArticles.slice(1).map((item, i) => (
@@ -415,20 +412,20 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
                 <span className="material-icons text-3xl text-violet-500 mr-3 align-middle">school</span>
                 Education
               </h2>
-              <button onClick={() => navigate('SEARCH')} className="hidden sm:flex items-center gap-2 text-xs uppercase tracking-widest hover:text-primary transition-colors text-text-light dark:text-text-dark">
+              <Link to="/category/education" className="hidden sm:flex items-center gap-2 text-xs uppercase tracking-widest hover:text-primary transition-colors text-text-light dark:text-text-dark decoration-none">
                 View All <span className="material-icons text-sm">north_east</span>
-              </button>
+              </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {educationArticles.map((article) => (
-                <article key={article.id} className="group cursor-pointer" onClick={() => navigate('ARTICLE', article.id)}>
+                <Link to={`/article/${article.slug}`} key={article.id} className="group cursor-pointer block text-inherit decoration-none">
                   <div className="aspect-[16/9] overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
                     <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-500" src={article.featuredImage || fallbackImage} />
                   </div>
                   <span className="text-[10px] font-bold uppercase text-violet-600 dark:text-violet-400 mb-1 block">{article.category?.name}</span>
                   <h4 className="font-display text-xl font-bold mb-2 group-hover:text-primary transition-colors text-text-light dark:text-text-dark">{article.title}</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{article.excerpt}</p>
-                </article>
+                </Link>
               ))}
               {educationArticles.length === 0 && (
                 <div className="col-span-3 text-center py-16 text-gray-400 italic">No articles in Education yet. Check back soon!</div>
