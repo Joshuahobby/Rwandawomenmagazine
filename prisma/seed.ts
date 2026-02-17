@@ -1,7 +1,6 @@
-import { PrismaClient, CategoryGroup, ArticleStatus, NominationStatus } from '@prisma/client';
+import { CategoryGroup, ArticleStatus, NominationStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
+import prisma from '../server/config/db';
 
 const categories = [
     // INDIVIDUAL
