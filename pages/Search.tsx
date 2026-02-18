@@ -109,7 +109,7 @@ const Search: React.FC<SearchProps> = ({ navigate }) => {
                         </div>
                     ) : articles.length > 0 ? (
                         articles.map((article) => (
-                            <article key={article.id} className="flex flex-col md:flex-row bg-white dark:bg-surface-dark rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-transparent hover:border-primary/20 cursor-pointer" onClick={() => navigate('ARTICLE', article.id)}>
+                            <article key={article.id} className="flex flex-col md:flex-row bg-white dark:bg-surface-dark rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-transparent hover:border-primary/20 cursor-pointer" onClick={() => navigate('ARTICLE', article.slug)}>
                                 <div className="md:w-2/5 relative overflow-hidden h-64 md:h-auto">
                                     <img src={article.featuredImage || fallbackImage} alt={article.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
                                     <div className="absolute top-4 left-4">

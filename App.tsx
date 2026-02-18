@@ -35,22 +35,22 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  const navigate = (page: PageView, id?: string | null) => {
-    if (id) {
-      setEditingArticleId(id);
+  const navigate = (page: PageView, slugOrId?: string | null) => {
+    if (slugOrId && page === 'EDITOR') {
+      setEditingArticleId(slugOrId);
     }
 
     switch (page) {
       case 'HOME': navigateHook('/'); break;
-      case 'ARTICLE': navigateHook(`/article/${id}`); break;
-      case 'CATEGORY': navigateHook(`/category/${id}`); break;
+      case 'ARTICLE': navigateHook(`/article/${slugOrId}`); break;
+      case 'CATEGORY': navigateHook(`/category/${slugOrId}`); break;
       case 'SEARCH': navigateHook('/search'); break;
       case 'EVENTS': navigateHook('/events'); break;
       case 'VOTING': navigateHook('/voting'); break;
       case 'NOMINATION': navigateHook('/nomination'); break;
       case 'LOGIN': navigateHook('/login'); break;
       case 'DASHBOARD': navigateHook('/dashboard'); break;
-      case 'EDITOR': navigateHook(`/editor${id ? `/${id}` : ''}`); break;
+      case 'EDITOR': navigateHook(`/editor${slugOrId ? `/${slugOrId}` : ''}`); break;
       case 'NEWSLETTER': navigateHook('/newsletter'); break;
       case 'ABOUT': navigateHook('/about'); break;
       case 'CONTACT': navigateHook('/contact'); break;
