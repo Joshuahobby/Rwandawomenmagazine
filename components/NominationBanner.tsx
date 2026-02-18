@@ -9,9 +9,7 @@ const NominationBanner = () => {
     return (
         <div className="bg-primary text-white relative overflow-hidden">
             {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-10 pointer-events-none"
-                style={{ backgroundImage: `url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"3\"/%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"3\"/%3E%3C/g%3E%3C/svg%3E')` }}
-            ></div>
+            <div className="absolute inset-0 opacity-10 pointer-events-none nomination-pattern"></div>
 
             <div className="container mx-auto px-4 py-3 sm:py-4 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
                 <div className="flex-1">

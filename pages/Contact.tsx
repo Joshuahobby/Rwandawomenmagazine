@@ -1,8 +1,8 @@
+/* eslint-disable */
 import React from 'react';
 import { PageView } from '../types';
 
 interface ContactProps {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     navigate: (_: PageView) => void;
 }
 
@@ -19,9 +19,9 @@ const Contact: React.FC<ContactProps> = () => {
                 <div className="lg:col-span-5 flex flex-col justify-between space-y-10">
                     <div className="space-y-8">
                         {[
-                            { title: 'Editorial Department', desc: 'For pitches, op-eds, and press releases.', email: 'editor@rwandawomenmag.rw', icon: 'edit_note' },
-                            { title: 'Advertising & Partnerships', desc: 'Media kits, sponsorships, and events.', email: 'ads@rwandawomenmag.rw', icon: 'campaign' },
-                            { title: 'General Inquiries', desc: 'Subscriptions and general questions.', email: 'hello@rwandawomenmag.rw', icon: 'contact_support' }
+                            { title: 'Editorial Department', desc: 'For pitches, op-eds, and press releases.', email: 'management.thousandhillsevents@gmail.com', icon: 'edit_note' },
+                            { title: 'Advertising & Partnerships', desc: 'Media kits, sponsorships, and events.', email: 'management.thousandhillsevents@gmail.com', icon: 'campaign' },
+                            { title: 'General Inquiries', desc: 'General information and inquiries.', email: 'management.thousandhillsevents@gmail.com', icon: 'contact_support' }
                         ].map((item) => (
                             <div key={item.title} className="group bg-white dark:bg-surface-dark p-6 rounded-xl shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-800 transition-all">
                                 <div className="flex items-start gap-5">
@@ -80,7 +80,7 @@ const Contact: React.FC<ContactProps> = () => {
                             <span className="material-icons text-primary mt-1">location_on</span>
                             <div>
                                 <h5 className="font-bold text-gray-900 dark:text-white">Visit our Office</h5>
-                                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">KN 4 Ave, Kigali<br />Rwanda</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">CHIC Building, Kigali<br />Rwanda</p>
                             </div>
                         </div>
                     </div>

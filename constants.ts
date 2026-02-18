@@ -69,28 +69,28 @@ export const ISSUES: Issue[] = [
     year: '2024',
     title: 'The Leadership Issue',
     description: 'Featuring exclusive interviews with Rwanda\'s top female executives.',
-    coverImage: 'https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?q=80&w=1000&auto=format&fit=crop'
+    coverImage: '/uploads/pictures/RWIBA GALLERY (7).jpg'
   },
   {
     month: 'February',
     year: '2024',
     title: 'Culture & Innovation',
     description: 'How tradition fuels modern business practices in Kigali.',
-    coverImage: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=1000&auto=format&fit=crop'
+    coverImage: '/uploads/pictures/RWIBA GALLERY (8).jpg'
   },
   {
     month: 'January',
     year: '2024',
     title: 'New Beginnings',
     description: 'Starting the year strong: Goal setting for entrepreneurs.',
-    coverImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1000&auto=format&fit=crop'
+    coverImage: '/uploads/pictures/RWIBA GALLERY (9).jpg'
   },
   {
     month: 'December',
     year: '2023',
     title: 'The Gala Edition',
     description: 'Highlights from the annual Women in Business Awards.',
-    coverImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000&auto=format&fit=crop'
+    coverImage: '/uploads/pictures/RWIBA GALLERY (10).jpg'
   }
 ];
 

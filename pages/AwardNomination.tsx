@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { PageView } from '../types';
 
@@ -192,10 +193,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                 {/* Hero */}
                 <section className="relative bg-black text-white py-24 lg:py-32 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-black/50 to-black"></div>
-                    <div
-                        className="absolute inset-0 opacity-20"
-                        style={{ backgroundImage: `url('data:image/svg+xml,%3Csvg viewBox=\"0 0 200 200\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cfilter id=\"n\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.65\" numOctaves=\"3\" stitchTiles=\"stitch\"/%3E%3C/filter%3E%3Crect width=\"100%25\" height=\"100%25\" filter=\"url(%23n)\" opacity=\"0.4\"/%3E%3C/svg%3E')` }}
-                    ></div>
+                    <div className="absolute inset-0 opacity-20 noise-pattern"></div>
                     <div className="container mx-auto px-4 relative z-10 text-center">
                         <div className="inline-flex items-center gap-3 mb-6 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 backdrop-blur-sm">
                             <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
@@ -286,8 +284,8 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                                                 <div className="w-full bg-gray-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
                                                     <div
                                                         className="bg-primary h-full rounded-full transition-all duration-1000 ease-out progress-bar-fill"
-                                                        /* eslint-disable */
-                                                        style={{ '--progress-width': `${j.pct}%` } as any}
+                                                        /* eslint-disable-next-line react/forbid-component-props, react/forbid-dom-props */
+                                                        style={{ '--progress-width': `${j.pct}%` } as React.CSSProperties}
                                                     ></div>
                                                 </div>
                                             </div>

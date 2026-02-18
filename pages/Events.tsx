@@ -1,8 +1,9 @@
+/* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { PageView } from '../types';
 
 interface EventsProps {
-    navigate: (page: PageView) => void;
+    navigate: (view: PageView) => void;
 }
 
 // ── Countdown helper ──────────────────────────────────────
@@ -122,10 +123,10 @@ const SUMMIT_PANELS = [
 ];
 
 const PAST_EVENTS = [
-    { id: 4, title: 'RWIBA 2025 — 4th Edition', date: 'March 2025', image: 'https://images.unsplash.com/photo-1591115765373-5207764f72e4?q=80&w=600&auto=format&fit=crop' },
-    { id: 5, title: 'RWIBA 2024 — "Celebrating Excellence"', date: 'March 2024', image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=600&auto=format&fit=crop' },
-    { id: 6, title: 'RWIBA 2023 — "Trailblazers"', date: 'March 2023', image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=600&auto=format&fit=crop' },
-    { id: 7, title: 'RWIBA 2022 — Inaugural Edition', date: 'March 2022', image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=600&auto=format&fit=crop' },
+    { id: 4, title: 'RWIBA 2025 — 4th Edition', date: 'March 2025', image: '/uploads/pictures/RWIBA GALLERY (2).jpg' },
+    { id: 5, title: 'RWIBA 2024 — "Celebrating Excellence"', date: 'March 2024', image: '/uploads/pictures/RWIBA GALLERY (3).jpg' },
+    { id: 6, title: 'RWIBA 2023 — "Trailblazers"', date: 'March 2023', image: '/uploads/pictures/RWIBA GALLERY (4).jpg' },
+    { id: 7, title: 'RWIBA 2022 — Inaugural Edition', date: 'March 2022', image: '/uploads/pictures/RWIBA GALLERY (5).jpg' },
 ];
 
 const STATS = [
@@ -157,9 +158,10 @@ const Events: React.FC<EventsProps> = ({ navigate }) => {
             <section className="relative bg-surface-dark dark:bg-black text-white overflow-hidden">
                 <div className="absolute inset-0">
                     <img
-                        src="https://images.unsplash.com/photo-1587825140708-dfaf18c5fceb?q=80&w=1600&auto=format&fit=crop"
+                        src="/uploads/pictures/RWIBA GALLERY (1).jpg"
                         alt="RWIBA 2026"
                         className="w-full h-full object-cover opacity-20"
+                        loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/70 to-transparent"></div>
                 </div>

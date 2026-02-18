@@ -152,7 +152,7 @@ const Home: React.FC<HomeProps> = () => {
 
   return (
     <div className="animate-fade-in font-sans">
-      
+
       {/* Nomination Banner */}
       <NominationBanner />
 
@@ -486,7 +486,8 @@ const Home: React.FC<HomeProps> = () => {
             <img
               alt="Stylish woman looking back"
               className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-60"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2Zg-hdCjcx46Ia7BkSDosOeqUjIcyuuk692rvf6430-qjksVkSI3_97X9Rh9GSr516cjnhEEF57RgXC0VF_jFP-nS545exvffppr0NHCF08EDpAHf9kSucgv6SO7nCt4a1uLrmubk7eykQs3_AhgA7C71hgEu_Dc8Ok6SCv6FkJLlZbjgVqiWd2822dgL-mBrSgoLX5BmhUpWjT61xZZdHTqdtAJuwnzujfl8wj8HOBCAt4tIaGAFoWQ30ln6np3sAWBJi9W5si0"
+              src="/uploads/pictures/RWIBA GALLERY (11).jpg"
+              loading="lazy"
             />
             <img
               alt="Stylish woman looking back"

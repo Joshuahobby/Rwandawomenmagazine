@@ -40,9 +40,9 @@ export const Footer: React.FC<FooterProps> = () => {
             </div>
             <div className="flex flex-col gap-3">
               <h4 className="font-bold uppercase tracking-widest mb-2">Contact</h4>
-              <p className="text-gray-500 dark:text-gray-400">Kigali, Rwanda</p>
-              <p className="text-gray-500 dark:text-gray-400">info@rwandawomen.com</p>
-              <p className="text-gray-500 dark:text-gray-400">+250 788 000 000</p>
+              <p className="text-gray-500 dark:text-gray-400">CHIC Building, Kigali, Rwanda</p>
+              <p className="text-gray-500 dark:text-gray-400">management.thousandhillsevents@gmail.com</p>
+              <p className="text-gray-500 dark:text-gray-400">0735993326</p>
             </div>
             <div className="flex flex-col gap-3">
               <h4 className="font-bold uppercase tracking-widest mb-2">Follow</h4>
@@ -54,9 +54,9 @@ export const Footer: React.FC<FooterProps> = () => {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row justify-between items-center text-gray-400">
-          <p>© 2026 Rwanda Women Magazine. All rights reserved.</p>
-          <div className="flex gap-4 mt-4 md:mt-0">
+        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col items-center text-center text-gray-400 gap-4">
+          <p>© 2026 Rwanda Women Magazine. All rights reserved. <span className="mx-2">|</span> Developed by <a href="https://getrwanda.rw/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors font-medium">#TeamGet</a></p>
+          <div className="flex gap-4">
             <button className="hover:text-primary">Privacy</button>
             <button className="hover:text-primary">Terms</button>
             <Link className="hover:text-primary decoration-none" to="/login">Editor Login</Link>
