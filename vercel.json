@@ -6,7 +6,15 @@
             "destination": "/api"
         },
         {
-            "source": "/((?!api|uploads).*)",
+            "source": "/uploads/(.*)",
+            "destination": "/uploads/$1"
+        },
+        {
+            "source": "/wp-content/(.*)",
+            "destination": "/wp-content/$1"
+        },
+        {
+            "source": "/((?!api|uploads|wp-content|.*\\..*).*)",
             "destination": "/index.html"
         }
     ],
