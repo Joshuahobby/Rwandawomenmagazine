@@ -61,17 +61,21 @@ export const login = async (req: Request, res: Response) => {
         });
 
         if (!user || !user.isActive) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            console.warn(`[Auth] Login failed: User not found or inactive (${email})`);
+            return res.status(401).json({ error: 'Invalid email or password' });
         }
 
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            console.warn(`[Auth] Login failed: Password mismatch (${email})`);
+            return res.status(401).json({ error: 'Invalid email or password' });
         }
 
         const token = jwt.sign({ userId: user.id }, env.JWT_SECRET as jwt.Secret, {
             expiresIn: env.JWT_EXPIRES_IN as any,
         });
+
+        console.log(`[Auth] Login successful: ${email}`);
 
         return res.json({
             user: {
@@ -109,7 +113,8 @@ export const getMe = async (req: AuthRequest, res: Response) => {
             profileImage: user.profileImage,
             createdAt: user.createdAt,
         });
-    } catch (error) {
+    } catch (_error) {
+        // Silently fail or log with underscore
         return res.status(500).json({ error: 'Failed to get profile' });
     }
 };

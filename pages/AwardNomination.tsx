@@ -1,10 +1,9 @@
-/* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { PageView } from '../types';
 
 interface AwardNominationProps {
-    /* eslint-disable */
-    navigate: (view: PageView) => void;
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    _navigate: (view: PageView) => void;
 }
 
 interface CategoryOption {
@@ -281,13 +280,10 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                                                     <span className="font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400">{j.label}</span>
                                                     <span className="font-bold text-primary">{j.pct}%</span>
                                                 </div>
-                                                <div className="w-full bg-gray-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="bg-primary h-full rounded-full transition-all duration-1000 ease-out progress-bar-fill"
-                                                        /* eslint-disable-next-line react/forbid-component-props, react/forbid-dom-props */
-                                                        style={{ '--progress-width': `${j.pct}%` } as React.CSSProperties}
-                                                    ></div>
-                                                </div>
+                                                <div
+                                                    className="bg-primary h-full rounded-full transition-all duration-1000 ease-out progress-bar-indicator"
+                                                    data-width={`${j.pct}%`}
+                                                ></div>
                                             </div>
                                         ))}
                                     </div>

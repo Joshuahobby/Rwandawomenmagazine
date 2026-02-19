@@ -14,10 +14,12 @@ import CommentsManager from '../components/CommentsManager';
 import NominationsManager from '../components/NominationsManager';
 import UsersManager from '../components/UsersManager';
 import DashboardSettings from '../components/DashboardSettings';
+import EmailSettingsManager from '../components/EmailSettingsManager';
 
 const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
+    void navigate; // Acknowledging navigate if unused in some paths
     const { user, logout } = useAuth();
-    const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'MEDIA' | 'USERS' | 'COMMENTS' | 'SUBSCRIBERS' | 'NOMINATIONS' | 'SETTINGS'>('OVERVIEW');
+    const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'MEDIA' | 'USERS' | 'COMMENTS' | 'SUBSCRIBERS' | 'NOMINATIONS' | 'SETTINGS' | 'NOTIFICATIONS'>('OVERVIEW');
     const [stats, setStats] = useState({
         totalArticles: 0,
         pendingReview: 0,
@@ -59,7 +61,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
 
     const closeSidebar = () => setIsSidebarOpen(false);
 
-    const handleTabChange = (tab: any) => {
+    const handleTabChange = (tab: 'OVERVIEW' | 'ARTICLES' | 'MEDIA' | 'USERS' | 'COMMENTS' | 'SUBSCRIBERS' | 'NOMINATIONS' | 'SETTINGS' | 'NOTIFICATIONS') => {
         setActiveTab(tab);
         closeSidebar();
     };
@@ -141,6 +143,13 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                     <div className="pt-6 mt-6 border-t border-white/10">
                         <p className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Settings</p>
                         <button
+                            onClick={() => handleTabChange('NOTIFICATIONS')}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'NOTIFICATIONS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        >
+                            <span className="material-icons text-xl">notifications_active</span>
+                            <span className="font-medium text-sm">Notifications</span>
+                        </button>
+                        <button
                             onClick={() => handleTabChange('SETTINGS')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'SETTINGS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                         >
@@ -192,6 +201,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                                         case 'COMMENTS': return 'Comments Moderation';
                                         case 'SUBSCRIBERS': return 'Newsletter Subscribers';
                                         case 'NOMINATIONS': return 'RWIBA 2026 Awards';
+                                        case 'NOTIFICATIONS': return 'Email Infrastructure';
                                         case 'SETTINGS': return 'Settings';
                                         default: return 'Dashboard';
                                     }
@@ -207,6 +217,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                                         case 'COMMENTS': return "Review and manage community discussions.";
                                         case 'SUBSCRIBERS': return "View and export your audience list.";
                                         case 'NOMINATIONS': return "Manage nominations and voting progress.";
+                                        case 'NOTIFICATIONS': return "Configure automated delivery and alerts.";
                                         case 'SETTINGS': return "Manage your dashboard preferences.";
                                         default: return "Access your administrative tools.";
                                     }
@@ -330,6 +341,8 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                     <NominationsManager />
                 ) : activeTab === 'USERS' ? (
                     <UsersManager />
+                ) : activeTab === 'NOTIFICATIONS' ? (
+                    <EmailSettingsManager />
                 ) : activeTab === 'SETTINGS' ? (
                     <DashboardSettings navigate={navigate} />
                 ) : null}

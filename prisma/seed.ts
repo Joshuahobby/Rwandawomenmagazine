@@ -287,11 +287,11 @@ async function main() {
     console.log('Creating Users...');
     const passwordHash = await bcrypt.hash('password123', 10);
 
-    const adminUser = await prisma.user.upsert({
-        where: { email: 'admin@rwandawomenmagazine.com' },
+    await prisma.user.upsert({
+        where: { email: 'admin@rwandawomenmagazine.rw' },
         update: {},
         create: {
-            email: 'admin@rwandawomenmagazine.com',
+            email: 'admin@rwandawomenmagazine.rw',
             fullName: 'Admin User',
             passwordHash,
             roleId: adminRole.id,
@@ -300,11 +300,11 @@ async function main() {
         },
     });
 
-    const editorUser = await prisma.user.upsert({
-        where: { email: 'editor@rwandawomenmagazine.com' },
+    await prisma.user.upsert({
+        where: { email: 'editor@rwandawomenmagazine.rw' },
         update: {},
         create: {
-            email: 'editor@rwandawomenmagazine.com',
+            email: 'editor@rwandawomenmagazine.rw',
             fullName: 'Editor User',
             passwordHash,
             roleId: editorRole.id,
@@ -314,10 +314,10 @@ async function main() {
     });
 
     const authorUser = await prisma.user.upsert({
-        where: { email: 'author@rwandawomenmagazine.com' },
+        where: { email: 'author@rwandawomenmagazine.rw' },
         update: {},
         create: {
-            email: 'author@rwandawomenmagazine.com',
+            email: 'author@rwandawomenmagazine.rw',
             fullName: 'Author User',
             passwordHash,
             roleId: authorRole.id,
@@ -409,6 +409,17 @@ async function main() {
             },
         });
     }
+
+    // 8. Global Settings
+    console.log('Seeding Global Settings...');
+    await prisma.globalSetting.upsert({
+        where: { key: 'admin_notification_email' },
+        update: {},
+        create: {
+            key: 'admin_notification_email',
+            value: 'management.thousandhillsevents@gmail.com',
+        },
+    });
 
     console.log('✅ Seeding finished.');
 }

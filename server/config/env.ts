@@ -1,5 +1,10 @@
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from .env file
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
 // Environment variables are managed by Vercel in production.
-// .env.local is only used locally.
 
 export const env = {
   // Use Vercel's standard Postgres env vars as fallbacks
@@ -9,4 +14,7 @@ export const env = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   PORT: parseInt(process.env.PORT || '5000', 10),
   UPLOAD_DIR: process.env.UPLOAD_DIR || './uploads',
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
+  APP_URL: process.env.APP_URL || 'https://rwandawomenmagazine.rw',
 };

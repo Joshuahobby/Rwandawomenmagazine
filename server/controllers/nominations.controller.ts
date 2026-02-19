@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import prisma from '../config/db';
 import { NominationStatus } from '@prisma/client';
 import { env } from '../config/env';
+import { sendNominationNotification } from '../services/mail.service';
 
 const TICKET_SECRET = env.JWT_SECRET || 'fallback-voting-secret';
 
@@ -105,6 +106,9 @@ export const createNomination = async (req: Request, res: Response) => {
             },
             include: { category: true },
         });
+
+        // Background notification - don't block the response
+        sendNominationNotification(nomination).catch(err => console.error('[Controller] Notification error:', err));
 
         res.status(201).json(nomination);
     } catch (err: unknown) {

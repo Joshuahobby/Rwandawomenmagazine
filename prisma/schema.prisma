@@ -279,3 +279,22 @@ model Vote {
 
   @@map("votes")
 }
+// ─── 17. Global Settings ──────────────────────────────────────
+model GlobalSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("global_settings")
+}
+
+model WebhookEvent {
+  id        String   @id
+  type      String
+  data      Json
+  processed Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("webhook_events")
+}

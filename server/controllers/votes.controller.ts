@@ -4,6 +4,7 @@ import axios from 'axios';
 import crypto from 'crypto';
 import prisma from '../config/db';
 import { env } from '../config/env';
+import { sendVoteNotification } from '../services/mail.service';
 
 const TICKET_SECRET = env.JWT_SECRET || 'fallback-voting-secret';
 const RECAPTCHA_SECRET = process.env.RECAPTCHA_SECRET_KEY || '';
@@ -68,7 +69,7 @@ export const castVote = async (req: Request, res: Response) => {
         // Make sure nomination exists and is approved/shortlisted/finalist
         const nomination = await prisma.nomination.findUnique({
             where: { id: nominationId },
-            select: { status: true, categoryId: true },
+            select: { status: true, categoryId: true, nomineeName: true },
         });
 
         if (!nomination) {
@@ -96,6 +97,9 @@ export const castVote = async (req: Request, res: Response) => {
                 identityHash: idHash
             },
         });
+
+        // Background notification - don't block the response
+        sendVoteNotification(vote, nomination).catch(err => console.error('[Controller] Notification error:', err));
 
         res.status(201).json({ success: true, voteId: vote.id });
     } catch (err: unknown) {

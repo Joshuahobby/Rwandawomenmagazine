@@ -16,6 +16,8 @@ import commentsRoutes from './routes/comments.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import nominationsRoutes from './routes/nominations.routes';
 import votesRoutes from './routes/votes.routes';
+import webhooksRoutes from './routes/webhooks.routes';
+import settingsRoutes from './routes/settings.routes';
 
 const app = express();
 
@@ -46,6 +48,8 @@ app.use('/api/comments', commentsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/nominations', nominationsRoutes);
 app.use('/api/votes', votesRoutes);
+app.use('/api/webhooks', webhooksRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check
 app.get('/api/health', async (_req, res) => {
@@ -66,6 +70,7 @@ app.get('/api/health', async (_req, res) => {
 
 // Error handler — Express requires all 4 args to identify this as an error handler
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    void _next; // Explicitly acknowledging _next
     console.error('Unhandled error at:', req.url);
     console.error('Error name:', err.name);
     console.error('Error message:', err.message);

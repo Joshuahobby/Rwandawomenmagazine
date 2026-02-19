@@ -7,7 +7,7 @@ interface LoginProps {
     navigate: (page: PageView) => void;
 }
 
-const Login: React.FC<LoginProps> = ({ navigate }) => {
+const Login: React.FC<LoginProps> = ({ navigate: _navigate }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -32,11 +32,12 @@ const Login: React.FC<LoginProps> = ({ navigate }) => {
             const response = await api.post('/auth/login', { email: emailTrimmed, password: passwordTrimmed });
             const { user, token } = response.data;
             login(user, token);
-            navigate('DASHBOARD');
-        } catch (err: any) {
+            _navigate('DASHBOARD');
+        } catch (err: unknown) {
             console.error('Login error:', err);
             // Handle both structure: { message: "..." } and { error: "..." }
-            const msg = err.response?.data?.error || err.response?.data?.message || 'Invalid email or password';
+            const axiosErr = err as any;
+            const msg = axiosErr.response?.data?.error || axiosErr.response?.data?.message || 'Invalid email or password';
             setError(msg);
         } finally {
             setIsLoading(false);
@@ -75,7 +76,7 @@ const Login: React.FC<LoginProps> = ({ navigate }) => {
                                 type="email"
                                 required
                                 className="appearance-none block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                                placeholder="admin@rwandawomen.com"
+                                placeholder="admin@rwandawomenmagazine.rw"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
@@ -109,7 +110,7 @@ const Login: React.FC<LoginProps> = ({ navigate }) => {
                     <div className="text-center">
                         <button
                             type="button"
-                            onClick={() => navigate('HOME')}
+                            onClick={() => _navigate('HOME')}
                             className="text-xs font-medium text-gray-500 hover:text-primary transition-colors flex items-center justify-center gap-1 mx-auto"
                         >
                             <span className="material-icons text-sm">arrow_back</span>
