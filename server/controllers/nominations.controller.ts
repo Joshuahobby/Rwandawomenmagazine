@@ -45,8 +45,14 @@ export const createNomination = async (req: Request, res: Response) => {
             nominatorPhone,
             ticket
         } = req.body;
-
         const clientIp = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
+
+        // Check if nominations are open
+        const nominationStatus = await prisma.globalSetting.findUnique({ where: { key: 'NOMINATION_STATUS' } });
+        if (nominationStatus && nominationStatus.value === 'closed') {
+            res.status(403).json({ error: 'Nominations are currently closed' });
+            return;
+        }
 
         // Honey-pot check
         if (req.body.hp_field) {

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PageView } from '../types';
 
 interface AwardNominationProps {
-    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-    _navigate: (view: PageView) => void;
+    navigate: (v: PageView) => void;
 }
 
 interface CategoryOption {
@@ -81,15 +80,27 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [nominationStatus, setNominationStatus] = useState<string>('OPEN');
 
-    // Try to load categories from API
+    // Try to load categories and settings from API
     useEffect(() => {
+        // Fetch categories
         fetch(`${API}/api/nominations/categories`)
             .then((r) => r.json())
             .then((data) => {
                 if (data.INDIVIDUAL) setCategories(data);
             })
             .catch(() => { /* Fall back to static */ });
+
+        // Fetch nomination status
+        fetch(`${API}/api/settings`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.NOMINATION_STATUS) {
+                    setNominationStatus(data.NOMINATION_STATUS);
+                }
+            })
+            .catch(() => { /* Fall back to OPEN */ });
     }, []);
 
     const handleChange = (field: string, value: string) => {
@@ -195,14 +206,21 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                     <div className="absolute inset-0 opacity-20 noise-pattern"></div>
                     <div className="container mx-auto px-4 relative z-10 text-center">
                         <div className="inline-flex items-center gap-3 mb-6 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 backdrop-blur-sm">
-                            <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/90">Nominations Open until March 10</span>
+                            <span className={`w-2 h-2 rounded-full ${nominationStatus === 'OPEN' ? 'bg-primary animate-pulse' : 'bg-red-500'}`}></span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/90">
+                                {nominationStatus === 'OPEN' ? 'Nominations Open' : 'Nominations Closed'}
+                            </span>
                         </div>
                         <h1 className="font-display text-5xl lg:text-7xl font-black uppercase leading-none tracking-tighter mb-6">
                             Nominate a <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-pink-400">Leader</span>
                         </h1>
                         <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                            Recognize an outstanding Rwandan woman, male champion, or organization making a difference. Choose from <span className="text-white font-bold">28 award categories</span> across Individual, Corporate, and SME sectors.
+                            Recognize an outstanding Rwandan woman, male champion, or organization making a difference.
+                            {nominationStatus === 'OPEN' ? (
+                                <> Choose from <span className="text-white font-bold">28 award categories</span> across Individual, Corporate, and SME sectors.</>
+                            ) : (
+                                <> The nomination phase for RWIBA 2026 has officially <span className="text-white font-bold">closed</span>. Stay tuned for the shortlist announcement.</>
+                            )}
                         </p>
                     </div>
                 </section >
@@ -256,13 +274,20 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                                                 <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">Criteria</h4>
                                                 <p className="text-sm leading-relaxed opacity-90">{selectedCategory.criteria}</p>
                                             </div>
-                                            <button
-                                                onClick={() => setIsModalOpen(true)}
-                                                className="w-full bg-white text-primary py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <span className="material-icons text-sm">edit</span>
-                                                Nominate Now
-                                            </button>
+                                            {nominationStatus === 'OPEN' ? (
+                                                <button
+                                                    onClick={() => setIsModalOpen(true)}
+                                                    className="w-full bg-white text-primary py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                                                >
+                                                    <span className="material-icons text-sm">edit</span>
+                                                    Nominate Now
+                                                </button>
+                                            ) : (
+                                                <div className="w-full bg-white/20 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 backdrop-blur-sm">
+                                                    <span className="material-icons text-sm">lock</span>
+                                                    Nominations Closed
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -280,10 +305,12 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                                                     <span className="font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400">{j.label}</span>
                                                     <span className="font-bold text-primary">{j.pct}%</span>
                                                 </div>
-                                                <div
-                                                    className="bg-primary h-full rounded-full transition-all duration-1000 ease-out progress-bar-indicator"
-                                                    data-width={`${j.pct}%`}
-                                                ></div>
+                                                <div className="w-full bg-gray-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="bg-primary h-full rounded-full transition-all duration-1000 progress-bar-fill"
+                                                        ref={(el) => { if (el) el.style.setProperty('width', `${j.pct}%`); }}
+                                                    ></div>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -380,8 +407,17 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                                         </p>
 
                                         <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 flex items-center text-primary text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <span>Nominate in this category</span>
-                                            <span className="material-icons text-sm ml-1">arrow_forward</span>
+                                            {nominationStatus === 'OPEN' ? (
+                                                <>
+                                                    <span>Nominate in this category</span>
+                                                    <span className="material-icons text-sm ml-1">arrow_forward</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="text-gray-400">Phase complete</span>
+                                                    <span className="material-icons text-sm ml-1 text-gray-400">lock</span>
+                                                </>
+                                            )}
                                         </div>
                                     </button>
                                 ))}

@@ -42,11 +42,23 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
     const [votedCategories, setVotedCategories] = useState<Set<number>>(new Set());
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [fingerprint, setFingerprint] = useState<string>('');
+    const [votingStatus, setVotingStatus] = useState<string>('OPEN');
 
     useEffect(() => {
         loadResults();
         initFingerprint();
+        fetchStatus();
     }, []);
+
+    const fetchStatus = async () => {
+        try {
+            const res = await fetch(`${API}/api/settings`);
+            const data = await res.json();
+            if (data.VOTING_STATUS) {
+                setVotingStatus(data.VOTING_STATUS);
+            }
+        } catch { /* Fall back to OPEN */ }
+    };
 
     const initFingerprint = async () => {
         try {
@@ -71,7 +83,7 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
                 }
                 setFingerprint(Math.abs(hash).toString(16) + '-' + navigator.hardwareConcurrency + '-' + screen.colorDepth);
             }
-        } catch (_e) {
+        } catch {
             setFingerprint('fp-' + Math.random().toString(36).substring(2, 9));
         }
     };
@@ -167,14 +179,18 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-transparent"></div>
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="flex flex-wrap items-center gap-3 mb-6">
-                        <span className="text-[10px] font-bold uppercase tracking-widest bg-primary text-white px-3 py-1">Public Voting</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 ${votingStatus === 'OPEN' ? 'bg-primary' : 'bg-red-500'} text-white`}>
+                            {votingStatus === 'OPEN' ? 'Public Voting' : 'Voting Closed'}
+                        </span>
                         <span className="text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white/90 px-3 py-1">RWIBA 2026</span>
                     </div>
                     <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl font-black uppercase leading-[0.85] tracking-tighter mb-6">
                         Vote for<br /><span className="text-primary">Excellence</span>
                     </h1>
                     <p className="text-base lg:text-lg text-gray-300 max-w-2xl leading-relaxed">
-                        Cast your vote for the nominees who inspire you most. You can vote once per category. Support the women and organizations driving Rwanda&apos;s transformation.
+                        {votingStatus === 'OPEN'
+                            ? "Cast your vote for the nominees who inspire you most. You can vote once per category. Support the women and organizations driving Rwanda's transformation."
+                            : "The public voting phase for RWIBA 2026 has concluded. Thank you for your participation. Winners will be announced at the awards ceremony."}
                     </p>
                 </div>
             </section>
@@ -264,12 +280,18 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
                             <div className="mt-8 bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-800 p-5">
                                 <h4 className="font-display text-sm font-bold uppercase tracking-wider mb-3 text-text-light dark:text-text-dark">Voting Rules</h4>
                                 <ul className="space-y-2">
-                                    {['One vote per category', 'All votes are anonymous', 'Voting closes March 24, 2026', 'Results announced at ceremony'].map((rule, i) => (
-                                        <li key={i} className="flex items-start gap-2 text-[11px] text-gray-500 dark:text-gray-400">
-                                            <span className="material-icons text-primary text-[10px] mt-0.5">check</span>
-                                            {rule}
-                                        </li>
-                                    ))}
+                                    <li className="flex items-start gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+                                        <span className="material-icons text-primary text-[10px] mt-0.5">{votingStatus === 'OPEN' ? 'check' : 'lock'}</span>
+                                        {votingStatus === 'OPEN' ? 'One vote per category' : 'Voting is now closed'}
+                                    </li>
+                                    <li className="flex items-start gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+                                        <span className="material-icons text-primary text-[10px] mt-0.5">check</span>
+                                        All votes are anonymous
+                                    </li>
+                                    <li className="flex items-start gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+                                        <span className="material-icons text-primary text-[10px] mt-0.5">check</span>
+                                        Results announced at ceremony
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -326,14 +348,19 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
                                                                     </div>
                                                                     <button
                                                                         onClick={() => handleVote(nominee.nominationId, selectedCat.categoryId)}
-                                                                        disabled={hasVoted || voting === nominee.nominationId}
-                                                                        className={`px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${hasVoted
+                                                                        disabled={votingStatus !== 'OPEN' || hasVoted || voting === nominee.nominationId}
+                                                                        className={`px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${votingStatus !== 'OPEN' || hasVoted
                                                                             ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                                                                             : 'bg-primary text-white hover:bg-opacity-90'
                                                                             }`}
                                                                     >
                                                                         {voting === nominee.nominationId ? (
                                                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                                        ) : votingStatus !== 'OPEN' ? (
+                                                                            <>
+                                                                                <span className="material-icons text-sm">lock</span>
+                                                                                Closed
+                                                                            </>
                                                                         ) : hasVoted ? (
                                                                             <>
                                                                                 <span className="material-icons text-sm">check</span>

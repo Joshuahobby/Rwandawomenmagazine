@@ -38,6 +38,13 @@ export const castVote = async (req: Request, res: Response) => {
             return;
         }
 
+        // Check if voting is open
+        const votingStatus = await prisma.globalSetting.findUnique({ where: { key: 'VOTING_STATUS' } });
+        if (votingStatus && votingStatus.value === 'closed') {
+            res.status(403).json({ error: 'Voting is currently closed' });
+            return;
+        }
+
         // Honey-pot check: If bots fill this invisible field, we block them.
         if (req.body.hp_field) {
             console.warn(`[Security] Bot detected via honey-pot from IP: ${voterIp}`);

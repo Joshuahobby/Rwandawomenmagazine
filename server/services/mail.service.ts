@@ -85,7 +85,7 @@ async function getAdminEmail(): Promise<string> {
 }
 
 interface NominationNotification {
-    id: number;
+    id: string;
     nomineeName: string;
     nomineeOrganization?: string;
     category: { name: string };
@@ -93,7 +93,7 @@ interface NominationNotification {
 }
 
 interface VoteData {
-    id: number;
+    id: string;
     voterIp: string;
     createdAt: string | Date;
 }

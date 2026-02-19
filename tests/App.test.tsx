@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import React from 'react';
 import App from '../App';
 import { AuthProvider } from '../context/AuthContext';
@@ -9,7 +10,7 @@ window.scrollTo = vi.fn();
 
 // Mock dependencies
 vi.mock('../context/AuthContext', async (importOriginal) => {
-    const actual: any = await importOriginal();
+    const actual = await importOriginal() as Record<string, unknown>;
     return {
         ...actual,
         useAuth: () => ({
@@ -25,9 +26,11 @@ vi.mock('../context/AuthContext', async (importOriginal) => {
 describe('Frontend Smoke Test', () => {
     it('renders the App without crashing', () => {
         render(
-            <AuthProvider>
-                <App />
-            </AuthProvider>
+            <MemoryRouter>
+                <AuthProvider>
+                    <App />
+                </AuthProvider>
+            </MemoryRouter>
         );
         // Success if no crash
     });
