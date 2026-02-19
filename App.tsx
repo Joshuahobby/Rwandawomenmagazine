@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { PageView } from './types';
+import { Analytics } from '@vercel/analytics/react';
 
 // Lazy Load Pages
 const Home = React.lazy(() => import('./pages/Home'));
@@ -64,61 +65,87 @@ export default function App() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
+      <>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+        <Analytics />
+      </>
     );
   }
 
   // Handle protected routes (simplified for now, ideally use a ProtectedRoute component)
   const isProtectedPath = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/editor');
   if (isProtectedPath && !isAuthenticated) {
-    return <Login navigate={navigate} />;
+    return (
+      <>
+        <Login navigate={navigate} />
+        <Analytics />
+      </>
+    );
   }
 
   // Dashboard and Editor layouts
   if (location.pathname === '/dashboard' && isAuthenticated) {
-    return <Dashboard navigate={navigate} />;
+    return (
+      <>
+        <Dashboard navigate={navigate} />
+        <Analytics />
+      </>
+    );
   }
 
   if (location.pathname.startsWith('/editor') && isAuthenticated) {
     // Extract ID from path if possible, or use editingArticleId
     const pathParts = location.pathname.split('/');
     const idFromPath = pathParts.length > 2 ? pathParts[2] : null;
-    return <Editor navigate={navigate} articleId={idFromPath || editingArticleId} />;
+    return (
+      <>
+        <Editor navigate={navigate} articleId={idFromPath || editingArticleId} />
+        <Analytics />
+      </>
+    );
   }
 
   if (location.pathname === '/login') {
-    return <Login navigate={navigate} />;
+    return (
+      <>
+        <Login navigate={navigate} />
+        <Analytics />
+      </>
+    );
   }
 
 
   // The rest use the standard public layout
   // The rest use the standard public layout
   return (
-    <Layout currentPage={location.pathname}>
-      <React.Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      }>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/article/:slug" element={<Article />} />
-          <Route path="/category/:slug" element={<CategoryPage />} />
-          <Route path="/search" element={<Search navigate={navigate} />} />
-          <Route path="/archive" element={<Archive navigate={navigate} />} />
-          <Route path="/subscribe" element={<Subscribe navigate={navigate} />} />
-          <Route path="/contact" element={<Contact navigate={navigate} />} />
-          <Route path="/about" element={<About navigate={navigate} />} />
-          <Route path="/partners" element={<Partners navigate={navigate} />} />
-          <Route path="/member-profile" element={<MemberProfile navigate={navigate} />} />
-          <Route path="/events" element={<Events navigate={navigate} />} />
-          <Route path="/nomination" element={<AwardNomination navigate={navigate} />} />
-          <Route path="/newsletter" element={<Newsletter navigate={navigate} />} />
-          <Route path="/voting" element={<Voting navigate={navigate} />} />
-        </Routes>
-      </React.Suspense>
-    </Layout>
+    <>
+      <Layout currentPage={location.pathname}>
+        <React.Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        }>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/article/:slug" element={<Article />} />
+            <Route path="/category/:slug" element={<CategoryPage />} />
+            <Route path="/search" element={<Search navigate={navigate} />} />
+            <Route path="/archive" element={<Archive navigate={navigate} />} />
+            <Route path="/subscribe" element={<Subscribe navigate={navigate} />} />
+            <Route path="/contact" element={<Contact navigate={navigate} />} />
+            <Route path="/about" element={<About navigate={navigate} />} />
+            <Route path="/partners" element={<Partners navigate={navigate} />} />
+            <Route path="/member-profile" element={<MemberProfile navigate={navigate} />} />
+            <Route path="/events" element={<Events navigate={navigate} />} />
+            <Route path="/nomination" element={<AwardNomination navigate={navigate} />} />
+            <Route path="/newsletter" element={<Newsletter navigate={navigate} />} />
+            <Route path="/voting" element={<Voting navigate={navigate} />} />
+          </Routes>
+        </React.Suspense>
+      </Layout>
+      <Analytics />
+    </>
   );
 }
