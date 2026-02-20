@@ -35,6 +35,9 @@ app.use((req, _res, next) => {
 // Serve uploaded files - point to the public directory where they now reside
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')));
 
+// Serve static files from the React app (dist)
+app.use(express.static(path.join(__dirname, '../dist')));
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articlesRoutes);
@@ -66,6 +69,12 @@ app.get('/api/health', async (_req, res) => {
             error: error instanceof Error ? error.message : String(error)
         });
     }
+});
+
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.use((_req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 // Error handler — Express requires all 4 args to identify this as an error handler

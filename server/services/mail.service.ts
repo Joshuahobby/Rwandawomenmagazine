@@ -35,7 +35,12 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * Exponential backoff retry wrapper for Resend API calls.
  */
 async function sendWithRetry(emailData: EmailData, idempotencyKey: string, maxRetries = 3) {
-    if (!resend) return;
+    if (!resend) {
+        console.warn('[MailService] Resend client not initialized in sendWithRetry');
+        return;
+    }
+
+    console.log(`[MailService] Attempting to send email to ${emailData.to} (idempotency: ${idempotencyKey})`);
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
@@ -46,24 +51,30 @@ async function sendWithRetry(emailData: EmailData, idempotencyKey: string, maxRe
             });
 
             if (error) {
+                console.error(`[MailService] Resend API Error (attempt ${attempt + 1}/${maxRetries}):`, {
+                    error,
+                    emailData: { ...emailData, html: '[HTML Content Truncated]' }
+                });
+
                 const resendErr = error as ResendError;
                 // Check if error is retryable (5xx, 429)
                 const isRetryable = (resendErr.statusCode && resendErr.statusCode >= 500) || resendErr.statusCode === 429;
+
                 if (!isRetryable || attempt === maxRetries - 1) {
                     throw error;
                 }
 
                 const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
-                console.warn(`[MailService] Retryable error (attempt ${attempt + 1}/${maxRetries}):`, error);
                 await sleep(delay + Math.random() * 1000); // Add jitter
                 continue;
             }
 
+            console.log(`[MailService] Email sent successfully. ID: ${data?.id}`);
             return data;
         } catch (err) {
+            console.error(`[MailService] Unexpected error (attempt ${attempt + 1}/${maxRetries}):`, err);
             if (attempt === maxRetries - 1) throw err;
             const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
-            console.warn(`[MailService] Unexpected error (attempt ${attempt + 1}/${maxRetries}):`, err);
             await sleep(delay + Math.random() * 1000);
         }
     }
@@ -77,14 +88,16 @@ async function getAdminEmail(): Promise<string> {
         const setting = await prisma.globalSetting.findUnique({
             where: { key: 'admin_notification_email' }
         });
-        return setting?.value || DEFAULT_ADMIN_EMAIL;
+        const email = setting?.value || DEFAULT_ADMIN_EMAIL;
+        console.log(`[MailService] Admin notification email resolved to: ${email}`);
+        return email;
     } catch (err) {
         console.error('[MailService] Error fetching admin email setting:', err);
         return DEFAULT_ADMIN_EMAIL;
     }
 }
 
-interface NominationNotification {
+export interface NominationNotification {
     id: string;
     nomineeName: string;
     nomineeOrganization?: string;
@@ -106,6 +119,8 @@ interface NominationData {
  * Send a notification when a new nomination is submitted.
  */
 export async function sendNominationNotification(nomination: NominationNotification) {
+    console.log(`[MailService] Processing nomination notification for: ${nomination.nomineeName}`);
+
     if (!resend) {
         console.warn('[MailService] RESEND_API_KEY not configured. Skipping nomination email.');
         return;
@@ -115,10 +130,11 @@ export async function sendNominationNotification(nomination: NominationNotificat
     const { id, nomineeName, nomineeOrganization, category, nominatorName } = nomination;
 
     try {
+        console.log('[MailService] Rendering NominationEmail template...');
         const emailHtml = await render(NominationEmail({
             nomineeName,
             nomineeOrganization,
-            categoryName: category.name,
+            categoryName: category?.name || 'Unknown Category',
             nominatorName,
         }));
 
@@ -131,9 +147,8 @@ export async function sendNominationNotification(nomination: NominationNotificat
             html: emailHtml,
         }, idempotencyKey);
 
-        console.log(`[MailService] Nomination notification sent to ${adminEmail}`);
     } catch (err) {
-        console.error('[MailService] Error sending nomination email:', err);
+        console.error('[MailService] Critical error in sendNominationNotification:', err);
     }
 }
 

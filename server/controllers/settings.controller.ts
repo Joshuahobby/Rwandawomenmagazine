@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/db';
-import { sendNominationNotification } from '../services/mail.service';
+import { sendNominationNotification, NominationNotification } from '../services/mail.service';
 
 /**
  * Get all global settings.
@@ -45,8 +45,8 @@ export const updateSetting = async (req: Request, res: Response) => {
  */
 export const sendTestEmail = async (_req: Request, res: Response) => {
     try {
-        const mockNomination = {
-            id: 0, // Mock ID
+        const mockNomination: NominationNotification = {
+            id: '0', // Mock ID
             nomineeName: 'Test Nominee (Antigravity)',
             nomineeOrganization: 'RWM Test Lab',
             category: { name: 'Technical Excellence Award' },
