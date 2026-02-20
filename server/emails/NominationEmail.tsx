@@ -7,8 +7,6 @@ interface NominationEmailProps {
     nomineeTitle?: string;
     nomineeOrganization?: string;
     sector?: string;
-    achievements?: string;
-    measurableResults?: string;
     supportingDocUrl?: string;
     categoryName: string;
     nominatorName: string;
@@ -24,8 +22,6 @@ export const NominationEmail = ({
     nomineeTitle,
     nomineeOrganization,
     sector,
-    achievements,
-    measurableResults,
     supportingDocUrl,
     categoryName,
     nominatorName,
@@ -57,18 +53,6 @@ export const NominationEmail = ({
                 <Text style={detailsText}>
                     <strong>Sector:</strong> {sector}
                 </Text>
-            )}
-            {achievements && (
-                <Section style={largeTextSection}>
-                    <Text style={detailsLabel}>ACHIEVEMENTS</Text>
-                    <Text style={detailsText}>{achievements}</Text>
-                </Section>
-            )}
-            {measurableResults && (
-                <Section style={largeTextSection}>
-                    <Text style={detailsLabel}>MEASURABLE RESULTS</Text>
-                    <Text style={detailsText}>{measurableResults}</Text>
-                </Section>
             )}
             {supportingDocUrl && (
                 <Text style={detailsText}>
@@ -112,12 +96,6 @@ const detailsSection = {
     backgroundColor: '#f8fafc',
     borderRadius: '6px',
     border: '1px solid #e2e8f0',
-};
-
-const largeTextSection = {
-    marginTop: '16px',
-    paddingTop: '16px',
-    borderTop: '1px solid #edf2f7',
 };
 
 const detailsLabel = {

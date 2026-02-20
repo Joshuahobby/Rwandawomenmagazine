@@ -51,8 +51,6 @@ export const sendTestEmail = async (_req: Request, res: Response) => {
             nomineeTitle: 'Chief Innovation Officer',
             nomineeOrganization: 'Rwanda Tech Hub',
             sector: 'Technology & Empowerment',
-            achievements: 'Led the "Women in Tech" initiative that trained over 5,000 young women in coding and entrepreneurship across Rwanda.',
-            measurableResults: '80% of graduates secured full-time employment within 6 months; launched 50+ female-led startups.',
             supportingDocUrl: 'https://example.com/supporting-doc.pdf',
             category: { name: 'Leadership Excellence Award' },
             nominatorName: 'John Smith',

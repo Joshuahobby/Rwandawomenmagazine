@@ -103,8 +103,6 @@ export interface NominationNotification {
     nomineeTitle?: string;
     nomineeOrganization?: string;
     sector?: string;
-    achievements?: string;
-    measurableResults?: string;
     supportingDocUrl?: string;
     category: { name: string };
     nominatorName: string;
@@ -136,7 +134,7 @@ export async function sendNominationNotification(nomination: NominationNotificat
     const adminEmail = await getAdminEmail();
     const {
         id, nomineeName, nomineeTitle, nomineeOrganization, sector,
-        achievements, measurableResults, supportingDocUrl,
+        supportingDocUrl,
         category, nominatorName, nominatorEmail, nominatorPhone
     } = nomination;
 
@@ -147,8 +145,6 @@ export async function sendNominationNotification(nomination: NominationNotificat
             nomineeTitle,
             nomineeOrganization,
             sector,
-            achievements,
-            measurableResults,
             supportingDocUrl,
             categoryName: category?.name || 'Unknown Category',
             nominatorName,
