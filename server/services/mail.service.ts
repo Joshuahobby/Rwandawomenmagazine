@@ -100,9 +100,16 @@ async function getAdminEmail(): Promise<string> {
 export interface NominationNotification {
     id: string;
     nomineeName: string;
+    nomineeTitle?: string;
     nomineeOrganization?: string;
+    sector?: string;
+    achievements?: string;
+    measurableResults?: string;
+    supportingDocUrl?: string;
     category: { name: string };
     nominatorName: string;
+    nominatorEmail: string;
+    nominatorPhone?: string;
 }
 
 interface VoteData {
@@ -127,15 +134,26 @@ export async function sendNominationNotification(nomination: NominationNotificat
     }
 
     const adminEmail = await getAdminEmail();
-    const { id, nomineeName, nomineeOrganization, category, nominatorName } = nomination;
+    const {
+        id, nomineeName, nomineeTitle, nomineeOrganization, sector,
+        achievements, measurableResults, supportingDocUrl,
+        category, nominatorName, nominatorEmail, nominatorPhone
+    } = nomination;
 
     try {
         console.log('[MailService] Rendering NominationEmail template...');
         const emailHtml = await render(NominationEmail({
             nomineeName,
+            nomineeTitle,
             nomineeOrganization,
+            sector,
+            achievements,
+            measurableResults,
+            supportingDocUrl,
             categoryName: category?.name || 'Unknown Category',
             nominatorName,
+            nominatorEmail,
+            nominatorPhone,
         }));
 
         const idempotencyKey = `nomination-v1-${id}`;
@@ -149,6 +167,7 @@ export async function sendNominationNotification(nomination: NominationNotificat
 
     } catch (err) {
         console.error('[MailService] Critical error in sendNominationNotification:', err);
+        throw err;
     }
 }
 

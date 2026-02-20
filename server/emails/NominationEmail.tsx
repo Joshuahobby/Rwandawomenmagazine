@@ -4,9 +4,16 @@ import { BaseLayout } from './components/BaseLayout';
 
 interface NominationEmailProps {
     nomineeName: string;
+    nomineeTitle?: string;
     nomineeOrganization?: string;
+    sector?: string;
+    achievements?: string;
+    measurableResults?: string;
+    supportingDocUrl?: string;
     categoryName: string;
     nominatorName: string;
+    nominatorEmail: string;
+    nominatorPhone?: string;
 }
 
 /**
@@ -14,9 +21,16 @@ interface NominationEmailProps {
  */
 export const NominationEmail = ({
     nomineeName,
+    nomineeTitle,
     nomineeOrganization,
+    sector,
+    achievements,
+    measurableResults,
+    supportingDocUrl,
     categoryName,
     nominatorName,
+    nominatorEmail,
+    nominatorPhone,
 }: NominationEmailProps) => (
     <BaseLayout
         previewText={`New Award Nomination: ${nomineeName}`}
@@ -31,12 +45,51 @@ export const NominationEmail = ({
             <Text style={detailsText}>
                 <strong>Name:</strong> {nomineeName}
             </Text>
+            {nomineeTitle && (
+                <Text style={detailsText}>
+                    <strong>Title:</strong> {nomineeTitle}
+                </Text>
+            )}
             <Text style={detailsText}>
                 <strong>Organization:</strong> {nomineeOrganization || 'N/A'}
             </Text>
+            {sector && (
+                <Text style={detailsText}>
+                    <strong>Sector:</strong> {sector}
+                </Text>
+            )}
+            {achievements && (
+                <Section style={largeTextSection}>
+                    <Text style={detailsLabel}>ACHIEVEMENTS</Text>
+                    <Text style={detailsText}>{achievements}</Text>
+                </Section>
+            )}
+            {measurableResults && (
+                <Section style={largeTextSection}>
+                    <Text style={detailsLabel}>MEASURABLE RESULTS</Text>
+                    <Text style={detailsText}>{measurableResults}</Text>
+                </Section>
+            )}
+            {supportingDocUrl && (
+                <Text style={detailsText}>
+                    <strong>Supporting Document:</strong> <a href={supportingDocUrl}>View Document</a>
+                </Text>
+            )}
+        </Section>
+
+        <Section style={{ ...detailsSection, marginTop: '24px' }}>
+            <Text style={detailsLabel}>NOMINATOR DETAILS</Text>
             <Text style={detailsText}>
-                <strong>Nominated By:</strong> {nominatorName}
+                <strong>Name:</strong> {nominatorName}
             </Text>
+            <Text style={detailsText}>
+                <strong>Email:</strong> {nominatorEmail}
+            </Text>
+            {nominatorPhone && (
+                <Text style={detailsText}>
+                    <strong>Phone:</strong> {nominatorPhone}
+                </Text>
+            )}
         </Section>
 
         <Text style={subtleText}>
@@ -59,6 +112,12 @@ const detailsSection = {
     backgroundColor: '#f8fafc',
     borderRadius: '6px',
     border: '1px solid #e2e8f0',
+};
+
+const largeTextSection = {
+    marginTop: '16px',
+    paddingTop: '16px',
+    borderTop: '1px solid #edf2f7',
 };
 
 const detailsLabel = {

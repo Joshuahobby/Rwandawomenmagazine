@@ -46,11 +46,18 @@ export const updateSetting = async (req: Request, res: Response) => {
 export const sendTestEmail = async (_req: Request, res: Response) => {
     try {
         const mockNomination: NominationNotification = {
-            id: '0', // Mock ID
-            nomineeName: 'Test Nominee (Antigravity)',
-            nomineeOrganization: 'RWM Test Lab',
-            category: { name: 'Technical Excellence Award' },
-            nominatorName: 'Antigravity AI Test System'
+            id: 'test-full-v1', // Unique ID for testing
+            nomineeName: 'Jane Doe',
+            nomineeTitle: 'Chief Innovation Officer',
+            nomineeOrganization: 'Rwanda Tech Hub',
+            sector: 'Technology & Empowerment',
+            achievements: 'Led the "Women in Tech" initiative that trained over 5,000 young women in coding and entrepreneurship across Rwanda.',
+            measurableResults: '80% of graduates secured full-time employment within 6 months; launched 50+ female-led startups.',
+            supportingDocUrl: 'https://example.com/supporting-doc.pdf',
+            category: { name: 'Leadership Excellence Award' },
+            nominatorName: 'John Smith',
+            nominatorEmail: 'john.smith@example.com',
+            nominatorPhone: '+250 788 123 456'
         };
 
         await sendNominationNotification(mockNomination);
