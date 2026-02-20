@@ -80,7 +80,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [nominationStatus, setNominationStatus] = useState<string>('OPEN');
+    const [nominationStatus, setNominationStatus] = useState<string>('open');
 
     // Try to load categories and settings from API
     useEffect(() => {
@@ -206,9 +206,9 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                     <div className="absolute inset-0 opacity-20 noise-pattern"></div>
                     <div className="container mx-auto px-4 relative z-10 text-center">
                         <div className="inline-flex items-center gap-3 mb-6 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 backdrop-blur-sm">
-                            <span className={`w-2 h-2 rounded-full ${nominationStatus === 'OPEN' ? 'bg-primary animate-pulse' : 'bg-red-500'}`}></span>
+                            <span className={`w-2 h-2 rounded-full ${nominationStatus === 'open' ? 'bg-primary animate-pulse' : 'bg-red-500'}`}></span>
                             <span className="text-[10px] font-bold uppercase tracking-widest text-white/90">
-                                {nominationStatus === 'OPEN' ? 'Nominations Open' : 'Nominations Closed'}
+                                {nominationStatus === 'open' ? 'Nominations Open' : 'Nominations Closed'}
                             </span>
                         </div>
                         <h1 className="font-display text-5xl lg:text-7xl font-black uppercase leading-none tracking-tighter mb-6">
@@ -216,7 +216,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                         </h1>
                         <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
                             Recognize an outstanding Rwandan woman, male champion, or organization making a difference.
-                            {nominationStatus === 'OPEN' ? (
+                            {nominationStatus === 'open' ? (
                                 <> Choose from <span className="text-white font-bold">28 award categories</span> across Individual, Corporate, and SME sectors.</>
                             ) : (
                                 <> The nomination phase for RWIBA 2026 has officially <span className="text-white font-bold">closed</span>. Stay tuned for the shortlist announcement.</>
@@ -274,7 +274,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                                                 <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">Criteria</h4>
                                                 <p className="text-sm leading-relaxed opacity-90">{selectedCategory.criteria}</p>
                                             </div>
-                                            {nominationStatus === 'OPEN' ? (
+                                            {nominationStatus === 'open' ? (
                                                 <button
                                                     onClick={() => setIsModalOpen(true)}
                                                     className="w-full bg-white text-primary py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
@@ -407,7 +407,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                                         </p>
 
                                         <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 flex items-center text-primary text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {nominationStatus === 'OPEN' ? (
+                                            {nominationStatus === 'open' ? (
                                                 <>
                                                     <span>Nominate in this category</span>
                                                     <span className="material-icons text-sm ml-1">arrow_forward</span>
