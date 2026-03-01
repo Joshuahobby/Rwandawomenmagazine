@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Nomination {
     id: string;
@@ -127,6 +129,139 @@ const NominationsManager: React.FC = () => {
         }
     };
 
+    // Export Nominations
+    const exportNominationsToCSV = () => {
+        if (!nominations.length) return alert('No data to export');
+        const headers = ['Nominee', 'Title', 'Organization', 'Category', 'Group', 'Status', 'Votes', 'Nominator', 'Nominator Email', 'Date'];
+        const csvRows = [headers.join(',')];
+
+        nominations.forEach(n => {
+            const row = [
+                `"${n.nomineeName.replace(/"/g, '""')}"`,
+                `"${n.nomineeTitle ? n.nomineeTitle.replace(/"/g, '""') : ''}"`,
+                `"${n.nomineeOrganization ? n.nomineeOrganization.replace(/"/g, '""') : ''}"`,
+                `"${n.category.name.replace(/"/g, '""')}"`,
+                `"${n.category.group}"`,
+                `"${n.status}"`,
+                n._count.votes,
+                `"${n.nominatorName.replace(/"/g, '""')}"`,
+                `"${n.nominatorEmail.replace(/"/g, '""')}"`,
+                `"${new Date(n.createdAt).toLocaleDateString()}"`
+            ];
+            csvRows.push(row.join(','));
+        });
+
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `nominations_export_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const exportNominationsToPDF = () => {
+        if (!nominations.length) return alert('No data to export');
+        const doc = new jsPDF();
+        doc.text('RWIBA 2026 Nominations', 14, 15);
+        autoTable(doc, {
+            startY: 20,
+            head: [['Nominee', 'Category', 'Status', 'Votes']],
+            body: nominations.map(n => [
+                `${n.nomineeName}\n${n.nomineeOrganization || ''}`,
+                `${n.category.name} (${n.category.group})`,
+                n.status,
+                n._count.votes
+            ]),
+        });
+        doc.save(`nominations_export_${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
+    const exportSingleNominationToPDF = (nom: Nomination) => {
+        const doc = new jsPDF();
+        doc.setFontSize(20);
+        doc.text('Nomination Profile', 14, 20);
+        doc.setFontSize(12);
+
+        doc.text(`Nominee: ${nom.nomineeName}`, 14, 35);
+        doc.text(`Title: ${nom.nomineeTitle || 'N/A'}`, 14, 45);
+        doc.text(`Organization: ${nom.nomineeOrganization || 'N/A'}`, 14, 55);
+        doc.text(`Category: ${nom.category.name} (${nom.category.group})`, 14, 65);
+        doc.text(`Status: ${nom.status.toUpperCase()}`, 14, 75);
+
+        doc.text('Nominator Information:', 14, 95);
+        doc.text(`Name: ${nom.nominatorName}`, 14, 105);
+        doc.text(`Email: ${nom.nominatorEmail}`, 14, 115);
+        if (nom.nominatorPhone) doc.text(`Phone: ${nom.nominatorPhone}`, 14, 125);
+
+        doc.text('Impact & Achievements:', 14, 145);
+        const splitAchievements = doc.splitTextToSize(nom.achievements || 'No specific achievements listed.', 180);
+        doc.text(splitAchievements, 14, 155);
+
+        doc.save(`nomination_${nom.nomineeName.replace(/\s+/g, '_')}.pdf`);
+    };
+
+    // Export Analytics
+    const exportResultsToCSV = () => {
+        if (!analyticsData.length) return alert('No data to export');
+        const headers = ['Category', 'Group', 'Nominee', 'Votes', 'Percentage'];
+        const csvRows = [headers.join(',')];
+
+        analyticsData.forEach(cat => {
+            const totalVotes = cat.nominees.reduce((sum, n) => sum + n.votes, 0);
+            cat.nominees.forEach(n => {
+                const pct = totalVotes > 0 ? ((n.votes / totalVotes) * 100).toFixed(1) : '0';
+                csvRows.push([
+                    `"${cat.categoryName.replace(/"/g, '""')}"`,
+                    `"${cat.group}"`,
+                    `"${n.nomineeName.replace(/"/g, '""')}"`,
+                    n.votes,
+                    `${pct}%`
+                ].join(','));
+            });
+        });
+
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `voting_results_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const exportResultsToPDF = () => {
+        if (!analyticsData.length) return alert('No data to export');
+        const doc = new jsPDF();
+        doc.text('RWIBA 2026 Voting Results', 14, 15);
+        let currentY = 20;
+
+        analyticsData.forEach(cat => {
+            const totalVotes = cat.nominees.reduce((sum, n) => sum + n.votes, 0);
+            if (currentY > 250) {
+                doc.addPage();
+                currentY = 20;
+            }
+            doc.setFontSize(14);
+            doc.text(`${cat.categoryName} (${cat.group}) - Total: ${totalVotes} votes`, 14, currentY);
+            currentY += 5;
+
+            autoTable(doc, {
+                startY: currentY,
+                head: [['Nominee', 'Votes', 'Percentage']],
+                body: cat.nominees.sort((a, b) => b.votes - a.votes).map(n => {
+                    const pct = totalVotes > 0 ? ((n.votes / totalVotes) * 100).toFixed(1) : '0';
+                    return [n.nomineeName, n.votes, `${pct}%`];
+                }),
+            });
+            currentY = (doc as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY
+                ? (doc as { lastAutoTable?: { finalY: number } }).lastAutoTable!.finalY + 15
+                : currentY + 15;
+        });
+
+        doc.save(`voting_results_${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
     useEffect(() => {
         if (activeTab === 'LIST') fetchData();
         if (activeTab === 'ANALYTICS') fetchAnalytics();
@@ -211,18 +346,34 @@ const NominationsManager: React.FC = () => {
                                 ))}
                             </select>
                         </div>
-                        <button onClick={fetchData} className="ml-auto p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors">
-                            <span className="material-icons text-sm">refresh</span>
-                        </button>
+                        <div className="ml-auto flex items-center gap-2">
+                            <button onClick={exportNominationsToCSV} className="p-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors flex items-center gap-1 text-xs font-bold" title="Export CSV">
+                                <span className="material-icons text-sm">text_snippet</span> <span className="hidden sm:inline">CSV</span>
+                            </button>
+                            <button onClick={exportNominationsToPDF} className="p-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors flex items-center gap-1 text-xs font-bold" title="Export PDF">
+                                <span className="material-icons text-sm">picture_as_pdf</span> <span className="hidden sm:inline">PDF</span>
+                            </button>
+                            <button onClick={fetchData} className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors" title="Refresh">
+                                <span className="material-icons text-sm">refresh</span>
+                            </button>
+                        </div>
                     </div>
                 )}
 
                 {activeTab === 'ANALYTICS' && (
                     <div className="flex justify-between items-center animate-fade-in">
                         <p className="text-sm font-medium text-gray-500">Live voting tallies across all categories</p>
-                        <button onClick={fetchAnalytics} className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors">
-                            <span className="material-icons text-sm">refresh</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button onClick={exportResultsToCSV} className="p-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors flex items-center gap-1 text-xs font-bold" title="Export CSV">
+                                <span className="material-icons text-sm">text_snippet</span> <span className="hidden sm:inline">CSV</span>
+                            </button>
+                            <button onClick={exportResultsToPDF} className="p-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors flex items-center gap-1 text-xs font-bold" title="Export PDF">
+                                <span className="material-icons text-sm">picture_as_pdf</span> <span className="hidden sm:inline">PDF</span>
+                            </button>
+                            <button onClick={fetchAnalytics} className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors" title="Refresh">
+                                <span className="material-icons text-sm">refresh</span>
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -369,7 +520,7 @@ const NominationsManager: React.FC = () => {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-900 dark:text-white">Nomination Phase</h4>
-                                    <p className="text-xs text-gray-500">Control if users can submit new nominees</p>
+                                    <p className="text-xs text-gray-500">Control if users can submit new nominees, and when the phase concludes.</p>
                                 </div>
                             </div>
                             <div className="flex gap-2">
@@ -390,6 +541,17 @@ const NominationsManager: React.FC = () => {
                                     Closed
                                 </button>
                             </div>
+                            <div className="mt-4 border-t border-gray-100 dark:border-white/5 pt-4">
+                                <label htmlFor="nomEnd" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">Phase Countdown End Date</label>
+                                <input
+                                    id="nomEnd"
+                                    type="datetime-local"
+                                    className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-gray-700 dark:text-gray-300"
+                                    value={settings.NOMINATION_END_DATE || ''}
+                                    onChange={(e) => handleUpdateSetting('NOMINATION_END_DATE', e.target.value)}
+                                    disabled={isSettingsUpdating}
+                                />
+                            </div>
                         </div>
 
                         <div className="bg-gray-50 dark:bg-black/10 p-6 rounded-2xl border border-gray-100 dark:border-white/5">
@@ -399,7 +561,7 @@ const NominationsManager: React.FC = () => {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-900 dark:text-white">Voting Phase</h4>
-                                    <p className="text-xs text-gray-500">Control if the public can cast votes</p>
+                                    <p className="text-xs text-gray-500">Control if the public can cast votes, and when the voting concludes.</p>
                                 </div>
                             </div>
                             <div className="flex gap-2">
@@ -420,6 +582,17 @@ const NominationsManager: React.FC = () => {
                                     Closed
                                 </button>
                             </div>
+                            <div className="mt-4 border-t border-gray-100 dark:border-white/5 pt-4">
+                                <label htmlFor="voteEnd" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">Phase Countdown End Date</label>
+                                <input
+                                    id="voteEnd"
+                                    type="datetime-local"
+                                    className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-gray-700 dark:text-gray-300"
+                                    value={settings.VOTING_END_DATE || ''}
+                                    onChange={(e) => handleUpdateSetting('VOTING_END_DATE', e.target.value)}
+                                    disabled={isSettingsUpdating}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -438,12 +611,21 @@ const NominationsManager: React.FC = () => {
                                 <h2 className="font-display text-xl font-black uppercase tracking-tight text-gray-900 dark:text-white">Nomination Profile</h2>
                                 <p className="text-[10px] text-gray-500 dark:text-gray-400 font-black uppercase tracking-widest text-primary/80 mt-1">{selectedNomination.category.name}</p>
                             </div>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="w-10 h-10 rounded-full bg-gray-200 dark:bg-white/5 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all text-gray-500"
-                            >
-                                <span className="material-icons text-lg">close</span>
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => exportSingleNominationToPDF(selectedNomination)}
+                                    className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 transition-all text-xs font-bold flex items-center gap-1"
+                                    title="Export PDF"
+                                >
+                                    <span className="material-icons text-sm">picture_as_pdf</span> Export
+                                </button>
+                                <button
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="w-10 h-10 rounded-full bg-gray-200 dark:bg-white/5 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all text-gray-500"
+                                >
+                                    <span className="material-icons text-lg">close</span>
+                                </button>
+                            </div>
                         </div>
                         <div className="flex-1 overflow-y-auto p-8 space-y-10">
                             {/* Nominee Info */}

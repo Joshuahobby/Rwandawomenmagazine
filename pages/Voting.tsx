@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { PageView } from '../types';
 
 /* eslint-disable */
@@ -34,6 +35,7 @@ const GROUP_LABELS: Record<string, string> = {
 };
 
 const Voting: React.FC<VotingProps> = ({ navigate }) => {
+    const location = useLocation();
     const [results, setResults] = useState<CategoryResult[]>([]);
     const [selectedCat, setSelectedCat] = useState<CategoryResult | null>(null);
     const [activeGroup, setActiveGroup] = useState<string>('INDIVIDUAL');
@@ -49,6 +51,18 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
         initFingerprint();
         fetchStatus();
     }, []);
+
+    // Handle initial scrolling if navigated with a hash
+    useEffect(() => {
+        if (location.hash === '#main-content') {
+            const el = document.getElementById('main-content');
+            if (el) {
+                setTimeout(() => {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+    }, [location.hash]);
 
     const fetchStatus = async () => {
         try {
@@ -175,7 +189,7 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
         <div className="animate-fade-in font-sans">
 
             {/* Hero */}
-            <section className="relative bg-surface-dark dark:bg-black text-white py-16 lg:py-24 overflow-hidden">
+            <section className="relative bg-surface-dark dark:bg-black text-white py-8 lg:py-12 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-transparent"></div>
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -195,7 +209,7 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
                 </div>
             </section>
 
-            <div className="container mx-auto px-4 py-12 lg:py-16">
+            <div id="main-content" className="container mx-auto px-4 py-12 lg:py-16">
 
                 {/* Feedback Banner */}
                 {feedback && (

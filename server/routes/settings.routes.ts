@@ -4,8 +4,8 @@ import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
-// Settings routes - All protected by admin auth
-router.get('/', authenticate, (req, res, next) => {
+// Settings routes
+router.get('/', (req, res, next) => {
     console.log('[SettingsRoute] GET / hit');
     getSettings(req, res).catch(next);
 });

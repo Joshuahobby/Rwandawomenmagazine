@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { PageView } from '../types';
 
 interface AwardNominationProps {
@@ -64,6 +65,7 @@ const JUDGING_CRITERIA = [
 ];
 
 const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
+    const location = useLocation();
     const [categories, setCategories] = useState(STATIC_CATEGORIES);
     const [activeTab, setActiveTab] = useState<'INDIVIDUAL' | 'CORPORATE' | 'SME'>('INDIVIDUAL');
     const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
@@ -102,6 +104,18 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
             })
             .catch(() => { /* Fall back to OPEN */ });
     }, []);
+
+    // Handle initial scrolling if navigated with a hash
+    useEffect(() => {
+        if (location.hash === '#main-content') {
+            const el = document.getElementById('main-content');
+            if (el) {
+                setTimeout(() => {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+    }, [location.hash]);
 
     const handleChange = (field: string, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -201,7 +215,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
             <div className="animate-fade-in font-sans">
 
                 {/* Hero */}
-                <section className="relative bg-black text-white py-24 lg:py-32 overflow-hidden">
+                <section className="relative bg-black text-white py-12 lg:py-16 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-black/50 to-black"></div>
                     <div className="absolute inset-0 opacity-20 noise-pattern"></div>
                     <div className="container mx-auto px-4 relative z-10 text-center">
@@ -225,7 +239,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                     </div>
                 </section >
 
-                <div className="container mx-auto px-4 py-16 lg:py-24">
+                <div id="main-content" className="container mx-auto px-4 py-16 lg:py-24">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
                         {/* Left Sidebar - Context & Info */}
@@ -325,7 +339,7 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                                     <div className="space-y-6">
                                         {[
                                             { date: 'Feb 15, 2026', label: 'Nominations Open', active: true },
-                                            { date: 'Mar 10, 2026', label: 'Nominations Close' },
+                                            { date: 'Mar 4, 2026', label: 'Nominations Close' },
                                             { date: 'Mar 15, 2026', label: 'Public Voting Opens' },
                                             { date: 'Mar 27, 2026', label: 'Awards Ceremony' },
                                         ].map((item, i) => (
