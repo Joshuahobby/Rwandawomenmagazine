@@ -251,6 +251,7 @@ model Nomination {
   status                NominationStatus @default(pending)
   createdAt             DateTime         @default(now()) @map("created_at")
   identityHash          String?          @unique @map("identity_hash")
+  manualVotes           Int              @default(0) @map("manual_votes")
 
   category              AwardCategory    @relation(fields: [categoryId], references: [id])
   votes                 Vote[]

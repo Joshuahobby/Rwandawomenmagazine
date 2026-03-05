@@ -29,8 +29,15 @@ const PopupBanner: React.FC = () => {
 
                     if (data.NOMINATION_STATUS === 'open') {
                         setBannerType('NOMINATION');
-                    } else if (data.NOMINATION_STATUS === 'closed' && data.VOTING_STATUS === 'open') {
-                        setBannerType('VOTING');
+                    } else if (data.VOTING_STATUS === 'open') {
+                        const now = new Date();
+                        const start = data.VOTING_START_DATE ? new Date(data.VOTING_START_DATE) : null;
+                        const end = data.VOTING_END_DATE ? new Date(data.VOTING_END_DATE) : null;
+
+                        // Show voting banner if open and within time bounds (or if no bounds set)
+                        if ((!start || now >= start) && (!end || now <= end)) {
+                            setBannerType('VOTING');
+                        }
                     }
                 }
             } catch (err) {

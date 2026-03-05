@@ -39,10 +39,34 @@ export const castVote = async (req: Request, res: Response) => {
         }
 
         // Check if voting is open
-        const votingStatus = await prisma.globalSetting.findUnique({ where: { key: 'VOTING_STATUS' } });
-        if (votingStatus && votingStatus.value === 'closed') {
+        const settings = await prisma.globalSetting.findMany({
+            where: {
+                key: { in: ['VOTING_STATUS', 'VOTING_START_DATE', 'VOTING_END_DATE'] }
+            }
+        });
+
+        const settingsMap = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {} as Record<string, string>);
+
+        if (settingsMap.VOTING_STATUS === 'closed') {
             res.status(403).json({ error: 'Voting is currently closed' });
             return;
+        }
+
+        const now = new Date();
+        if (settingsMap.VOTING_START_DATE) {
+            const startDate = new Date(settingsMap.VOTING_START_DATE);
+            if (now < startDate) {
+                res.status(403).json({ error: `Voting has not started yet. It opens on ${startDate.toLocaleDateString()}` });
+                return;
+            }
+        }
+
+        if (settingsMap.VOTING_END_DATE) {
+            const endDate = new Date(settingsMap.VOTING_END_DATE);
+            if (now > endDate) {
+                res.status(403).json({ error: 'Voting has ended' });
+                return;
+            }
         }
 
         // Honey-pot check: If bots fill this invisible field, we block them.
@@ -147,7 +171,7 @@ export const getResults = async (_req: Request, res: Response) => {
                 nomineeName: n.nomineeName,
                 nomineeOrganization: n.nomineeOrganization,
                 sector: n.sector,
-                votes: n._count.votes,
+                votes: n._count.votes + ((n as any).manualVotes || 0),
             })),
         }));
 
@@ -180,25 +204,51 @@ export const getCategoryResults = async (req: Request, res: Response) => {
             return;
         }
 
-        const totalVotes = category.nominations.reduce((sum, n) => sum + n._count.votes, 0);
+        const totalVotes = category.nominations.reduce((sum, n) => sum + n._count.votes + ((n as any).manualVotes || 0), 0);
 
         res.json({
             category: { id: category.id, name: category.name, group: category.group },
             totalVotes,
             nominees: category.nominations
-                .map((n) => ({
-                    nominationId: n.id,
-                    nomineeName: n.nomineeName,
-                    nomineeOrganization: n.nomineeOrganization,
-                    sector: n.sector,
-                    achievements: n.achievements,
-                    votes: n._count.votes,
-                    percentage: totalVotes > 0 ? Math.round((n._count.votes / totalVotes) * 100) : 0,
-                }))
+                .map((n) => {
+                    const effectiveVotes = n._count.votes + ((n as any).manualVotes || 0);
+                    return {
+                        nominationId: n.id,
+                        nomineeName: n.nomineeName,
+                        nomineeOrganization: n.nomineeOrganization,
+                        sector: n.sector,
+                        achievements: n.achievements,
+                        votes: effectiveVotes,
+                        percentage: totalVotes > 0 ? Math.round((effectiveVotes / totalVotes) * 100) : 0,
+                    };
+                })
                 .sort((a, b) => b.votes - a.votes),
         });
     } catch (err) {
         console.error('Error fetching category results:', err);
         res.status(500).json({ error: 'Failed to fetch category results' });
+    }
+};
+
+// GET /api/votes/admin/audit-log — admin: get recent votes
+export const getVoteAuditLog = async (req: Request, res: Response) => {
+    try {
+        const votes = await prisma.vote.findMany({
+            include: {
+                nomination: {
+                    select: {
+                        nomineeName: true,
+                        category: { select: { name: true } }
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 200, // Limit to recent 200 votes
+        });
+
+        res.json(votes);
+    } catch (err) {
+        console.error('Error fetching vote audit log:', err);
+        res.status(500).json({ error: 'Failed to fetch vote audit log' });
     }
 };

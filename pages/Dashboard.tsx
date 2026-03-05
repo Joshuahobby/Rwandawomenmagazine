@@ -29,6 +29,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
     const [recentArticles, setRecentArticles] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -81,93 +82,111 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-background-dark flex flex-col h-full border-r border-white/5 transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="h-24 flex items-center justify-center px-4 border-b border-white/10 cursor-pointer" onClick={() => navigate('HOME')}>
+            <aside className={`fixed inset-y-0 left-0 z-50 ${isSidebarCollapsed ? 'w-[72px]' : 'w-64'} bg-background-dark flex flex-col h-full border-r border-white/5 transition-all duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="h-24 flex items-center justify-center px-4 border-b border-white/10 cursor-pointer relative" onClick={() => navigate('HOME')}>
                     <img
                         src="/uploads/logo.png"
                         alt="Rwanda Women Magazine"
-                        className="h-12 w-auto object-contain brightness-0 invert"
+                        className={`${isSidebarCollapsed ? 'h-8' : 'h-12'} w-auto object-contain brightness-0 invert transition-all duration-300`}
                     />
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setIsSidebarCollapsed(!isSidebarCollapsed); }}
+                        className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-primary text-white items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-dark transition-all z-10"
+                        title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    >
+                        <span className="material-icons text-[14px]">{isSidebarCollapsed ? 'chevron_right' : 'chevron_left'}</span>
+                    </button>
                 </div>
                 <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
                     <p className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Main Menu</p>
                     <button
                         onClick={() => handleTabChange('OVERVIEW')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'OVERVIEW' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isSidebarCollapsed ? 'justify-center' : ''} ${activeTab === 'OVERVIEW' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        title="Overview"
                     >
                         <span className="material-icons text-xl">dashboard</span>
-                        <span className="font-medium text-sm">Overview</span>
+                        {!isSidebarCollapsed && <span className="font-medium text-sm">Overview</span>}
                     </button>
                     <button
                         onClick={() => handleTabChange('ARTICLES')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'ARTICLES' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isSidebarCollapsed ? 'justify-center' : ''} ${activeTab === 'ARTICLES' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        title="Articles"
                     >
                         <span className="material-icons text-xl">article</span>
-                        <span className="font-medium text-sm">Articles</span>
+                        {!isSidebarCollapsed && <span className="font-medium text-sm">Articles</span>}
                     </button>
                     <button
                         onClick={() => handleTabChange('MEDIA')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'MEDIA' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isSidebarCollapsed ? 'justify-center' : ''} ${activeTab === 'MEDIA' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        title="Media Library"
                     >
                         <span className="material-icons text-xl">perm_media</span>
-                        <span className="font-medium text-sm">Media Library</span>
+                        {!isSidebarCollapsed && <span className="font-medium text-sm">Media Library</span>}
                     </button>
                     <button
                         onClick={() => handleTabChange('COMMENTS')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'COMMENTS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isSidebarCollapsed ? 'justify-center' : ''} ${activeTab === 'COMMENTS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        title="Comments"
                     >
                         <span className="material-icons text-xl">forum</span>
-                        <span className="font-medium text-sm">Comments</span>
+                        {!isSidebarCollapsed && <span className="font-medium text-sm">Comments</span>}
                     </button>
                     <button
                         onClick={() => handleTabChange('SUBSCRIBERS')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'SUBSCRIBERS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isSidebarCollapsed ? 'justify-center' : ''} ${activeTab === 'SUBSCRIBERS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        title="Subscribers"
                     >
                         <span className="material-icons text-xl">mail</span>
-                        <span className="font-medium text-sm">Subscribers</span>
+                        {!isSidebarCollapsed && <span className="font-medium text-sm">Subscribers</span>}
                     </button>
                     <button
                         onClick={() => handleTabChange('NOMINATIONS')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'NOMINATIONS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isSidebarCollapsed ? 'justify-center' : ''} ${activeTab === 'NOMINATIONS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        title="RWIBA 2026"
                     >
                         <span className="material-icons text-xl">emoji_events</span>
-                        <span className="font-medium text-sm">RWIBA 2026</span>
+                        {!isSidebarCollapsed && <span className="font-medium text-sm">RWIBA 2026</span>}
                     </button>
                     <button
                         onClick={() => handleTabChange('USERS')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'USERS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isSidebarCollapsed ? 'justify-center' : ''} ${activeTab === 'USERS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        title="Users"
                     >
                         <span className="material-icons text-xl">people</span>
-                        <span className="font-medium text-sm">Users</span>
+                        {!isSidebarCollapsed && <span className="font-medium text-sm">Users</span>}
                     </button>
                     <div className="pt-6 mt-6 border-t border-white/10">
                         <p className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Settings</p>
                         <button
                             onClick={() => handleTabChange('NOTIFICATIONS')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'NOTIFICATIONS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isSidebarCollapsed ? 'justify-center' : ''} ${activeTab === 'NOTIFICATIONS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                            title="Notifications"
                         >
                             <span className="material-icons text-xl">notifications_active</span>
-                            <span className="font-medium text-sm">Notifications</span>
+                            {!isSidebarCollapsed && <span className="font-medium text-sm">Notifications</span>}
                         </button>
                         <button
                             onClick={() => handleTabChange('SETTINGS')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === 'SETTINGS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isSidebarCollapsed ? 'justify-center' : ''} ${activeTab === 'SETTINGS' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                            title="Settings"
                         >
                             <span className="material-icons text-xl">settings</span>
-                            <span className="font-medium text-sm">General</span>
+                            {!isSidebarCollapsed && <span className="font-medium text-sm">General</span>}
                         </button>
                     </div>
                 </nav>
                 <div className="p-4 border-t border-white/10">
-                    <div className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 group transition-colors">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold border-2 border-primary/50">
+                    <div className={`flex items-center justify-between p-2 rounded-lg hover:bg-white/5 group transition-colors ${isSidebarCollapsed ? 'flex-col gap-2' : ''}`}>
+                        <div className={`flex items-center gap-3 overflow-hidden ${isSidebarCollapsed ? 'flex-col' : ''}`}>
+                            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold border-2 border-primary/50 flex-shrink-0">
                                 {user?.fullName.charAt(0)}
                             </div>
-                            <div className="overflow-hidden">
-                                <p className="text-sm font-medium text-white truncate">{user?.fullName}</p>
-                                <p className="text-xs text-slate-400 truncate">{user?.role.name}</p>
-                            </div>
+                            {!isSidebarCollapsed && (
+                                <div className="overflow-hidden">
+                                    <p className="text-sm font-medium text-white truncate">{user?.fullName}</p>
+                                    <p className="text-xs text-slate-400 truncate">{user?.role.name}</p>
+                                </div>
+                            )}
                         </div>
                         <button
                             onClick={handleLogout}

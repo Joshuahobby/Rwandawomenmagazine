@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import api from '../services/api';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -8,7 +9,7 @@ interface Nomination {
     nomineeName: string;
     nomineeTitle: string;
     nomineeOrganization: string;
-
+    sector?: string;
     achievements: string | null;
     measurableResults: string | null;
     nominatorName: string;
@@ -16,8 +17,10 @@ interface Nomination {
     nominatorPhone: string | null;
     supportingDocUrl: string | null;
     status: string;
+    manualVotes?: number;
     createdAt: string;
     category: {
+        id?: number;
         name: string;
         group: string;
     };
@@ -29,7 +32,12 @@ interface Nomination {
 interface CategoryOption {
     id: number;
     name: string;
+    slug?: string;
+    description?: string;
+    criteria?: string;
+    icon?: string;
     group?: string;
+    sortOrder?: number;
 }
 
 interface NomineeResult {
@@ -46,7 +54,7 @@ interface CategoryResult {
 }
 
 const NominationsManager: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'LIST' | 'ANALYTICS' | 'SETTINGS'>('LIST');
+    const [activeTab, setActiveTab] = useState<'LIST' | 'CATEGORIES' | 'ANALYTICS' | 'SETTINGS' | 'AUDIT'>('LIST');
     const [nominations, setNominations] = useState<Nomination[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('');
@@ -62,6 +70,24 @@ const NominationsManager: React.FC = () => {
     // Settings state
     const [settings, setSettings] = useState<Record<string, string>>({});
     const [isSettingsUpdating, setIsSettingsUpdating] = useState(false);
+
+    // Audit Log state
+    const [auditLogs, setAuditLogs] = useState<any[]>([]);
+    const [isAuditLoading, setIsAuditLoading] = useState(false);
+
+    // Selection state for bulk actions
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+    // Category CRUD state
+    const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+    const [editingCategory, setEditingCategory] = useState<CategoryOption | null>(null);
+    const [catForm, setCatForm] = useState({ name: '', description: '', criteria: '', icon: 'emoji_events', group: 'INDIVIDUAL', sortOrder: 0 });
+
+    // Nomination CRUD state
+    const [isNomModalOpen, setIsNomModalOpen] = useState(false);
+    const [editingNomination, setEditingNomination] = useState<Nomination | null>(null);
+    const [nomForm, setNomForm] = useState({ categoryId: '', nomineeName: '', nomineeTitle: '', nomineeOrganization: '', sector: '', achievements: '', measurableResults: '', status: 'finalist', manualVotes: 0 });
+    const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'category' | 'nomination'; id: string | number } | null>(null);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -119,6 +145,18 @@ const NominationsManager: React.FC = () => {
         }
     };
 
+    const fetchAuditLogs = async () => {
+        setIsAuditLoading(true);
+        try {
+            const res = await api.get('/votes/admin/audit-log');
+            setAuditLogs(res.data || []);
+        } catch (err) {
+            console.error('Failed to fetch audit log:', err);
+        } finally {
+            setIsAuditLoading(false);
+        }
+    };
+
     const handleUpdateStatus = async (id: string, newStatus: string) => {
         try {
             await api.patch(`/nominations/${id}/status`, { status: newStatus });
@@ -126,6 +164,125 @@ const NominationsManager: React.FC = () => {
         } catch (err) {
             console.error('Failed to update status:', err);
             alert('Failed to update status.');
+        }
+    };
+
+    const handleBulkUpdateStatus = async (newStatus: string) => {
+        if (selectedIds.size === 0) return;
+        try {
+            await api.patch('/nominations/admin/bulk-status', {
+                ids: Array.from(selectedIds),
+                status: newStatus
+            });
+            setNominations(nominations.map(n =>
+                selectedIds.has(n.id) ? { ...n, status: newStatus } : n
+            ));
+            setSelectedIds(new Set());
+            alert(`Successfully updated ${selectedIds.size} nominations to ${newStatus}.`);
+        } catch (err) {
+            console.error('Failed to bulk update status:', err);
+            alert('Failed to bulk update status.');
+        }
+    };
+
+    const toggleSelection = (id: string) => {
+        const next = new Set(selectedIds);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        setSelectedIds(next);
+    };
+
+    const toggleAllSelection = () => {
+        if (selectedIds.size === nominations.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(nominations.map(n => n.id)));
+        }
+    };
+
+    // --- Category CRUD handlers ---
+    const openCatModal = (cat?: CategoryOption) => {
+        if (cat) {
+            setEditingCategory(cat);
+            setCatForm({ name: cat.name, description: cat.description || '', criteria: cat.criteria || '', icon: cat.icon || 'emoji_events', group: cat.group || 'INDIVIDUAL', sortOrder: cat.sortOrder || 0 });
+        } else {
+            setEditingCategory(null);
+            setCatForm({ name: '', description: '', criteria: '', icon: 'emoji_events', group: 'INDIVIDUAL', sortOrder: 0 });
+        }
+        setIsCatModalOpen(true);
+    };
+
+    const handleSaveCategory = async () => {
+        try {
+            if (editingCategory) {
+                await api.patch(`/nominations/categories/${editingCategory.id}`, catForm);
+            } else {
+                await api.post('/nominations/categories', catForm);
+            }
+            setIsCatModalOpen(false);
+            fetchData();
+        } catch (err) {
+            console.error('Failed to save category:', err);
+            alert('Failed to save category.');
+        }
+    };
+
+    const handleDeleteCategory = async (id: number) => {
+        try {
+            await api.delete(`/nominations/categories/${id}`);
+            setDeleteConfirm(null);
+            fetchData();
+        } catch (err) {
+            console.error('Failed to delete category:', err);
+            alert('Failed to delete category. It may have nominations linked to it.');
+        }
+    };
+
+    // --- Nomination CRUD handlers ---
+    const openNomModal = (nom?: Nomination) => {
+        if (nom) {
+            setEditingNomination(nom);
+            setNomForm({
+                categoryId: String(nom.category.id || ''),
+                nomineeName: nom.nomineeName,
+                nomineeTitle: nom.nomineeTitle || '',
+                nomineeOrganization: nom.nomineeOrganization || '',
+                sector: nom.sector || '',
+                achievements: nom.achievements || '',
+                measurableResults: nom.measurableResults || '',
+                status: nom.status,
+                manualVotes: nom.manualVotes || 0,
+            });
+        } else {
+            setEditingNomination(null);
+            setNomForm({ categoryId: '', nomineeName: '', nomineeTitle: '', nomineeOrganization: '', sector: '', achievements: '', measurableResults: '', status: 'finalist', manualVotes: 0 });
+        }
+        setIsNomModalOpen(true);
+    };
+
+    const handleSaveNomination = async () => {
+        try {
+            if (editingNomination) {
+                await api.patch(`/nominations/${editingNomination.id}`, nomForm);
+            } else {
+                await api.post('/nominations/admin', nomForm);
+            }
+            setIsNomModalOpen(false);
+            fetchData();
+        } catch (err) {
+            console.error('Failed to save nomination:', err);
+            alert('Failed to save nomination.');
+        }
+    };
+
+    const handleDeleteNomination = async (id: string) => {
+        try {
+            await api.delete(`/nominations/${id}`);
+            setDeleteConfirm(null);
+            fetchData();
+        } catch (err) {
+            console.error('Failed to delete nomination:', err);
+            alert('Failed to delete nomination.');
         }
     };
 
@@ -263,7 +420,7 @@ const NominationsManager: React.FC = () => {
     };
 
     useEffect(() => {
-        if (activeTab === 'LIST') fetchData();
+        if (activeTab === 'LIST' || activeTab === 'CATEGORIES') fetchData();
         if (activeTab === 'ANALYTICS') fetchAnalytics();
         if (activeTab === 'SETTINGS') fetchSettings();
     }, [statusFilter, categoryFilter, activeTab]);
@@ -291,25 +448,12 @@ const NominationsManager: React.FC = () => {
                         <p className="text-sm text-gray-500">Manage competition phases and track voting results</p>
                     </div>
 
-                    <div className="flex bg-gray-100 dark:bg-black/20 p-1 rounded-xl">
-                        <button
-                            onClick={() => setActiveTab('LIST')}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'LIST' ? 'bg-white dark:bg-white/10 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            Nominations
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('ANALYTICS')}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'ANALYTICS' ? 'bg-white dark:bg-white/10 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            Live Results
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('SETTINGS')}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'SETTINGS' ? 'bg-white dark:bg-white/10 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            Phase Control
-                        </button>
+                    <div className="flex bg-gray-100 dark:bg-black/20 p-1 rounded-xl flex-wrap">
+                        <button onClick={() => setActiveTab('LIST')} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'LIST' ? 'bg-white dark:bg-white/10 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Nominations</button>
+                        <button onClick={() => setActiveTab('CATEGORIES')} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'CATEGORIES' ? 'bg-white dark:bg-white/10 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Categories</button>
+                        <button onClick={() => setActiveTab('ANALYTICS')} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'ANALYTICS' ? 'bg-white dark:bg-white/10 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Live Results</button>
+                        <button onClick={() => setActiveTab('SETTINGS')} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'SETTINGS' ? 'bg-white dark:bg-white/10 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Phase Control</button>
+                        <button onClick={() => { setActiveTab('AUDIT'); fetchAuditLogs(); }} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'AUDIT' ? 'bg-white dark:bg-white/10 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Audit Log</button>
                     </div>
                 </div>
 
@@ -347,6 +491,9 @@ const NominationsManager: React.FC = () => {
                             </select>
                         </div>
                         <div className="ml-auto flex items-center gap-2">
+                            <button onClick={() => openNomModal()} className="px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1 text-xs font-bold shadow-md shadow-primary/20">
+                                <span className="material-icons text-sm">add</span> Add Nominee
+                            </button>
                             <button onClick={exportNominationsToCSV} className="p-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors flex items-center gap-1 text-xs font-bold" title="Export CSV">
                                 <span className="material-icons text-sm">text_snippet</span> <span className="hidden sm:inline">CSV</span>
                             </button>
@@ -379,80 +526,145 @@ const NominationsManager: React.FC = () => {
             </div>
 
             {activeTab === 'LIST' && (
-                <div className="overflow-x-auto animate-fade-in">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-gray-50 dark:bg-black/10 text-[10px] font-bold uppercase tracking-wider text-gray-500 border-b border-gray-100 dark:border-gray-800">
-                                <th className="px-6 py-4">Nominee</th>
-                                <th className="px-6 py-4">Category</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4">Votes</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                            {isLoading ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-20 text-center">
-                                        <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                    </td>
+                <div className="animate-fade-in">
+                    {selectedIds.size > 0 && (
+                        <div className="mx-6 mb-4 p-3 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-between animate-fade-in">
+                            <div className="flex items-center gap-3">
+                                <span className="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full">{selectedIds.size} SELECTED</span>
+                                <span className="text-xs font-medium text-primary/80">Bulk action for selected nominees:</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => handleBulkUpdateStatus('shortlisted')} className="px-3 py-1.5 bg-blue-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-blue-600 transition-colors">Shortlist</button>
+                                <button onClick={() => handleBulkUpdateStatus('finalist')} className="px-3 py-1.5 bg-purple-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-purple-600 transition-colors">Make Finalist</button>
+                                <button onClick={() => handleBulkUpdateStatus('approved')} className="px-3 py-1.5 bg-green-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-green-600 transition-colors">Approve</button>
+                                <button onClick={() => setSelectedIds(new Set())} className="px-3 py-1.5 bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400 text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-gray-300 dark:hover:bg-white/20 transition-colors">Cancel</button>
+                            </div>
+                        </div>
+                    )}
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="bg-gray-50 dark:bg-black/10 text-[10px] font-bold uppercase tracking-wider text-gray-500 border-b border-gray-100 dark:border-gray-800">
+                                    <th className="px-6 py-4 w-10">
+                                        <input
+                                            type="checkbox"
+                                            className="rounded border-gray-300 text-primary focus:ring-primary h-3.5 w-3.5"
+                                            checked={selectedIds.size === nominations.length && nominations.length > 0}
+                                            onChange={toggleAllSelection}
+                                            aria-label="Select all nominations"
+                                        />
+                                    </th>
+                                    <th className="px-6 py-4">Nominee</th>
+                                    <th className="px-6 py-4">Category</th>
+                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4">Votes</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
-                            ) : nominations.length > 0 ? (
-                                nominations.map((nom) => (
-                                    <tr key={nom.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm font-bold text-gray-900 dark:text-white">{nom.nomineeName}</div>
-                                            <div className="text-[10px] text-gray-500 uppercase tracking-tight line-clamp-1">{nom.nomineeTitle} • {nom.nomineeOrganization}</div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{nom.category.name}</div>
-                                            <div className="text-[9px] uppercase font-black text-primary/60 tracking-widest">{nom.category.group}</div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getStatusColor(nom.status)}`}>
-                                                {nom.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="material-icons text-[14px] text-primary">how_to_vote</span>
-                                                <span className="text-sm font-black text-gray-900 dark:text-white">{nom._count.votes}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-3">
-                                                <button
-                                                    onClick={() => { setSelectedNomination(nom); setIsModalOpen(true); }}
-                                                    className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-primary hover:bg-primary/10 transition-all flex items-center justify-center"
-                                                    title="View Details"
-                                                >
-                                                    <span className="material-icons text-sm">visibility</span>
-                                                </button>
-                                                <select
-                                                    aria-label="Change nomination status"
-                                                    className="bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-tight focus:outline-none focus:border-primary text-gray-600 dark:text-gray-400"
-                                                    value={nom.status}
-                                                    onChange={(e) => handleUpdateStatus(nom.id, e.target.value)}
-                                                >
-                                                    <option value="pending">Pending</option>
-                                                    <option value="approved">Approved</option>
-                                                    <option value="shortlisted">Shortlisted</option>
-                                                    <option value="finalist">Finalist</option>
-                                                    <option value="rejected">Rejected</option>
-                                                </select>
-                                            </div>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                                {isLoading ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-20 text-center">
+                                            <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-20 text-center text-gray-500 italic text-sm">
-                                        No nominations found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                ) : nominations.length > 0 ? (
+                                    nominations.map((nom) => (
+                                        <tr key={nom.id} className={`transition-colors group ${selectedIds.has(nom.id) ? 'bg-primary/5' : 'hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                                            <td className="px-6 py-4">
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded border-gray-300 text-primary focus:ring-primary h-3.5 w-3.5"
+                                                    checked={selectedIds.has(nom.id)}
+                                                    onChange={() => toggleSelection(nom.id)}
+                                                    aria-label={`Select ${nom.nomineeName}`}
+                                                />
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-sm font-bold text-gray-900 dark:text-white">{nom.nomineeName}</div>
+                                                <div className="text-[10px] text-gray-500 uppercase tracking-tight line-clamp-1">{nom.nomineeTitle} • {nom.nomineeOrganization}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{nom.category.name}</div>
+                                                <div className="text-[9px] uppercase font-black text-primary/60 tracking-widest">{nom.category.group}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getStatusColor(nom.status)}`}>
+                                                    {nom.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="material-icons text-[14px] text-primary">how_to_vote</span>
+                                                    <span className="text-sm font-black text-gray-900 dark:text-white">{nom._count.votes}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button onClick={() => { setSelectedNomination(nom); setIsModalOpen(true); }} className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-primary hover:bg-primary/10 transition-all flex items-center justify-center" title="View">
+                                                        <span className="material-icons text-sm">visibility</span>
+                                                    </button>
+                                                    <button onClick={() => openNomModal(nom)} className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-all flex items-center justify-center" title="Edit">
+                                                        <span className="material-icons text-sm">edit</span>
+                                                    </button>
+                                                    <button onClick={() => setDeleteConfirm({ type: 'nomination', id: nom.id })} className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center" title="Delete">
+                                                        <span className="material-icons text-sm">delete</span>
+                                                    </button>
+                                                    <select aria-label="Change nomination status" className="bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-tight focus:outline-none focus:border-primary text-gray-600 dark:text-gray-400" value={nom.status} onChange={(e) => handleUpdateStatus(nom.id, e.target.value)}>
+                                                        <option value="pending">Pending</option>
+                                                        <option value="approved">Approved</option>
+                                                        <option value="shortlisted">Shortlisted</option>
+                                                        <option value="finalist">Finalist</option>
+                                                        <option value="rejected">Rejected</option>
+                                                    </select>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-20 text-center text-gray-500 italic text-sm">
+                                            No nominations found.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'CATEGORIES' && (
+                <div className="p-6 animate-fade-in">
+                    <div className="flex justify-between items-center mb-6">
+                        <p className="text-sm font-medium text-gray-500">{categories.length} award categories configured</p>
+                        <button onClick={() => openCatModal()} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1.5 text-xs font-bold shadow-md shadow-primary/20">
+                            <span className="material-icons text-sm">add</span> Add Category
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {categories.map(cat => (
+                            <div key={cat.id} className="bg-gray-50 dark:bg-black/10 rounded-xl p-5 border border-gray-100 dark:border-white/5 group hover:border-primary/30 transition-all">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-icons text-primary text-lg">{cat.icon || 'emoji_events'}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full">{cat.group}</span>
+                                    </div>
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={() => openCatModal(cat)} className="w-7 h-7 rounded-full bg-white dark:bg-white/10 text-gray-400 hover:text-blue-500 flex items-center justify-center transition-all shadow-sm" title="Edit">
+                                            <span className="material-icons text-[14px]">edit</span>
+                                        </button>
+                                        <button onClick={() => setDeleteConfirm({ type: 'category', id: cat.id })} className="w-7 h-7 rounded-full bg-white dark:bg-white/10 text-gray-400 hover:text-red-500 flex items-center justify-center transition-all shadow-sm" title="Delete">
+                                            <span className="material-icons text-[14px]">delete</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-1">{cat.name}</h4>
+                                <p className="text-xs text-gray-500 line-clamp-2">{cat.description || 'No description'}</p>
+                                <div className="mt-3 text-[9px] font-bold uppercase text-gray-400">Sort: {cat.sortOrder || 0}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -582,34 +794,94 @@ const NominationsManager: React.FC = () => {
                                     Closed
                                 </button>
                             </div>
-                            <div className="mt-4 border-t border-gray-100 dark:border-white/5 pt-4">
-                                <label htmlFor="voteEnd" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">Phase Countdown End Date</label>
-                                <input
-                                    id="voteEnd"
-                                    type="datetime-local"
-                                    className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-gray-700 dark:text-gray-300"
-                                    value={settings.VOTING_END_DATE || ''}
-                                    onChange={(e) => handleUpdateSetting('VOTING_END_DATE', e.target.value)}
-                                    disabled={isSettingsUpdating}
-                                />
+                            <div className="mt-4 border-t border-gray-100 dark:border-white/5 pt-4 space-y-4">
+                                <div>
+                                    <label htmlFor="voteStart" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">Phase Opening Date</label>
+                                    <input
+                                        id="voteStart"
+                                        type="datetime-local"
+                                        className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-gray-700 dark:text-gray-300"
+                                        value={settings.VOTING_START_DATE || ''}
+                                        onChange={(e) => handleUpdateSetting('VOTING_START_DATE', e.target.value)}
+                                        disabled={isSettingsUpdating}
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="voteEnd" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">Phase Closing Date (Countdown)</label>
+                                    <input
+                                        id="voteEnd"
+                                        type="datetime-local"
+                                        className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-gray-700 dark:text-gray-300"
+                                        value={settings.VOTING_END_DATE || ''}
+                                        onChange={(e) => handleUpdateSetting('VOTING_END_DATE', e.target.value)}
+                                        disabled={isSettingsUpdating}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
+            {activeTab === 'AUDIT' && (
+                <div className="p-6 animate-fade-in max-h-[600px] overflow-y-auto">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-primary">Voter Audit Log</h3>
+                            <p className="text-[10px] text-gray-500 uppercase font-medium">Monitoring recent 200 voting activities</p>
+                        </div>
+                        <button onClick={fetchAuditLogs} className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all">
+                            <span className={`material-icons text-sm ${isAuditLoading ? 'animate-spin' : ''}`}>refresh</span>
+                        </button>
+                    </div>
+
+                    <div className="overflow-hidden bg-gray-50 dark:bg-black/10 rounded-2xl border border-gray-100 dark:border-white/5">
+                        <table className="w-full text-left">
+                            <thead className="bg-white/50 dark:bg-white/5 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                <tr>
+                                    <th className="px-6 py-3">Timestamp</th>
+                                    <th className="px-6 py-3">Nominee</th>
+                                    <th className="px-6 py-3">Category</th>
+                                    <th className="px-6 py-3">IP Address</th>
+                                    <th className="px-6 py-3">Fingerprint</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-[11px]">
+                                {isAuditLoading && auditLogs.length === 0 ? (
+                                    <tr><td colSpan={5} className="px-6 py-10 text-center"><div className="inline-block w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div></td></tr>
+                                ) : auditLogs.length > 0 ? (
+                                    auditLogs.map((log) => (
+                                        <tr key={log.id} className="hover:bg-white/40 dark:hover:bg-white/5 transition-colors">
+                                            <td className="px-6 py-3 text-gray-500">{new Date(log.createdAt).toLocaleString()}</td>
+                                            <td className="px-6 py-3 font-bold text-gray-900 dark:text-white">{log.nomination.nomineeName}</td>
+                                            <td className="px-6 py-3 text-gray-500">{log.nomination.category.name}</td>
+                                            <td className="px-6 py-3"><code className="bg-gray-100 dark:bg-white/5 px-1.5 py-0.5 rounded text-primary font-bold">{log.voterIp}</code></td>
+                                            <td className="px-6 py-3 text-gray-400 font-mono text-[9px]">{log.voterFingerprint || 'No footprint'}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-500 italic">No voting records found.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
             {/* Details Modal */}
-            {isModalOpen && selectedNomination && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-                    <div
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
-                        onClick={() => setIsModalOpen(false)}
-                    ></div>
-                    <div className="bg-white dark:bg-zinc-900 w-full max-w-2xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col relative z-10 animate-fade-in-up border border-white/5">
-                        <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
+            {isModalOpen && selectedNomination && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setIsModalOpen(false)} />
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-4xl h-[90vh] rounded-[2.5rem] shadow-2xl relative z-10 animate-fade-in-up border border-white/10 flex flex-col overflow-hidden">
+                        <div className="p-8 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-900/50 backdrop-blur-md">
                             <div>
-                                <h2 className="font-display text-xl font-black uppercase tracking-tight text-gray-900 dark:text-white">Nomination Profile</h2>
-                                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-black uppercase tracking-widest text-primary/80 mt-1">{selectedNomination.category.name}</p>
+                                <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight leading-none mb-2">Nomination Details</h2>
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${getStatusColor(selectedNomination.status)}`}>
+                                        {selectedNomination.status}
+                                    </span>
+                                    <span className="text-gray-400 text-xs font-medium">Ref: INV-{selectedNomination.id.slice(0, 8).toUpperCase()}</span>
+                                </div>
                             </div>
                             <div className="flex items-center gap-3">
                                 <button
@@ -702,7 +974,138 @@ const NominationsManager: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
+            )}
+            {/* Category CRUD Modal */}
+            {isCatModalOpen && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsCatModalOpen(false)} />
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-lg rounded-2xl shadow-2xl relative z-10 animate-fade-in-up border border-white/5">
+                        <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center">
+                            <h2 className="font-bold text-lg text-gray-900 dark:text-white">{editingCategory ? 'Edit Category' : 'New Category'}</h2>
+                            <button onClick={() => setIsCatModalOpen(false)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all text-gray-400"><span className="material-icons text-sm">close</span></button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label htmlFor="cat-name" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Name *</label>
+                                <input id="cat-name" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={catForm.name} onChange={e => setCatForm({ ...catForm, name: e.target.value })} placeholder="e.g. Woman of the Year" />
+                            </div>
+                            <div>
+                                <label htmlFor="cat-description" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Description</label>
+                                <textarea id="cat-description" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary h-20 resize-none" value={catForm.description} onChange={e => setCatForm({ ...catForm, description: e.target.value })} />
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label htmlFor="cat-group" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Group</label>
+                                    <select id="cat-group" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={catForm.group} onChange={e => setCatForm({ ...catForm, group: e.target.value })}>
+                                        <option value="INDIVIDUAL">Individual</option>
+                                        <option value="CORPORATE">Corporate</option>
+                                        <option value="SME">SME</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="cat-icon" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Icon</label>
+                                    <input id="cat-icon" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={catForm.icon} onChange={e => setCatForm({ ...catForm, icon: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label htmlFor="cat-sort" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Sort Order</label>
+                                    <input id="cat-sort" type="number" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={catForm.sortOrder} onChange={e => setCatForm({ ...catForm, sortOrder: Number(e.target.value) })} />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-gray-100 dark:border-white/10 flex justify-end gap-3">
+                            <button onClick={() => setIsCatModalOpen(false)} className="px-6 py-2.5 bg-gray-200 dark:bg-white/10 rounded-lg text-xs font-bold uppercase tracking-widest">Cancel</button>
+                            <button onClick={handleSaveCategory} className="px-6 py-2.5 bg-primary text-white rounded-lg text-xs font-bold uppercase tracking-widest shadow-md shadow-primary/20 hover:bg-primary/90">{editingCategory ? 'Update' : 'Create'}</button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {isNomModalOpen && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsNomModalOpen(false)} />
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 animate-fade-in-up border border-white/5 max-h-[90vh] flex flex-col">
+                        <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center">
+                            <h2 className="font-bold text-lg text-gray-900 dark:text-white">{editingNomination ? 'Edit Nominee' : 'Add Nominee'}</h2>
+                            <button onClick={() => setIsNomModalOpen(false)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all text-gray-400"><span className="material-icons text-sm">close</span></button>
+                        </div>
+                        <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Category *</label>
+                                    <select title="Award Category" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.categoryId} onChange={e => setNomForm({ ...nomForm, categoryId: e.target.value })}>
+                                        <option value="">Select Category</option>
+                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.group})</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Status</label>
+                                    <select title="Nomination Status" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.status} onChange={e => setNomForm({ ...nomForm, status: e.target.value })}>
+                                        <option value="pending">Pending</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="shortlisted">Shortlisted</option>
+                                        <option value="finalist">Finalist</option>
+                                        <option value="rejected">Rejected</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Nominee Name *</label>
+                                <input title="Nominee Name" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.nomineeName} onChange={e => setNomForm({ ...nomForm, nomineeName: e.target.value })} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Title</label>
+                                    <input title="Professional Title" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.nomineeTitle} onChange={e => setNomForm({ ...nomForm, nomineeTitle: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Organization</label>
+                                    <input title="Organization" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.nomineeOrganization} onChange={e => setNomForm({ ...nomForm, nomineeOrganization: e.target.value })} />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Achievements</label>
+                                <textarea title="Achievements" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary h-20 resize-none" value={nomForm.achievements} onChange={e => setNomForm({ ...nomForm, achievements: e.target.value })} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Sector</label>
+                                    <input title="Sector" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.sector} onChange={e => setNomForm({ ...nomForm, sector: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Manual Votes</label>
+                                    <input title="Manual Votes" type="number" min="0" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.manualVotes} onChange={e => setNomForm({ ...nomForm, manualVotes: Number(e.target.value) })} />
+                                    <p className="text-[9px] text-gray-400 mt-1">Added to actual vote count in results</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-gray-100 dark:border-white/10 flex justify-end gap-3">
+                            <button onClick={() => setIsNomModalOpen(false)} className="px-6 py-2.5 bg-gray-200 dark:bg-white/10 rounded-lg text-xs font-bold uppercase tracking-widest">Cancel</button>
+                            <button onClick={handleSaveNomination} className="px-6 py-2.5 bg-primary text-white rounded-lg text-xs font-bold uppercase tracking-widest shadow-md shadow-primary/20 hover:bg-primary/90">{editingNomination ? 'Update' : 'Create'}</button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {deleteConfirm && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)} />
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-2xl shadow-2xl relative z-10 animate-fade-in-up border border-white/5 p-8 text-center">
+                        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                            <span className="material-icons text-red-500 text-3xl">warning</span>
+                        </div>
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">Confirm Delete</h3>
+                        <p className="text-sm text-gray-500 mb-6">This action cannot be undone. Are you sure you want to delete this {deleteConfirm.type}?</p>
+                        <div className="flex gap-3 justify-center">
+                            <button onClick={() => setDeleteConfirm(null)} className="px-6 py-2.5 bg-gray-200 dark:bg-white/10 rounded-lg text-xs font-bold uppercase tracking-widest">Cancel</button>
+                            <button onClick={() => deleteConfirm.type === 'category' ? handleDeleteCategory(deleteConfirm.id as number) : handleDeleteNomination(deleteConfirm.id as string)} className="px-6 py-2.5 bg-red-500 text-white rounded-lg text-xs font-bold uppercase tracking-widest shadow-md shadow-red-500/20 hover:bg-red-600">Delete</button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
             )}
         </div>
     );

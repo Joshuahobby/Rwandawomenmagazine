@@ -340,7 +340,8 @@ const AwardNomination: React.FC<AwardNominationProps> = ({ navigate }) => {
                                         {[
                                             { date: 'Feb 15, 2026', label: 'Nominations Open', active: true },
                                             { date: 'Mar 4, 2026', label: 'Nominations Close' },
-                                            { date: 'Mar 15, 2026', label: 'Public Voting Opens' },
+                                            { date: 'Mar 5, 2026', label: 'Public Voting Opens' },
+                                            { date: 'Mar 15, 2026', label: 'Public Voting Closes' },
                                             { date: 'Mar 27, 2026', label: 'Awards Ceremony' },
                                         ].map((item, i) => (
                                             <div key={i} className={`flex gap-4 relative ${item.active ? 'opacity-100' : 'opacity-60'}`}>

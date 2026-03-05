@@ -2,11 +2,78 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import prisma from '../config/db';
-import { NominationStatus } from '@prisma/client';
+import { NominationStatus, CategoryGroup } from '@prisma/client';
 import { env } from '../config/env';
 import { sendNominationNotification } from '../services/mail.service';
+import { generateSlug } from '../services/slug';
 
 const TICKET_SECRET = env.JWT_SECRET || 'fallback-voting-secret';
+
+// --- Award Category CRUD ---
+
+// POST /api/nominations/categories — admin: create category
+export const createAwardCategory = async (req: Request, res: Response) => {
+    try {
+        const { name, description, criteria, icon, group, sortOrder } = req.body;
+        const slug = generateSlug(name);
+
+        const category = await prisma.awardCategory.create({
+            data: {
+                name,
+                slug,
+                description,
+                criteria,
+                icon: icon || 'emoji_events',
+                group: group as CategoryGroup || 'INDIVIDUAL',
+                sortOrder: sortOrder ? Number(sortOrder) : 0,
+            },
+        });
+        res.status(201).json(category);
+    } catch (err) {
+        console.error('Error creating award category:', err);
+        res.status(500).json({ error: 'Failed to create award category' });
+    }
+};
+
+// PATCH /api/nominations/categories/:id — admin: update category
+export const updateAwardCategory = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { name, description, criteria, icon, group, sortOrder } = req.body;
+
+        const data: any = {};
+        if (name) {
+            data.name = name;
+            data.slug = generateSlug(name);
+        }
+        if (description !== undefined) data.description = description;
+        if (criteria !== undefined) data.criteria = criteria;
+        if (icon) data.icon = icon;
+        if (group) data.group = group as CategoryGroup;
+        if (sortOrder !== undefined) data.sortOrder = Number(sortOrder);
+
+        const category = await prisma.awardCategory.update({
+            where: { id: Number(id) },
+            data,
+        });
+        res.json(category);
+    } catch (err) {
+        console.error('Error updating award category:', err);
+        res.status(500).json({ error: 'Failed to update award category' });
+    }
+};
+
+// DELETE /api/nominations/categories/:id — admin: delete category
+export const deleteAwardCategory = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        await prisma.awardCategory.delete({ where: { id: Number(id) } });
+        res.json({ message: 'Award category deleted' });
+    } catch (err) {
+        console.error('Error deleting award category:', err);
+        res.status(500).json({ error: 'Failed to delete award category' });
+    }
+};
 
 // GET /api/nominations/categories — list all award categories grouped
 export const getCategories = async (_req: Request, res: Response) => {
@@ -28,7 +95,9 @@ export const getCategories = async (_req: Request, res: Response) => {
     }
 };
 
-// POST /api/nominations — submit a nomination
+// --- Nomination CRUD ---
+
+// POST /api/nominations — submit a nomination (public)
 export const createNomination = async (req: Request, res: Response) => {
     try {
         const {
@@ -127,6 +196,51 @@ export const createNomination = async (req: Request, res: Response) => {
     }
 };
 
+// POST /api/nominations/admin — admin: create nomination directly
+export const createNominationAdmin = async (req: Request, res: Response) => {
+    try {
+        const {
+            categoryId,
+            nomineeName,
+            nomineeTitle,
+            nomineeOrganization,
+            sector,
+            achievements,
+            measurableResults,
+            supportingDocUrl,
+            nominatorName,
+            nominatorEmail,
+            nominatorPhone,
+            status,
+            manualVotes
+        } = req.body;
+
+        const nomination = await prisma.nomination.create({
+            data: {
+                categoryId: Number(categoryId),
+                nomineeName,
+                nomineeTitle,
+                nomineeOrganization,
+                sector,
+                achievements,
+                measurableResults,
+                supportingDocUrl,
+                nominatorName: nominatorName || 'Admin',
+                nominatorEmail: nominatorEmail || 'admin@rwandawomenmagazine.com',
+                nominatorPhone,
+                status: status as NominationStatus || 'approved',
+                manualVotes: manualVotes ? Number(manualVotes) : 0,
+            },
+            include: { category: true },
+        });
+
+        res.status(201).json(nomination);
+    } catch (err) {
+        console.error('Error creating nomination admin:', err);
+        res.status(500).json({ error: 'Failed to create nomination' });
+    }
+};
+
 // GET /api/nominations — list nominations, filter by categoryId & status
 export const getNominations = async (req: Request, res: Response) => {
     try {
@@ -167,6 +281,47 @@ export const getNominations = async (req: Request, res: Response) => {
     }
 };
 
+// PATCH /api/nominations/:id — admin: update nomination
+export const updateNomination = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const {
+            categoryId,
+            nomineeName,
+            nomineeTitle,
+            nomineeOrganization,
+            sector,
+            achievements,
+            measurableResults,
+            supportingDocUrl,
+            status,
+            manualVotes
+        } = req.body;
+
+        const data: any = {};
+        if (categoryId) data.categoryId = Number(categoryId);
+        if (nomineeName) data.nomineeName = nomineeName;
+        if (nomineeTitle !== undefined) data.nomineeTitle = nomineeTitle;
+        if (nomineeOrganization !== undefined) data.nomineeOrganization = nomineeOrganization;
+        if (sector !== undefined) data.sector = sector;
+        if (achievements !== undefined) data.achievements = achievements;
+        if (measurableResults !== undefined) data.measurableResults = measurableResults;
+        if (supportingDocUrl !== undefined) data.supportingDocUrl = supportingDocUrl;
+        if (status) data.status = status as NominationStatus;
+        if (manualVotes !== undefined) data.manualVotes = Number(manualVotes);
+
+        const nomination = await prisma.nomination.update({
+            where: { id },
+            data,
+        });
+
+        res.json(nomination);
+    } catch (err) {
+        console.error('Error updating nomination:', err);
+        res.status(500).json({ error: 'Failed to update nomination' });
+    }
+};
+
 // PATCH /api/nominations/:id/status — admin: update status
 export const updateNominationStatus = async (req: Request, res: Response) => {
     try {
@@ -188,5 +343,45 @@ export const updateNominationStatus = async (req: Request, res: Response) => {
     } catch (err) {
         console.error('Error updating nomination:', err);
         res.status(500).json({ error: 'Failed to update nomination' });
+    }
+};
+
+// DELETE /api/nominations/:id — admin: delete nomination
+export const deleteNomination = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        await prisma.nomination.delete({ where: { id } });
+        res.json({ message: 'Nomination deleted' });
+    } catch (err) {
+        console.error('Error deleting nomination:', err);
+        res.status(500).json({ error: 'Failed to delete nomination' });
+    }
+};
+
+// PATCH /api/nominations/bulk-status — admin: bulk update status
+export const bulkUpdateNominationStatus = async (req: Request, res: Response) => {
+    try {
+        const { ids, status } = req.body;
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+            res.status(400).json({ error: 'Missing or empty ids array' });
+            return;
+        }
+
+        const validStatuses = ['pending', 'approved', 'shortlisted', 'finalist', 'rejected'];
+        if (!validStatuses.includes(status)) {
+            res.status(400).json({ error: 'Invalid status' });
+            return;
+        }
+
+        const result = await prisma.nomination.updateMany({
+            where: { id: { in: ids } },
+            data: { status: status as NominationStatus },
+        });
+
+        res.json({ message: `Successfully updated ${result.count} nominations`, count: result.count });
+    } catch (err) {
+        console.error('Error bulk updating nominations:', err);
+        res.status(500).json({ error: 'Failed to bulk update nominations' });
     }
 };

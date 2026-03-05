@@ -68,9 +68,26 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
         try {
             const res = await fetch(`${API}/api/settings`);
             const data = await res.json();
-            if (data.VOTING_STATUS) {
-                setVotingStatus(data.VOTING_STATUS);
+
+            // Normalize to uppercase for UI comparisons
+            let status = (data.VOTING_STATUS || 'closed').toUpperCase();
+            const now = new Date();
+
+            if (data.VOTING_START_DATE) {
+                const start = new Date(data.VOTING_START_DATE);
+                if (now < start) {
+                    status = 'UPCOMING';
+                }
             }
+
+            if (data.VOTING_END_DATE) {
+                const end = new Date(data.VOTING_END_DATE);
+                if (now > end) {
+                    status = 'CLOSED';
+                }
+            }
+
+            setVotingStatus(status);
         } catch { /* Fall back to OPEN */ }
     };
 
@@ -193,8 +210,8 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-transparent"></div>
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="flex flex-wrap items-center gap-3 mb-6">
-                        <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 ${votingStatus === 'OPEN' ? 'bg-primary' : 'bg-red-500'} text-white`}>
-                            {votingStatus === 'OPEN' ? 'Public Voting' : 'Voting Closed'}
+                        <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 ${votingStatus === 'OPEN' ? 'bg-primary' : (votingStatus === 'UPCOMING' ? 'bg-blue-500' : 'bg-red-500')} text-white`}>
+                            {votingStatus === 'OPEN' ? 'Public Voting' : (votingStatus === 'UPCOMING' ? 'Voting Opens March 5' : 'Voting Closed')}
                         </span>
                         <span className="text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white/90 px-3 py-1">RWIBA 2026</span>
                     </div>
@@ -204,7 +221,9 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
                     <p className="text-base lg:text-lg text-gray-300 max-w-2xl leading-relaxed">
                         {votingStatus === 'OPEN'
                             ? "Cast your vote for the nominees who inspire you most. You can vote once per category. Support the women and organizations driving Rwanda's transformation."
-                            : "The public voting phase for RWIBA 2026 has concluded. Thank you for your participation. Winners will be announced at the awards ceremony."}
+                            : (votingStatus === 'UPCOMING'
+                                ? "Public voting for RWIBA 2026 will open on March 5, 2026. Get ready to support your favorite nominees!"
+                                : "The public voting phase for RWIBA 2026 has concluded. Thank you for your participation. Winners will be announced at the awards ceremony.")}
                     </p>
                 </div>
             </section>
