@@ -118,19 +118,27 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
         }
     };
 
-    useEffect(() => {
-        loadResults();
-    }, []);
+
 
     const loadResults = async () => {
         try {
             const res = await fetch(`${API}/api/votes/results`);
-            const data = await res.json();
+            const data: CategoryResult[] = await res.json();
             setResults(data);
-            // Select first category with nominees
-            if (data.length > 0) {
+
+            // Preserve current selection if it exists in the new data
+            setSelectedCat((prev) => {
+                if (prev) {
+                    const updated = data.find(c => c.categoryId === prev.categoryId);
+                    if (updated) return updated;
+                }
+                // Fallback to first category with nominees OR first in list
+                return data.find((c: CategoryResult) => c.nominees.length > 0) || data[0] || null;
+            });
+
+            // Ensure activeGroup is synced if we just loaded for the first time
+            if (data.length > 0 && !selectedCat) {
                 const first = data.find((c: CategoryResult) => c.nominees.length > 0) || data[0];
-                setSelectedCat(first);
                 setActiveGroup(first.group);
             }
         } catch {
