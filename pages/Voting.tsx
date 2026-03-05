@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageView } from '../types';
 
-/* eslint-disable */
 interface VotingProps {
     navigate: (page: PageView, id?: string | null) => void;
 }
-/* eslint-enable */
+
 
 interface NomineeResult {
     nominationId: string;
@@ -199,7 +198,7 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
         }
     };
 
-    const filteredCats = results.filter((c) => c.group === activeGroup);
+
     const totalVotesInCategory = selectedCat?.nominees.reduce((s, n) => s + n.votes, 0) || 0;
 
     return (
@@ -277,35 +276,45 @@ const Voting: React.FC<VotingProps> = ({ navigate }) => {
                         <div className="lg:col-span-1">
                             <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">Select Category</h3>
 
-                            {/* Group Tabs */}
-                            <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 mb-4">
+                            {/* Accordion-style Category Groups */}
+                            <div className="space-y-2">
                                 {(['INDIVIDUAL', 'CORPORATE', 'SME'] as const).map((g) => (
-                                    <button
-                                        key={g}
-                                        onClick={() => setActiveGroup(g)}
-                                        className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${activeGroup === g
-                                            ? 'bg-primary text-white'
-                                            : 'text-gray-500 hover:text-text-light dark:hover:text-text-dark'
-                                            }`}
-                                    >{g}</button>
-                                ))}
-                            </div>
+                                    <div key={g} className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm">
+                                        <button
+                                            onClick={() => setActiveGroup(activeGroup === g ? '' : g)}
+                                            className={`w-full flex items-center justify-between py-4 px-4 text-xs font-bold uppercase tracking-widest transition-all ${activeGroup === g
+                                                ? 'bg-primary text-white'
+                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                                }`}
+                                        >
+                                            <span>{GROUP_LABELS[g]}</span>
+                                            <span className={`material-icons text-sm transition-transform duration-300 ${activeGroup === g ? 'rotate-180' : ''}`}>
+                                                expand_more
+                                            </span>
+                                        </button>
 
-                            <div className="space-y-1 max-h-[500px] overflow-y-auto">
-                                {filteredCats.map((cat) => (
-                                    <button
-                                        key={cat.categoryId}
-                                        onClick={() => { setSelectedCat(cat); setFeedback(null); }}
-                                        className={`w-full text-left px-4 py-3 text-xs transition-all flex items-center justify-between ${selectedCat?.categoryId === cat.categoryId
-                                            ? 'bg-primary/10 border-l-2 border-primary text-primary font-bold'
-                                            : 'hover:bg-gray-50 dark:hover:bg-gray-900/30 text-gray-600 dark:text-gray-400'
-                                            }`}
-                                    >
-                                        <span className="leading-snug pr-2">{cat.categoryName}</span>
-                                        {cat.nominees.length > 0 && (
-                                            <span className="flex-shrink-0 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] px-2 py-0.5 font-bold">{cat.nominees.length}</span>
-                                        )}
-                                    </button>
+                                        <div className={`transition-all duration-300 ease-in-out ${activeGroup === g ? 'max-h-[800px] opacity-100 py-2' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+                                            <div className="space-y-1">
+                                                {results.filter(c => c.group === g).map((cat) => (
+                                                    <button
+                                                        key={cat.categoryId}
+                                                        onClick={() => { setSelectedCat(cat); setFeedback(null); }}
+                                                        className={`w-full text-left px-6 py-3 text-[11px] transition-all flex items-center justify-between ${selectedCat?.categoryId === cat.categoryId
+                                                            ? 'text-primary font-bold bg-primary/5 border-r-4 border-primary'
+                                                            : 'text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary'
+                                                            }`}
+                                                    >
+                                                        <span className="leading-snug pr-2">{cat.categoryName}</span>
+                                                        {cat.nominees.length > 0 && (
+                                                            <span className={`flex-shrink-0 text-[9px] px-1.5 py-0.5 rounded font-bold ${selectedCat?.categoryId === cat.categoryId ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                                                                {cat.nominees.length}
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
 
