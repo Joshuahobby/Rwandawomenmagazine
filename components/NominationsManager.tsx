@@ -136,7 +136,7 @@ const NominationsManager: React.FC = () => {
         setIsSettingsUpdating(true);
         try {
             await api.patch('/settings', { key, value });
-            setSettings(prev => ({ ...prev, [key]: value }));
+            setSettings((prev: Record<string, string>) => ({ ...prev, [key]: value }));
         } catch (err) {
             console.error('Failed to update setting:', err);
             alert('Failed to update setting.');
@@ -160,7 +160,7 @@ const NominationsManager: React.FC = () => {
     const handleUpdateStatus = async (id: string, newStatus: string) => {
         try {
             await api.patch(`/nominations/${id}/status`, { status: newStatus });
-            setNominations(nominations.map(n => n.id === id ? { ...n, status: newStatus } : n));
+            setNominations(nominations.map((n: Nomination) => n.id === id ? { ...n, status: newStatus } : n));
         } catch (err) {
             console.error('Failed to update status:', err);
             alert('Failed to update status.');
@@ -174,7 +174,7 @@ const NominationsManager: React.FC = () => {
                 ids: Array.from(selectedIds),
                 status: newStatus
             });
-            setNominations(nominations.map(n =>
+            setNominations(nominations.map((n: Nomination) =>
                 selectedIds.has(n.id) ? { ...n, status: newStatus } : n
             ));
             setSelectedIds(new Set());
@@ -196,7 +196,7 @@ const NominationsManager: React.FC = () => {
         if (selectedIds.size === nominations.length) {
             setSelectedIds(new Set());
         } else {
-            setSelectedIds(new Set(nominations.map(n => n.id)));
+            setSelectedIds(new Set(nominations.map((n: Nomination) => n.id)));
         }
     };
 
@@ -292,7 +292,7 @@ const NominationsManager: React.FC = () => {
         const headers = ['Nominee', 'Title', 'Organization', 'Category', 'Group', 'Status', 'Votes', 'Nominator', 'Nominator Email', 'Date'];
         const csvRows = [headers.join(',')];
 
-        nominations.forEach(n => {
+        nominations.forEach((n: Nomination) => {
             const row = [
                 `"${n.nomineeName.replace(/"/g, '""')}"`,
                 `"${n.nomineeTitle ? n.nomineeTitle.replace(/"/g, '""') : ''}"`,
@@ -324,7 +324,7 @@ const NominationsManager: React.FC = () => {
         autoTable(doc, {
             startY: 20,
             head: [['Nominee', 'Category', 'Status', 'Votes']],
-            body: nominations.map(n => [
+            body: nominations.map((n: Nomination) => [
                 `${n.nomineeName}\n${n.nomineeOrganization || ''}`,
                 `${n.category.name} (${n.category.group})`,
                 n.status,
@@ -364,9 +364,9 @@ const NominationsManager: React.FC = () => {
         const headers = ['Category', 'Group', 'Nominee', 'Votes', 'Percentage'];
         const csvRows = [headers.join(',')];
 
-        analyticsData.forEach(cat => {
-            const totalVotes = cat.nominees.reduce((sum, n) => sum + n.votes, 0);
-            cat.nominees.forEach(n => {
+        analyticsData.forEach((cat: CategoryResult) => {
+            const totalVotes = cat.nominees.reduce((sum: number, n: NomineeResult) => sum + n.votes, 0);
+            cat.nominees.forEach((n: NomineeResult) => {
                 const pct = totalVotes > 0 ? ((n.votes / totalVotes) * 100).toFixed(1) : '0';
                 csvRows.push([
                     `"${cat.categoryName.replace(/"/g, '""')}"`,
@@ -393,8 +393,8 @@ const NominationsManager: React.FC = () => {
         doc.text('RWIBA 2026 Voting Results', 14, 15);
         let currentY = 20;
 
-        analyticsData.forEach(cat => {
-            const totalVotes = cat.nominees.reduce((sum, n) => sum + n.votes, 0);
+        analyticsData.forEach((cat: CategoryResult) => {
+            const totalVotes = cat.nominees.reduce((sum: number, n: NomineeResult) => sum + n.votes, 0);
             if (currentY > 250) {
                 doc.addPage();
                 currentY = 20;
@@ -406,13 +406,13 @@ const NominationsManager: React.FC = () => {
             autoTable(doc, {
                 startY: currentY,
                 head: [['Nominee', 'Votes', 'Percentage']],
-                body: cat.nominees.sort((a, b) => b.votes - a.votes).map(n => {
+                body: cat.nominees.sort((a: NomineeResult, b: NomineeResult) => b.votes - a.votes).map((n: NomineeResult) => {
                     const pct = totalVotes > 0 ? ((n.votes / totalVotes) * 100).toFixed(1) : '0';
                     return [n.nomineeName, n.votes, `${pct}%`];
                 }),
             });
-            currentY = (doc as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY
-                ? (doc as { lastAutoTable?: { finalY: number } }).lastAutoTable!.finalY + 15
+            currentY = (doc as any).lastAutoTable?.finalY
+                ? (doc as any).lastAutoTable!.finalY + 15
                 : currentY + 15;
         });
 
@@ -1034,15 +1034,15 @@ const NominationsManager: React.FC = () => {
                         <div className="p-6 space-y-4 overflow-y-auto flex-1">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Category *</label>
-                                    <select title="Award Category" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.categoryId} onChange={e => setNomForm({ ...nomForm, categoryId: e.target.value })}>
+                                    <label htmlFor="nom-category" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Category *</label>
+                                    <select id="nom-category" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.categoryId} onChange={e => setNomForm({ ...nomForm, categoryId: e.target.value })}>
                                         <option value="">Select Category</option>
                                         {categories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.group})</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Status</label>
-                                    <select title="Nomination Status" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.status} onChange={e => setNomForm({ ...nomForm, status: e.target.value })}>
+                                    <label htmlFor="nom-status" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Status</label>
+                                    <select id="nom-status" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.status} onChange={e => setNomForm({ ...nomForm, status: e.target.value })}>
                                         <option value="pending">Pending</option>
                                         <option value="approved">Approved</option>
                                         <option value="shortlisted">Shortlisted</option>
@@ -1052,31 +1052,31 @@ const NominationsManager: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Nominee Name *</label>
-                                <input title="Nominee Name" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.nomineeName} onChange={e => setNomForm({ ...nomForm, nomineeName: e.target.value })} />
+                                <label htmlFor="nom-name" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Nominee Name *</label>
+                                <input id="nom-name" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.nomineeName} onChange={e => setNomForm({ ...nomForm, nomineeName: e.target.value })} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Title</label>
-                                    <input title="Professional Title" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.nomineeTitle} onChange={e => setNomForm({ ...nomForm, nomineeTitle: e.target.value })} />
+                                    <label htmlFor="nom-title" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Title</label>
+                                    <input id="nom-title" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.nomineeTitle} onChange={e => setNomForm({ ...nomForm, nomineeTitle: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Organization</label>
-                                    <input title="Organization" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.nomineeOrganization} onChange={e => setNomForm({ ...nomForm, nomineeOrganization: e.target.value })} />
+                                    <label htmlFor="nom-org" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Organization</label>
+                                    <input id="nom-org" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.nomineeOrganization} onChange={e => setNomForm({ ...nomForm, nomineeOrganization: e.target.value })} />
                                 </div>
                             </div>
                             <div>
-                                <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Achievements</label>
-                                <textarea title="Achievements" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary h-20 resize-none" value={nomForm.achievements} onChange={e => setNomForm({ ...nomForm, achievements: e.target.value })} />
+                                <label htmlFor="nom-achievements" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Achievements</label>
+                                <textarea id="nom-achievements" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary h-20 resize-none" value={nomForm.achievements} onChange={e => setNomForm({ ...nomForm, achievements: e.target.value })} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Sector</label>
-                                    <input title="Sector" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.sector} onChange={e => setNomForm({ ...nomForm, sector: e.target.value })} />
+                                    <label htmlFor="nom-sector" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Sector</label>
+                                    <input id="nom-sector" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.sector} onChange={e => setNomForm({ ...nomForm, sector: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Manual Votes</label>
-                                    <input title="Manual Votes" type="number" min="0" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.manualVotes} onChange={e => setNomForm({ ...nomForm, manualVotes: Number(e.target.value) })} />
+                                    <label htmlFor="nom-manual-votes" className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-1">Manual Votes</label>
+                                    <input id="nom-manual-votes" type="number" min="0" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" value={nomForm.manualVotes} onChange={e => setNomForm({ ...nomForm, manualVotes: Number(e.target.value) })} />
                                     <p className="text-[9px] text-gray-400 mt-1">Added to actual vote count in results</p>
                                 </div>
                             </div>

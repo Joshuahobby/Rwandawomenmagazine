@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import prisma from '../config/db';
 import { NominationStatus, CategoryGroup } from '@prisma/client';
 import { env } from '../config/env';
-import { sendNominationNotification } from '../services/mail.service';
+import { sendNominationNotification, NominationNotification } from '../services/mail.service';
 import { generateSlug } from '../services/slug';
 
 const TICKET_SECRET = env.JWT_SECRET || 'fallback-voting-secret';
@@ -114,7 +114,8 @@ export const createNomination = async (req: Request, res: Response) => {
             nominatorPhone,
             ticket
         } = req.body;
-        const clientIp = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
+        const xForwardedFor = req.headers['x-forwarded-for'];
+        const clientIp = req.ip || (Array.isArray(xForwardedFor) ? xForwardedFor[0] : xForwardedFor) || 'unknown';
 
         // Check if nominations are open
         const nominationStatus = await prisma.globalSetting.findUnique({ where: { key: 'NOMINATION_STATUS' } });
@@ -168,22 +169,30 @@ export const createNomination = async (req: Request, res: Response) => {
             data: {
                 categoryId: Number(categoryId),
                 nomineeName,
-                nomineeTitle,
-                nomineeOrganization,
-                sector,
-                achievements,
-                measurableResults,
-                supportingDocUrl,
+                nomineeTitle: nomineeTitle || null,
+                nomineeOrganization: nomineeOrganization || null,
+                sector: sector || null,
+                achievements: achievements || null,
+                measurableResults: measurableResults || null,
+                supportingDocUrl: supportingDocUrl || null,
                 nominatorName,
                 nominatorEmail,
-                nominatorPhone,
+                nominatorPhone: nominatorPhone || null,
                 identityHash: idHash
             },
             include: { category: true },
         });
 
-        // Background notification - don't block the response
-        sendNominationNotification(nomination).catch(err => console.error('[Controller] Notification error:', err));
+        // Background notification - convert nulls to undefined for the notification service
+        const notificationData: NominationNotification = {
+            ...nomination,
+            nomineeTitle: nomination.nomineeTitle || undefined,
+            nomineeOrganization: nomination.nomineeOrganization || undefined,
+            sector: nomination.sector || undefined,
+            supportingDocUrl: nomination.supportingDocUrl || undefined,
+            nominatorPhone: nomination.nominatorPhone || undefined,
+        };
+        sendNominationNotification(notificationData).catch(err => console.error('[Controller] Notification error:', err));
 
         res.status(201).json(nomination);
     } catch (err: unknown) {
@@ -245,8 +254,10 @@ export const createNominationAdmin = async (req: Request, res: Response) => {
 export const getNominations = async (req: Request, res: Response) => {
     try {
         const { categoryId, status } = req.query;
-        const page = Math.max(1, parseInt(req.query.page as string) || 1);
-        const limit = Math.max(1, Math.min(parseInt(req.query.limit as string) || 20, 100));
+        const pageStr = req.query.page;
+        const limitStr = req.query.limit;
+        const page = Math.max(1, parseInt(Array.isArray(pageStr) ? pageStr[0] as string : pageStr as string) || 1);
+        const limit = Math.max(1, Math.min(parseInt(Array.isArray(limitStr) ? limitStr[0] as string : limitStr as string) || 20, 100));
         const skip = (page - 1) * limit;
 
         interface NominationWhere {
@@ -311,7 +322,7 @@ export const updateNomination = async (req: Request, res: Response) => {
         if (manualVotes !== undefined) data.manualVotes = Number(manualVotes);
 
         const nomination = await prisma.nomination.update({
-            where: { id },
+            where: { id: id as string },
             data,
         });
 
@@ -350,7 +361,7 @@ export const updateNominationStatus = async (req: Request, res: Response) => {
 export const deleteNomination = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.nomination.delete({ where: { id } });
+        await prisma.nomination.delete({ where: { id: id as string } });
         res.json({ message: 'Nomination deleted' });
     } catch (err) {
         console.error('Error deleting nomination:', err);

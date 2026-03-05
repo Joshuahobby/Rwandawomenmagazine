@@ -39,6 +39,7 @@ export interface Article {
     id: string;
     fullName: string;
     profileImage?: string;
+    bio?: string;
   };
   category: {
     id: number;

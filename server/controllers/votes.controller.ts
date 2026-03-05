@@ -12,7 +12,8 @@ const RECAPTCHA_SECRET = process.env.RECAPTCHA_SECRET_KEY || '';
 // GET /api/votes/ticket — Issue a signed voting ticket
 export const issueTicket = async (req: Request, res: Response) => {
     try {
-        const voterIp = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
+        const xForwardedFor = req.headers['x-forwarded-for'];
+        const voterIp = req.ip || (Array.isArray(xForwardedFor) ? xForwardedFor[0] : xForwardedFor) || 'unknown';
 
         // Sign a short-lived ticket (5 minutes)
         const ticket = jwt.sign(
