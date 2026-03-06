@@ -3,10 +3,10 @@ import bcrypt from 'bcryptjs';
 import prisma from '../server/config/db';
 
 const categories = [
-    // INDIVIDUAL
+    // INDIVIDUAL (15)
     {
-        name: 'Women Breaking Barriers in Male Dominated Sectors',
-        slug: 'women-breaking-barriers',
+        name: 'Women Breaking Barriers in Male-Dominated Sectors',
+        slug: 'women-breaking-barriers-in-male-dominated-sectors',
         description: 'Women excelling in construction, manufacturing, transport, logistics, ICT hardware, or agri-mechanization.',
         criteria: 'Leadership, innovation, measurable impact, sector disruption, inspiring others, overcoming barriers.',
         icon: 'construction',
@@ -14,8 +14,8 @@ const categories = [
         sortOrder: 1
     },
     {
-        name: 'Gender Transformative Enterprise Award',
-        slug: 'gender-transformative',
+        name: 'Gender-Transformative Enterprise Award',
+        slug: 'gender-transformative-enterprise-award',
         description: 'Women-led businesses engaging men to promote equality and transform workplace culture.',
         criteria: 'Policies promoting equality, male allyship initiatives, staff inclusivity, measurable gender outcomes.',
         icon: 'diversity_3',
@@ -24,7 +24,7 @@ const categories = [
     },
     {
         name: 'Inclusive Innovation for Community Transformation',
-        slug: 'inclusive-innovation',
+        slug: 'inclusive-innovation-for-community-transformation',
         description: 'Women-led businesses developing innovative solutions with social impact in underserved communities.',
         criteria: 'Innovation, scalability, social impact, sustainability, community engagement.',
         icon: 'lightbulb',
@@ -33,7 +33,7 @@ const categories = [
     },
     {
         name: 'Sustainability Trailblazer Award',
-        slug: 'sustainability-trailblazer',
+        slug: 'sustainability-trailblazer-award',
         description: 'Women advancing environmental sustainability, green business, or circular economy.',
         criteria: 'Environmental impact, innovation, business growth, sustainability integration.',
         icon: 'eco',
@@ -41,17 +41,8 @@ const categories = [
         sortOrder: 4
     },
     {
-        name: 'Emerging Woman Founder Under 30',
-        slug: 'emerging-founder',
-        description: 'Young women entrepreneurs demonstrating leadership, innovation, and growth potential.',
-        criteria: 'Creativity, scalability, resilience, leadership, measurable progress.',
-        icon: 'trending_up',
-        group: CategoryGroup.INDIVIDUAL,
-        sortOrder: 5
-    },
-    {
         name: 'Transformational Agripreneur of the Year',
-        slug: 'transformational-agripreneur',
+        slug: 'transformational-agripreneur-of-the-year',
         description: 'Women transforming agriculture value chains through technology and innovation.',
         criteria: 'Market impact, adoption of modern practices, economic empowerment of women, sustainability.',
         icon: 'agriculture',
@@ -59,17 +50,8 @@ const categories = [
         sortOrder: 6
     },
     {
-        name: 'Digital Acceleration & Tech Inclusion',
-        slug: 'digital-acceleration',
-        description: 'Women leveraging technology to scale businesses and promote digital inclusion.',
-        criteria: 'Tech adoption, business transformation, innovation, measurable digital impact.',
-        icon: 'devices',
-        group: CategoryGroup.INDIVIDUAL,
-        sortOrder: 7
-    },
-    {
         name: 'Export Readiness & Market Linkage Champion',
-        slug: 'export-readiness',
+        slug: 'export-readiness-market-linkage-champion',
         description: 'Women achieving cross-border trade, regional exports, or strong market linkages.',
         criteria: 'Market expansion, quality standards, export growth, economic contribution.',
         icon: 'public',
@@ -77,17 +59,8 @@ const categories = [
         sortOrder: 8
     },
     {
-        name: 'Resilience & Business Continuity Leadership',
-        slug: 'resilience-leadership',
-        description: 'Women who navigated crises, adapted operations, or diversified to survive shocks.',
-        criteria: 'Resilience, adaptability, business continuity plans, innovation under pressure.',
-        icon: 'shield',
-        group: CategoryGroup.INDIVIDUAL,
-        sortOrder: 9
-    },
-    {
-        name: 'Women Led Impact Enterprise (High Social ROI)',
-        slug: 'women-led-impact',
+        name: 'Women-Led Impact Enterprise (High Social ROI)',
+        slug: 'women-led-impact-enterprise-high-social-roi',
         description: 'Enterprises prioritizing social impact alongside profitability.',
         criteria: 'Social ROI, measurable outcomes, sustainability, replicability.',
         icon: 'volunteer_activism',
@@ -96,7 +69,7 @@ const categories = [
     },
     {
         name: 'Creative Economy Powerhouse Award',
-        slug: 'creative-economy',
+        slug: 'creative-economy-powerhouse-award',
         description: 'Women excelling in fashion, arts, design, media, and entertainment.',
         criteria: 'Creativity, innovation, brand impact, business growth, sector leadership.',
         icon: 'palette',
@@ -104,8 +77,8 @@ const categories = [
         sortOrder: 11
     },
     {
-        name: 'Health & Wellness Industry Leadership',
-        slug: 'health-wellness',
+        name: 'Health & Wellness Industry Leadership Award',
+        slug: 'health-wellness-industry-leadership-award',
         description: 'Women transforming health, wellness, or lifestyle sectors.',
         criteria: 'Service quality, innovation, community impact, scalability.',
         icon: 'health_and_safety',
@@ -113,8 +86,8 @@ const categories = [
         sortOrder: 12
     },
     {
-        name: 'Manufacturing & Production Excellence',
-        slug: 'manufacturing-excellence',
+        name: 'Manufacturing & Production Excellence Award',
+        slug: 'manufacturing-production-excellence-award',
         description: 'Women achieving excellence in production efficiency, quality, and innovation.',
         criteria: 'Production standards, innovation, business growth, sector leadership.',
         icon: 'precision_manufacturing',
@@ -122,8 +95,8 @@ const categories = [
         sortOrder: 13
     },
     {
-        name: 'Women in Green & Climate Smart Business',
-        slug: 'green-climate',
+        name: 'Women in Green & Climate-Smart Business Award',
+        slug: 'women-in-green-climate-smart-business-award',
         description: 'Women contributing to climate resilience through green solutions.',
         criteria: 'Environmental impact, innovation, scalability, community or sector influence.',
         icon: 'forest',
@@ -132,7 +105,7 @@ const categories = [
     },
     {
         name: 'Niche Tourism & Experience Curator',
-        slug: 'niche-tourism',
+        slug: 'niche-tourism-experience-curator',
         description: 'Women creating unique tourism or hospitality experiences showcasing Rwandan heritage.',
         criteria: 'Creativity, uniqueness, cultural impact, business sustainability.',
         icon: 'tour',
@@ -140,8 +113,8 @@ const categories = [
         sortOrder: 15
     },
     {
-        name: 'Employee Wellbeing & Human Capital Advocate',
-        slug: 'employee-wellbeing',
+        name: 'The Employee Wellbeing & Human Capital Advocate',
+        slug: 'the-employee-wellbeing-human-capital-advocate',
         description: 'Women leaders with exceptional employee mental health and development policies.',
         criteria: 'Employee policies, wellbeing outcomes, staff development, measurable impact.',
         icon: 'favorite',
@@ -150,7 +123,7 @@ const categories = [
     },
     {
         name: 'Most Gender-Intentionally Designed Product/Service',
-        slug: 'gender-intentional',
+        slug: 'most-gender-intentionally-designed-productservice',
         description: 'Products or services explicitly designed to address gender-specific needs.',
         criteria: 'Intentional design, gender impact, innovation, scalability.',
         icon: 'design_services',
@@ -159,7 +132,7 @@ const categories = [
     },
     {
         name: 'Male Champion for Gender Equity',
-        slug: 'male-champion',
+        slug: 'male-champion-for-gender-equity',
         description: 'Male leaders who have actively championed gender equality and women\'s advancement.',
         criteria: 'Active advocacy, mentorship, measurable impact, public commitment.',
         icon: 'handshake',
