@@ -17,10 +17,11 @@ interface Nomination {
     nominatorPhone: string | null;
     supportingDocUrl: string | null;
     status: string;
-    manualVotes?: number;
+    manualVotes: number;
+    categoryId: number;
     createdAt: string;
     category: {
-        id?: number;
+        id: number;
         name: string;
         group: string;
     };
@@ -88,6 +89,10 @@ const NominationsManager: React.FC = () => {
     const [editingNomination, setEditingNomination] = useState<Nomination | null>(null);
     const [nomForm, setNomForm] = useState({ categoryId: '', nomineeName: '', nomineeTitle: '', nomineeOrganization: '', sector: '', achievements: '', measurableResults: '', status: 'finalist', manualVotes: 0 });
     const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'category' | 'nomination'; id: string | number } | null>(null);
+
+    // Search state
+    const [searchTerm, setSearchTerm] = useState('');
+    const [analyticsSearchTerm, setAnalyticsSearchTerm] = useState('');
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -243,7 +248,7 @@ const NominationsManager: React.FC = () => {
         if (nom) {
             setEditingNomination(nom);
             setNomForm({
-                categoryId: String(nom.category.id || ''),
+                categoryId: String(nom.categoryId || nom.category?.id || ''),
                 nomineeName: nom.nomineeName,
                 nomineeTitle: nom.nomineeTitle || '',
                 nomineeOrganization: nom.nomineeOrganization || '',
@@ -251,7 +256,7 @@ const NominationsManager: React.FC = () => {
                 achievements: nom.achievements || '',
                 measurableResults: nom.measurableResults || '',
                 status: nom.status,
-                manualVotes: nom.manualVotes || 0,
+                manualVotes: Number(nom.manualVotes ?? (nom as any).manual_votes ?? 0),
             });
         } else {
             setEditingNomination(null);
@@ -269,6 +274,7 @@ const NominationsManager: React.FC = () => {
             }
             setIsNomModalOpen(false);
             fetchData();
+            fetchAnalytics(); // Refresh analytics as well
         } catch (err) {
             console.error('Failed to save nomination:', err);
             alert('Failed to save nomination.');
@@ -490,6 +496,17 @@ const NominationsManager: React.FC = () => {
                                 ))}
                             </select>
                         </div>
+                        <div className="flex items-center gap-2 bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 flex-1 min-w-[200px]">
+                            <span className="material-icons text-gray-400 text-sm">search</span>
+                            <input
+                                type="text"
+                                placeholder="Search nominees or organizations..."
+                                className="bg-transparent text-sm focus:outline-none text-gray-700 dark:text-gray-300 w-full"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+
                         <div className="ml-auto flex items-center gap-2">
                             <button onClick={() => openNomModal()} className="px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1 text-xs font-bold shadow-md shadow-primary/20">
                                 <span className="material-icons text-sm">add</span> Add Nominee
@@ -510,6 +527,16 @@ const NominationsManager: React.FC = () => {
                 {activeTab === 'ANALYTICS' && (
                     <div className="flex justify-between items-center animate-fade-in">
                         <p className="text-sm font-medium text-gray-500">Live voting tallies across all categories</p>
+                        <div className="flex items-center gap-2 bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 min-w-[250px]">
+                            <span className="material-icons text-gray-400 text-sm">search</span>
+                            <input
+                                type="text"
+                                placeholder="Search category names..."
+                                className="bg-transparent text-sm focus:outline-none text-gray-700 dark:text-gray-300 w-full"
+                                value={analyticsSearchTerm}
+                                onChange={(e) => setAnalyticsSearchTerm(e.target.value)}
+                            />
+                        </div>
                         <div className="flex items-center gap-2">
                             <button onClick={exportResultsToCSV} className="p-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors flex items-center gap-1 text-xs font-bold" title="Export CSV">
                                 <span className="material-icons text-sm">text_snippet</span> <span className="hidden sm:inline">CSV</span>
@@ -564,63 +591,83 @@ const NominationsManager: React.FC = () => {
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                 {isLoading ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-20 text-center">
+                                        <td colSpan={6} className="px-6 py-20 text-center">
                                             <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                                         </td>
                                     </tr>
                                 ) : nominations.length > 0 ? (
-                                    nominations.map((nom) => (
-                                        <tr key={nom.id} className={`transition-colors group ${selectedIds.has(nom.id) ? 'bg-primary/5' : 'hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-                                            <td className="px-6 py-4">
-                                                <input
-                                                    type="checkbox"
-                                                    className="rounded border-gray-300 text-primary focus:ring-primary h-3.5 w-3.5"
-                                                    checked={selectedIds.has(nom.id)}
-                                                    onChange={() => toggleSelection(nom.id)}
-                                                    aria-label={`Select ${nom.nomineeName}`}
-                                                />
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm font-bold text-gray-900 dark:text-white">{nom.nomineeName}</div>
-                                                <div className="text-[10px] text-gray-500 uppercase tracking-tight line-clamp-1">{nom.nomineeTitle} • {nom.nomineeOrganization}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{nom.category.name}</div>
-                                                <div className="text-[9px] uppercase font-black text-primary/60 tracking-widest">{nom.category.group}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getStatusColor(nom.status)}`}>
-                                                    {nom.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="material-icons text-[14px] text-primary">how_to_vote</span>
-                                                    <span className="text-sm font-black text-gray-900 dark:text-white">{nom._count.votes}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button onClick={() => { setSelectedNomination(nom); setIsModalOpen(true); }} className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-primary hover:bg-primary/10 transition-all flex items-center justify-center" title="View">
-                                                        <span className="material-icons text-sm">visibility</span>
+                                    nominations
+                                        .filter(nom => {
+                                            const search = searchTerm.toLowerCase();
+                                            return nom.nomineeName.toLowerCase().includes(search) ||
+                                                (nom.nomineeOrganization?.toLowerCase().includes(search)) ||
+                                                (nom.category?.name.toLowerCase().includes(search));
+                                        })
+                                        .map((nom) => (
+                                            <tr key={nom.id} className={`transition-colors group ${selectedIds.has(nom.id) ? 'bg-primary/5' : 'hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                                                <td className="px-6 py-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="rounded border-gray-300 text-primary focus:ring-primary h-3.5 w-3.5"
+                                                        checked={selectedIds.has(nom.id)}
+                                                        onChange={() => toggleSelection(nom.id)}
+                                                        aria-label={`Select ${nom.nomineeName}`}
+                                                    />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <button
+                                                        onClick={() => openNomModal(nom)}
+                                                        className="text-left group/name"
+                                                        title="Click to edit nominee and votes"
+                                                    >
+                                                        <div className="text-sm font-bold text-gray-900 dark:text-white group-hover/name:text-primary transition-colors underline decoration-primary/0 group-hover/name:decoration-primary/50 underline-offset-4">{nom.nomineeName}</div>
+                                                        <div className="text-[10px] text-gray-500 uppercase tracking-tight line-clamp-1">{nom.nomineeTitle} • {nom.nomineeOrganization}</div>
                                                     </button>
-                                                    <button onClick={() => openNomModal(nom)} className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-all flex items-center justify-center" title="Edit">
-                                                        <span className="material-icons text-sm">edit</span>
-                                                    </button>
-                                                    <button onClick={() => setDeleteConfirm({ type: 'nomination', id: nom.id })} className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center" title="Delete">
-                                                        <span className="material-icons text-sm">delete</span>
-                                                    </button>
-                                                    <select aria-label="Change nomination status" className="bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-tight focus:outline-none focus:border-primary text-gray-600 dark:text-gray-400" value={nom.status} onChange={(e) => handleUpdateStatus(nom.id, e.target.value)}>
-                                                        <option value="pending">Pending</option>
-                                                        <option value="approved">Approved</option>
-                                                        <option value="shortlisted">Shortlisted</option>
-                                                        <option value="finalist">Finalist</option>
-                                                        <option value="rejected">Rejected</option>
-                                                    </select>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{nom.category.name}</div>
+                                                    <div className="text-[9px] uppercase font-black text-primary/60 tracking-widest">{nom.category.group}</div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getStatusColor(nom.status)}`}>
+                                                        {nom.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="material-icons text-[14px] text-primary">how_to_vote</span>
+                                                            <span className="text-sm font-black text-gray-900 dark:text-white">
+                                                                {(nom._count?.votes || 0) + Number((nom as any).manualVotes ?? (nom as any).manual_votes ?? 0)}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-[9px] text-gray-400 mt-0.5 uppercase tracking-tighter whitespace-nowrap">
+                                                            {nom._count?.votes || 0} Elec + {Number((nom as any).manualVotes ?? (nom as any).manual_votes ?? 0)} Manu
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button onClick={() => { setSelectedNomination(nom); setIsModalOpen(true); }} className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-primary hover:bg-primary/10 transition-all flex items-center justify-center" title="View">
+                                                            <span className="material-icons text-sm">visibility</span>
+                                                        </button>
+                                                        <button onClick={() => openNomModal(nom)} className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-all flex items-center justify-center" title="Edit">
+                                                            <span className="material-icons text-sm">edit</span>
+                                                        </button>
+                                                        <button onClick={() => setDeleteConfirm({ type: 'nomination', id: nom.id })} className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center" title="Delete">
+                                                            <span className="material-icons text-sm">delete</span>
+                                                        </button>
+                                                        <select aria-label="Change nomination status" className="bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-tight focus:outline-none focus:border-primary text-gray-600 dark:text-gray-400" value={nom.status} onChange={(e) => handleUpdateStatus(nom.id, e.target.value)}>
+                                                            <option value="pending">Pending</option>
+                                                            <option value="approved">Approved</option>
+                                                            <option value="shortlisted">Shortlisted</option>
+                                                            <option value="finalist">Finalist</option>
+                                                            <option value="rejected">Rejected</option>
+                                                        </select>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
                                 ) : (
                                     <tr>
                                         <td colSpan={6} className="px-6 py-20 text-center text-gray-500 italic text-sm">
@@ -673,48 +720,53 @@ const NominationsManager: React.FC = () => {
                     {isAnalyticsLoading ? (
                         <div className="py-20 text-center"><div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>
                     ) : analyticsData.length > 0 ? (
-                        analyticsData.map((category) => {
-                            const totalVotes = category.nominees.reduce((sum, n) => sum + n.votes, 0);
-                            return (
-                                <div key={category.categoryId} className="bg-gray-50 dark:bg-black/10 rounded-xl p-5 border border-gray-100 dark:border-white/5">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{category.group}</span>
-                                            <h3 className="font-bold text-gray-900 dark:text-white leading-tight">{category.categoryName}</h3>
+                        analyticsData
+                            .filter(category =>
+                                category.categoryName.toLowerCase().includes(analyticsSearchTerm.toLowerCase()) ||
+                                category.nominees.some(n => n.nomineeName.toLowerCase().includes(analyticsSearchTerm.toLowerCase()))
+                            )
+                            .map((category) => {
+                                const totalVotes = category.nominees.reduce((sum, n) => sum + n.votes, 0);
+                                return (
+                                    <div key={category.categoryId} className="bg-gray-50 dark:bg-black/10 rounded-xl p-5 border border-gray-100 dark:border-white/5">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{category.group}</span>
+                                                <h3 className="font-bold text-gray-900 dark:text-white leading-tight">{category.categoryName}</h3>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-lg font-black text-primary">{totalVotes}</div>
+                                                <div className="text-[9px] uppercase font-bold text-gray-400">Total Votes</div>
+                                            </div>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-lg font-black text-primary">{totalVotes}</div>
-                                            <div className="text-[9px] uppercase font-bold text-gray-400">Total Votes</div>
+                                        <div className="space-y-4">
+                                            {category.nominees.length > 0 ? (
+                                                category.nominees
+                                                    .sort((a, b) => b.votes - a.votes)
+                                                    .map((nominee) => {
+                                                        const pct = totalVotes > 0 ? Math.round((nominee.votes / totalVotes) * 100) : 0;
+                                                        return (
+                                                            <div key={nominee.nominationId}>
+                                                                <div className="flex justify-between text-[11px] mb-1.5">
+                                                                    <span className="font-bold text-gray-700 dark:text-gray-300">{nominee.nomineeName}</span>
+                                                                    <span className="font-black text-gray-900 dark:text-white">{nominee.votes} ({pct}%)</span>
+                                                                </div>
+                                                                <div className="w-full bg-gray-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
+                                                                    <div
+                                                                        className="bg-primary h-full rounded-full transition-all duration-1000 dynamic-progress"
+                                                                        ref={(el) => { if (el) el.style.setProperty('width', `${pct}%`); }}
+                                                                    ></div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                            ) : (
+                                                <p className="text-xs text-gray-400 italic">No approved nominees currently.</p>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="space-y-4">
-                                        {category.nominees.length > 0 ? (
-                                            category.nominees
-                                                .sort((a, b) => b.votes - a.votes)
-                                                .map((nominee) => {
-                                                    const pct = totalVotes > 0 ? Math.round((nominee.votes / totalVotes) * 100) : 0;
-                                                    return (
-                                                        <div key={nominee.nominationId}>
-                                                            <div className="flex justify-between text-[11px] mb-1.5">
-                                                                <span className="font-bold text-gray-700 dark:text-gray-300">{nominee.nomineeName}</span>
-                                                                <span className="font-black text-gray-900 dark:text-white">{nominee.votes} ({pct}%)</span>
-                                                            </div>
-                                                            <div className="w-full bg-gray-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className="bg-primary h-full rounded-full transition-all duration-1000 dynamic-progress"
-                                                                    ref={(el) => { if (el) el.style.setProperty('width', `${pct}%`); }}
-                                                                ></div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })
-                                        ) : (
-                                            <p className="text-xs text-gray-400 italic">No approved nominees currently.</p>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })
+                                );
+                            })
                     ) : (
                         <div className="py-20 text-center text-gray-500">No results available yet.</div>
                     )}
