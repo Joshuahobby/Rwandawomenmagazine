@@ -71,54 +71,63 @@ export default function App() {
   }
 
   // Handle protected routes (simplified for now, ideally use a ProtectedRoute component)
-  const isProtectedPath = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/editor');
-  if (isProtectedPath && !isAuthenticated) {
-    return <Login navigate={navigate} />;
-  }
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    if (!isAuthenticated) return <Login navigate={navigate} />;
+    return <>{children}</>;
+  };
 
-  // Dashboard and Editor layouts
-  if (location.pathname === '/dashboard' && isAuthenticated) {
-    return <Dashboard navigate={navigate} />;
-  }
-
-  if (location.pathname.startsWith('/editor') && isAuthenticated) {
-    // Extract ID from path if possible, or use editingArticleId
-    const pathParts = location.pathname.split('/');
-    const idFromPath = pathParts.length > 2 ? pathParts[2] : null;
-    return <Editor navigate={navigate} articleId={idFromPath || editingArticleId} />;
-  }
-
-  if (location.pathname === '/login') {
-    return <Login navigate={navigate} />;
-  }
-
-
-  // The rest use the standard public layout
-  // The rest use the standard public layout
-  return (
+  // Dashboard and Editor have special layouts, others use standard Layout
+  const renderWithStandardLayout = (component: React.ReactNode) => (
     <Layout currentPage={location.pathname}>
       <React.Suspense fallback={
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       }>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/article/:slug" element={<Article />} />
-          <Route path="/category/:slug" element={<CategoryPage />} />
-          <Route path="/search" element={<Search navigate={navigate} />} />
-          <Route path="/archive" element={<Archive navigate={navigate} />} />
-          <Route path="/subscribe" element={<Subscribe navigate={navigate} />} />
-          <Route path="/contact" element={<Contact navigate={navigate} />} />
-          <Route path="/about" element={<About navigate={navigate} />} />
-          <Route path="/partners" element={<Partners navigate={navigate} />} />
-          <Route path="/member-profile" element={<MemberProfile navigate={navigate} />} />
-          <Route path="/events" element={<Events navigate={navigate} />} />
-          <Route path="/nomination" element={<AwardNomination navigate={navigate} />} />
-          <Route path="/newsletter" element={<Newsletter navigate={navigate} />} />
-          <Route path="/voting" element={<Voting navigate={navigate} />} />
-        </Routes>
+        {component}
       </React.Suspense>
     </Layout>
+  );
+
+  return (
+    <Routes>
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Dashboard navigate={navigate} />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/editor" element={
+        <ProtectedRoute>
+          <Editor navigate={navigate} articleId={editingArticleId} />
+        </ProtectedRoute>
+      } />
+      <Route path="/editor/:id" element={
+        <ProtectedRoute>
+          <Editor navigate={navigate} articleId={location.pathname.split('/').pop() || editingArticleId} />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/login" element={<Login navigate={navigate} />} />
+
+      {/* Standard Public Layout Routes */}
+      <Route path="/" element={renderWithStandardLayout(<Home />)} />
+      <Route path="/article/:slug" element={renderWithStandardLayout(<Article />)} />
+      <Route path="/category/:slug" element={renderWithStandardLayout(<CategoryPage />)} />
+      <Route path="/search" element={renderWithStandardLayout(<Search navigate={navigate} />)} />
+      <Route path="/archive" element={renderWithStandardLayout(<Archive navigate={navigate} />)} />
+      <Route path="/subscribe" element={renderWithStandardLayout(<Subscribe navigate={navigate} />)} />
+      <Route path="/contact" element={renderWithStandardLayout(<Contact navigate={navigate} />)} />
+      <Route path="/about" element={renderWithStandardLayout(<About navigate={navigate} />)} />
+      <Route path="/partners" element={renderWithStandardLayout(<Partners navigate={navigate} />)} />
+      <Route path="/member-profile" element={renderWithStandardLayout(<MemberProfile navigate={navigate} />)} />
+      <Route path="/events" element={renderWithStandardLayout(<Events navigate={navigate} />)} />
+      <Route path="/nomination" element={renderWithStandardLayout(<AwardNomination navigate={navigate} />)} />
+      <Route path="/newsletter" element={renderWithStandardLayout(<Newsletter navigate={navigate} />)} />
+      <Route path="/voting" element={renderWithStandardLayout(<Voting navigate={navigate} />)} />
+
+      {/* Catch-all route to redirect back home or to a 404 page */}
+      <Route path="*" element={renderWithStandardLayout(<Home />)} />
+    </Routes>
   );
 }
