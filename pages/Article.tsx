@@ -18,6 +18,19 @@ const Article: React.FC<ArticleProps> = () => {
     const [commentForm, setCommentForm] = useState({ name: '', email: '', comment: '' });
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const [commentFeedback, setCommentFeedback] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
+    const [readingProgress, setReadingProgress] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+            if (totalHeight === 0) return;
+            const progress = (window.scrollY / totalHeight) * 100;
+            setReadingProgress(progress);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const fetchComments = useCallback(async (articleId: string) => {
         setIsCommentsLoading(true);
@@ -110,8 +123,11 @@ const Article: React.FC<ArticleProps> = () => {
     return (
         <div className="animate-fade-in focus:outline-none">
             {/* Reading Progress Bar */}
-            <div className="fixed top-0 left-0 w-full h-1 z-[1001]">
-                <div className="h-full bg-primary w-[35%] shadow-[0_0_10px_rgba(214,0,178,0.5)] transition-all duration-300"></div>
+            <div className="fixed top-0 left-0 w-full h-1 z-[1001] bg-gray-100 dark:bg-gray-800">
+                <div 
+                    className="h-full bg-primary shadow-[0_0_10px_rgba(214,0,178,0.5)] transition-all duration-150 ease-out"
+                    style={{ width: `${readingProgress}%` }}
+                ></div>
             </div>
 
             {/* Article Header */}
@@ -165,10 +181,10 @@ const Article: React.FC<ArticleProps> = () => {
             </div>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex flex-col lg:flex-row gap-16">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
                     {/* Main Content Column */}
-                    <div className="lg:w-8/12">
-                        <article className="prose prose-lg dark:prose-invert prose-primary max-w-none font-serif text-lg leading-relaxed text-gray-800 dark:text-gray-300">
+                    <div className="lg:col-span-8 min-w-0">
+                        <article className="prose prose-lg dark:prose-invert prose-primary max-w-none font-serif text-lg leading-relaxed text-gray-800 dark:text-gray-300 overflow-hidden break-words">
                             <style>{`
                                 .article-content p:first-of-type::first-letter {
                                     float: left;
@@ -179,6 +195,18 @@ const Article: React.FC<ArticleProps> = () => {
                                     padding-right: 0.75rem;
                                     font-weight: 700;
                                     color: #D600B2;
+                                }
+                                .article-content img {
+                                    border-radius: 1.5rem;
+                                    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+                                }
+                                .article-content blockquote {
+                                    border-left-color: #D600B2;
+                                    font-style: italic;
+                                    color: #4b5563;
+                                    background: #f9fafb;
+                                    padding: 2rem;
+                                    border-radius: 0 1.5rem 1.5rem 0;
                                 }
                             `}</style>
                             <div className="article-content" dangerouslySetInnerHTML={{ __html: article.content || '' }} />
@@ -228,12 +256,12 @@ const Article: React.FC<ArticleProps> = () => {
                     </div>
 
                     {/* Right Sidebar */}
-                    <aside className="lg:w-4/12 space-y-12">
+                    <aside className="lg:col-span-4 space-y-12 sticky top-24">
                         {/* Premium Placement Ad */}
                         <div className="bg-slate-50 dark:bg-white/5 rounded-3xl p-8 border border-gray-100 dark:border-gray-800 text-center">
                             <span className="inline-block px-3 py-1 mb-4 border border-gray-200 dark:border-gray-700 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-400">Advertisement</span>
-                            <div className="aspect-square bg-gray-200 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-6">
-                                <span className="text-gray-400 font-display text-lg italic">Premium Brand Space</span>
+                            <div className="aspect-square bg-gray-200 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-6 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=400&auto=format&fit=crop" className="w-full h-full object-cover opacity-50" alt="Ad Space" />
                             </div>
                             <h4 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Partner with Rwanda Women Magazine</h4>
                             <p className="text-sm text-gray-500 mb-6">Reach over 50,000 monthly professional readers.</p>
