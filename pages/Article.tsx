@@ -69,7 +69,7 @@ const Article: React.FC<ArticleProps> = () => {
                     if (articleData.category?.slug) {
                         try {
                             const relatedRes = await api.get(`/articles?category=${articleData.category.slug}&limit=4`);
-                            setRelatedArticles(relatedRes.data.articles.filter((a: any) => a.id !== articleData.id).slice(0, 3));
+                            setRelatedArticles(relatedRes.data.articles.filter((a: ArticleType) => a.id !== articleData.id).slice(0, 3));
                         } catch (err) {
                             console.error('Failed to fetch related stories:', err);
                         }
