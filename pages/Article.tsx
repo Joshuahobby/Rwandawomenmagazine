@@ -315,7 +315,6 @@ const Article: React.FC<ArticleProps> = () => {
                         </div>
                     </aside>
                 </div>
-                </div>
 
                 {/* Comments */}
                 <section className="max-w-4xl mx-auto mt-20 pt-16 border-t border-gray-100 dark:border-gray-800">
