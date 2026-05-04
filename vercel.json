@@ -6,6 +6,6 @@
     { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/uploads/(.*)", "destination": "/uploads/$1" },
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!api|uploads|assets|.*\\.).*)", "destination": "/index.html" }
   ]
 }

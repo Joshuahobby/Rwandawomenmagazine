@@ -71,10 +71,21 @@ app.get('/api/health', async (_req, res) => {
     }
 });
 
-// The "catchall" handler: for any request that doesn't
-// match one above, send back React's index.html file.
+// Catch-all for API: If it's an /api request that didn't match, return 404
+app.use('/api', (_req, res) => {
+    res.status(404).json({ error: 'API endpoint not found' });
+});
+
+// For any other non-API request, the Vercel edge handles the index.html fallback.
+// This local handler is for development fallback.
 app.use((_req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
+    if (process.env.NODE_ENV === 'production') {
+        // In production, Vercel edge should have handled this. 
+        // If we get here, it's a truly missing file.
+        res.status(404).send('Not Found');
+    } else {
+        res.sendFile(path.join(__dirname, '../dist/index.html'));
+    }
 });
 
 // Error handler — Express requires all 4 args to identify this as an error handler
