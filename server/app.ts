@@ -77,8 +77,19 @@ app.use('/api', (_req, res) => {
 });
 
 // For any other non-API request, send back React's index.html file.
-app.use((_req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
+app.get('*', (req, res) => {
+    // If it's an API request that reached here, it means it didn't match any route
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
+    }
+
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            console.error('Error sending index.html:', err);
+            res.status(404).send('Not Found');
+        }
+    });
 });
 
 // Error handler — Express requires all 4 args to identify this as an error handler

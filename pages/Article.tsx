@@ -60,7 +60,9 @@ const Article: React.FC<ArticleProps> = () => {
             }
 
             try {
-                const response = await api.get(`/articles/${slug}`);
+                // Remove trailing slash if present
+                const cleanSlug = slug?.replace(/\/$/, '');
+                const response = await api.get(`/articles/${cleanSlug}`);
                 const articleData = response.data;
                 setArticle(articleData);
                 if (articleData.id) {
