@@ -12,7 +12,7 @@ const Article: React.FC<ArticleProps> = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Comments state
+    const [relatedArticles, setRelatedArticles] = useState<ArticleType[]>([]);
     const [comments, setComments] = useState<CommentType[]>([]);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
     const [commentForm, setCommentForm] = useState({ name: '', email: '', comment: '' });
@@ -58,6 +58,15 @@ const Article: React.FC<ArticleProps> = () => {
                 setArticle(articleData);
                 if (articleData.id) {
                     fetchComments(articleData.id);
+                    // Fetch related articles from same category
+                    if (articleData.category?.slug) {
+                        try {
+                            const relatedRes = await api.get(`/articles?category=${articleData.category.slug}&limit=4`);
+                            setRelatedArticles(relatedRes.data.articles.filter((a: any) => a.id !== articleData.id).slice(0, 3));
+                        } catch (err) {
+                            console.error('Failed to fetch related stories:', err);
+                        }
+                    }
                 }
             } catch (err) {
                 console.error('Failed to fetch article:', err);
@@ -135,7 +144,7 @@ const Article: React.FC<ArticleProps> = () => {
                 <div className="inline-block px-3 py-1 mb-6 border border-primary/20 rounded-full bg-primary/5 text-[10px] md:text-xs font-bold uppercase tracking-widest text-primary">
                     {article.category?.name || 'News'}
                 </div>
-                <h1 className="font-display text-3xl md:text-6xl font-bold leading-tight mb-8 text-gray-900 dark:text-white">
+                <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-bold leading-tight mb-8 text-gray-900 dark:text-white">
                     {article.title}
                 </h1>
                 
@@ -156,7 +165,7 @@ const Article: React.FC<ArticleProps> = () => {
                         <span className="block text-[10px] uppercase tracking-wider text-gray-400">Published</span>
                         <span className="text-gray-900 dark:text-white font-bold text-xs md:text-sm">{new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                     </div>
-                    <div className="h-8 w-px bg-gray-200 dark:bg-gray-800 hidden md:block"></div>
+                    <div className="h-8 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block"></div>
                     <div className="text-left">
                         <span className="block text-[10px] uppercase tracking-wider text-gray-400">Reading Time</span>
                         <span className="text-gray-900 dark:text-white font-bold text-xs md:text-sm">5 min read</span>
@@ -181,7 +190,7 @@ const Article: React.FC<ArticleProps> = () => {
             </div>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
                     {/* Main Content Column */}
                     <div className="lg:col-span-8 min-w-0">
                         <article className="prose prose-sm md:prose-lg dark:prose-invert prose-primary max-w-none font-serif text-base md:text-lg leading-relaxed text-gray-800 dark:text-gray-300 overflow-hidden break-words">
@@ -267,7 +276,7 @@ const Article: React.FC<ArticleProps> = () => {
                     </div>
 
                     {/* Right Sidebar */}
-                    <aside className="lg:col-span-4 space-y-12 sticky top-24">
+                    <aside className="lg:col-span-4 space-y-12 lg:sticky lg:top-24 h-fit min-w-0">
                         {/* Premium Placement Ad */}
                         <div className="bg-slate-50 dark:bg-white/5 rounded-3xl p-8 border border-gray-100 dark:border-gray-800 text-center">
                             <span className="inline-block px-3 py-1 mb-4 border border-gray-200 dark:border-gray-700 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-400">Advertisement</span>
@@ -279,7 +288,6 @@ const Article: React.FC<ArticleProps> = () => {
                             <button className="w-full py-3 rounded-full bg-primary text-white font-bold text-sm uppercase tracking-widest hover:bg-primary-dark transition-colors">Media Kit</button>
                         </div>
 
-                        {/* Related Stories */}
                         <div className="space-y-8">
                             <h3 className="font-display text-2xl font-bold flex items-center gap-3">
                                 <span className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
@@ -288,18 +296,45 @@ const Article: React.FC<ArticleProps> = () => {
                                 Related Stories
                             </h3>
                             <div className="space-y-6">
-                                {[1, 2, 3].map((i) => (
-                                    <div key={i} className="flex gap-4 group cursor-pointer">
-                                        <div className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden">
-                                            <img src={`https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?q=80&w=200&auto=format&fit=crop&sig=${i}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Related" />
+                                {relatedArticles.length > 0 ? (
+                                    relatedArticles.map((item) => (
+                                        <Link 
+                                            key={item.id} 
+                                            to={`/article/${item.slug}`}
+                                            className="flex gap-4 group cursor-pointer"
+                                        >
+                                            <div className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden">
+                                                <img 
+                                                    src={item.featuredImage || fallbackImage} 
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                                                    alt={item.title} 
+                                                />
+                                            </div>
+                                            <div className="flex-1 py-1">
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">
+                                                    {item.category?.name || 'Story'}
+                                                </span>
+                                                <h4 className="font-bold text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                                                    {item.title}
+                                                </h4>
+                                                <span className="text-[10px] text-gray-400 mt-2 block uppercase tracking-widest">
+                                                    {new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    ))
+                                ) : (
+                                    [1, 2, 3].map((i) => (
+                                        <div key={i} className="flex gap-4 group animate-pulse">
+                                            <div className="w-24 h-24 shrink-0 bg-gray-100 dark:bg-white/5 rounded-2xl"></div>
+                                            <div className="flex-1 space-y-2 py-1">
+                                                <div className="h-2 w-12 bg-gray-100 dark:bg-white/5 rounded"></div>
+                                                <div className="h-4 w-full bg-gray-100 dark:bg-white/5 rounded"></div>
+                                                <div className="h-4 w-2/3 bg-gray-100 dark:bg-white/5 rounded"></div>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 py-1">
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">Empowerment</span>
-                                            <h4 className="font-bold text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2">The Future of Women Leadership in East Africa</h4>
-                                            <span className="text-[10px] text-gray-400 mt-2 block uppercase tracking-widest">May 4, 2026</span>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))
+                                )}
                             </div>
                         </div>
 

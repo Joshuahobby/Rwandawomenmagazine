@@ -28,8 +28,11 @@ export default function App() {
   const location = useLocation();
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const { isAuthenticated, isLoading } = useAuth();
-
-
+  
+  useEffect(() => {
+    console.log('[App] Current location:', location.pathname);
+    console.log('[App] isAuthenticated:', isAuthenticated);
+  }, [location.pathname, isAuthenticated]);
   // Simple scroll to top on page change
   useEffect(() => {
     window.scrollTo(0, 0);
