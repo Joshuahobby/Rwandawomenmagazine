@@ -71,6 +71,17 @@ app.get('/api/health', async (_req, res) => {
     }
 });
 
+// Debug DB
+app.get('/api/debug-db', async (_req, res) => {
+    try {
+        const total = await prisma.article.count();
+        const published = await prisma.article.count({ where: { status: 'published' } });
+        res.json({ total, published });
+    } catch (error) {
+        res.status(500).json({ error: String(error) });
+    }
+});
+
 // Catch-all for API: If it's an /api request that didn't match, return 404
 app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'API endpoint not found' });
