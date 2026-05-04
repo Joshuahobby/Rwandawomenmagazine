@@ -28,15 +28,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging for debugging routing
 app.use((req, _res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - OriginalUrl: ${req.originalUrl} - Path: ${req.path}`);
     next();
 });
-
-// Serve uploaded files - point to the public directory where they now reside
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')));
-
-// Serve static files from the React app (dist)
-app.use(express.static(path.join(__dirname, '../dist')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -53,6 +47,12 @@ app.use('/api/nominations', nominationsRoutes);
 app.use('/api/votes', votesRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/settings', settingsRoutes);
+
+// Serve uploaded files - point to the public directory where they now reside
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')));
+
+// Serve static files from the React app (dist)
+app.use(express.static(path.join(__dirname, '../dist')));
 
 // Health check
 app.get('/api/health', async (_req, res) => {
