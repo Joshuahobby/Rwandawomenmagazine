@@ -131,42 +131,42 @@ const Article: React.FC<ArticleProps> = () => {
             </div>
 
             {/* Article Header */}
-            <header className="max-w-4xl mx-auto px-6 pt-16 pb-8 text-center">
-                <div className="inline-block px-3 py-1 mb-6 border border-primary/20 rounded-full bg-primary/5 text-xs font-bold uppercase tracking-widest text-primary">
+            <header className="max-w-4xl mx-auto px-6 pt-10 md:pt-16 pb-8 text-center">
+                <div className="inline-block px-3 py-1 mb-6 border border-primary/20 rounded-full bg-primary/5 text-[10px] md:text-xs font-bold uppercase tracking-widest text-primary">
                     {article.category?.name || 'News'}
                 </div>
-                <h1 className="font-display text-4xl md:text-6xl font-bold leading-tight mb-8 text-gray-900 dark:text-white">
+                <h1 className="font-display text-3xl md:text-6xl font-bold leading-tight mb-8 text-gray-900 dark:text-white">
                     {article.title}
                 </h1>
                 
-                <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-gray-500 mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm font-medium text-gray-500 mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
                     <div className="flex items-center">
                         {article.author?.profileImage ? (
-                            <img src={article.author.profileImage} className="w-10 h-10 rounded-full mr-3 object-cover shadow-sm" alt={article.author.fullName} />
+                            <img src={article.author.profileImage} className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-3 object-cover shadow-sm" alt={article.author.fullName} />
                         ) : (
-                            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mr-3">{article.author?.fullName?.charAt(0) || 'A'}</div>
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mr-3">{article.author?.fullName?.charAt(0) || 'A'}</div>
                         )}
                         <div className="text-left">
-                            <span className="block text-xs uppercase tracking-wider text-gray-400">Written by</span>
-                            <span className="text-gray-900 dark:text-white font-bold">{article.author?.fullName || 'Unknown'}</span>
+                            <span className="block text-[10px] uppercase tracking-wider text-gray-400">Written by</span>
+                            <span className="text-gray-900 dark:text-white font-bold text-xs md:text-sm">{article.author?.fullName || 'Unknown'}</span>
                         </div>
                     </div>
                     <div className="h-8 w-px bg-gray-200 dark:bg-gray-800 hidden md:block"></div>
                     <div className="text-left">
-                        <span className="block text-xs uppercase tracking-wider text-gray-400">Published</span>
-                        <span className="text-gray-900 dark:text-white font-bold">{new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                        <span className="block text-[10px] uppercase tracking-wider text-gray-400">Published</span>
+                        <span className="text-gray-900 dark:text-white font-bold text-xs md:text-sm">{new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                     </div>
                     <div className="h-8 w-px bg-gray-200 dark:bg-gray-800 hidden md:block"></div>
                     <div className="text-left">
-                        <span className="block text-xs uppercase tracking-wider text-gray-400">Reading Time</span>
-                        <span className="text-gray-900 dark:text-white font-bold">5 min read</span>
+                        <span className="block text-[10px] uppercase tracking-wider text-gray-400">Reading Time</span>
+                        <span className="text-gray-900 dark:text-white font-bold text-xs md:text-sm">5 min read</span>
                     </div>
                 </div>
             </header>
 
             {/* Featured Image */}
-            <div className="max-w-6xl mx-auto px-4 mb-16">
-                <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 aspect-[21/9]">
+            <div className="max-w-6xl mx-auto px-4 mb-12 md:mb-16">
+                <div className="relative rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 aspect-video md:aspect-[21/9]">
                     <img 
                         src={article.featuredImage || fallbackImage} 
                         alt={article.title} 
@@ -174,30 +174,40 @@ const Article: React.FC<ArticleProps> = () => {
                     />
                 </div>
                 {article.excerpt && (
-                    <p className="mt-8 text-xl md:text-2xl text-gray-500 font-serif italic text-center max-w-3xl mx-auto leading-relaxed">
+                    <p className="mt-8 text-lg md:text-2xl text-gray-500 font-serif italic text-center max-w-3xl mx-auto leading-relaxed px-4">
                         "{article.excerpt}"
                     </p>
                 )}
             </div>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
                     {/* Main Content Column */}
                     <div className="lg:col-span-8 min-w-0">
-                        <article className="prose prose-lg dark:prose-invert prose-primary max-w-none font-serif text-lg leading-relaxed text-gray-800 dark:text-gray-300 overflow-hidden break-words">
+                        <article className="prose prose-sm md:prose-lg dark:prose-invert prose-primary max-w-none font-serif text-base md:text-lg leading-relaxed text-gray-800 dark:text-gray-300 overflow-hidden break-words">
                             <style>{`
                                 .article-content p:first-of-type::first-letter {
                                     float: left;
                                     font-family: var(--font-display, 'Playfair Display', serif);
-                                    font-size: 5.5rem;
-                                    line-height: 4rem;
-                                    padding-top: 0.5rem;
-                                    padding-right: 0.75rem;
+                                    font-size: 3.5rem;
+                                    line-height: 3rem;
+                                    padding-top: 0.25rem;
+                                    padding-right: 0.5rem;
                                     font-weight: 700;
                                     color: #D600B2;
                                 }
+                                @media (min-width: 768px) {
+                                    .article-content p:first-of-type::first-letter {
+                                        font-size: 5.5rem;
+                                        line-height: 4rem;
+                                        padding-top: 0.5rem;
+                                        padding-right: 0.75rem;
+                                    }
+                                }
                                 .article-content img {
-                                    border-radius: 1.5rem;
+                                    border-radius: 1rem;
+                                    margin-top: 2rem;
+                                    margin-bottom: 2rem;
                                     box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
                                 }
                                 .article-content blockquote {
@@ -205,8 +215,9 @@ const Article: React.FC<ArticleProps> = () => {
                                     font-style: italic;
                                     color: #4b5563;
                                     background: #f9fafb;
-                                    padding: 2rem;
-                                    border-radius: 0 1.5rem 1.5rem 0;
+                                    padding: 1.5rem;
+                                    margin: 2rem 0;
+                                    border-radius: 0 1rem 1rem 0;
                                 }
                             `}</style>
                             <div className="article-content" dangerouslySetInnerHTML={{ __html: article.content || '' }} />
