@@ -114,56 +114,167 @@ const Article: React.FC<ArticleProps> = () => {
                 <div className="h-full bg-primary w-[35%] shadow-[0_0_10px_rgba(214,0,178,0.5)] transition-all duration-300"></div>
             </div>
 
-            {/* Hero Section */}
-            <header className="relative w-full h-[70vh] min-h-[500px] flex items-end justify-center pb-20">
-                <div className="absolute inset-0 z-0">
-                    <img src={article.featuredImage || fallbackImage} alt={article.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/60 to-transparent opacity-90"></div>
+            {/* Article Header */}
+            <header className="max-w-4xl mx-auto px-6 pt-16 pb-8 text-center">
+                <div className="inline-block px-3 py-1 mb-6 border border-primary/20 rounded-full bg-primary/5 text-xs font-bold uppercase tracking-widest text-primary">
+                    {article.category?.name || 'News'}
                 </div>
-                <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
-                    <div className="inline-block px-3 py-1 mb-6 border border-white/30 rounded-full bg-white/10 backdrop-blur-sm text-xs font-medium uppercase tracking-widest text-primary-light">
-                        {article.category?.name || 'News'}
-                    </div>
-                    <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 drop-shadow-lg">
-                        {article.title}
-                    </h1>
-                    <p className="text-lg md:text-xl text-gray-200 font-serif max-w-2xl mx-auto leading-relaxed mb-8">
-                        {article.excerpt}
-                    </p>
-                    <div className="flex items-center justify-center space-x-6 text-sm font-medium text-gray-300">
-                        <div className="flex items-center">
-                            {article.author?.profileImage ? (
-                                <img src={article.author.profileImage} className="w-8 h-8 rounded-full mr-3 object-cover" alt={article.author.fullName} />
-                            ) : (
-                                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold mr-3">{article.author?.fullName?.charAt(0) || 'A'}</div>
-                            )}
-                            <span>By <span className="text-white border-b border-primary/50 pb-0.5">{article.author?.fullName || 'Unknown'}</span></span>
+                <h1 className="font-display text-4xl md:text-6xl font-bold leading-tight mb-8 text-gray-900 dark:text-white">
+                    {article.title}
+                </h1>
+                
+                <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-gray-500 mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
+                    <div className="flex items-center">
+                        {article.author?.profileImage ? (
+                            <img src={article.author.profileImage} className="w-10 h-10 rounded-full mr-3 object-cover shadow-sm" alt={article.author.fullName} />
+                        ) : (
+                            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mr-3">{article.author?.fullName?.charAt(0) || 'A'}</div>
+                        )}
+                        <div className="text-left">
+                            <span className="block text-xs uppercase tracking-wider text-gray-400">Written by</span>
+                            <span className="text-gray-900 dark:text-white font-bold">{article.author?.fullName || 'Unknown'}</span>
                         </div>
-                        <span className="w-1 h-1 bg-primary rounded-full"></span>
-                        <span>{new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </div>
+                    <div className="h-8 w-px bg-gray-200 dark:bg-gray-800 hidden md:block"></div>
+                    <div className="text-left">
+                        <span className="block text-xs uppercase tracking-wider text-gray-400">Published</span>
+                        <span className="text-gray-900 dark:text-white font-bold">{new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                    </div>
+                    <div className="h-8 w-px bg-gray-200 dark:bg-gray-800 hidden md:block"></div>
+                    <div className="text-left">
+                        <span className="block text-xs uppercase tracking-wider text-gray-400">Reading Time</span>
+                        <span className="text-gray-900 dark:text-white font-bold">5 min read</span>
                     </div>
                 </div>
             </header>
 
-            <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    {/* Share Sidebar */}
-                    <aside className="hidden lg:block lg:col-span-2 relative">
-                        <div className="sticky top-32 flex flex-col space-y-6 items-center lg:items-end pr-4 border-r border-gray-100 dark:border-gray-800">
-                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400 rotate-90 origin-right translate-x-3 mb-8">Share</span>
-                            <button className="w-10 h-10 rounded-full bg-white dark:bg-white/5 shadow-sm hover:shadow-md hover:bg-blue-600 hover:text-white transition-all text-gray-400 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
-                                <span className="material-icons text-sm">facebook</span>
-                            </button>
-                            <button className="w-10 h-10 rounded-full bg-white dark:bg-white/5 shadow-sm hover:shadow-md hover:bg-sky-500 hover:text-white transition-all text-gray-400 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
-                                <span className="material-icons text-sm">share</span>
-                            </button>
+            {/* Featured Image */}
+            <div className="max-w-6xl mx-auto px-4 mb-16">
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 aspect-[21/9]">
+                    <img 
+                        src={article.featuredImage || fallbackImage} 
+                        alt={article.title} 
+                        className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700" 
+                    />
+                </div>
+                {article.excerpt && (
+                    <p className="mt-8 text-xl md:text-2xl text-gray-500 font-serif italic text-center max-w-3xl mx-auto leading-relaxed">
+                        "{article.excerpt}"
+                    </p>
+                )}
+            </div>
+
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="flex flex-col lg:flex-row gap-16">
+                    {/* Main Content Column */}
+                    <div className="lg:w-8/12">
+                        <article className="prose prose-lg dark:prose-invert prose-primary max-w-none font-serif text-lg leading-relaxed text-gray-800 dark:text-gray-300">
+                            <style>{`
+                                .article-content p:first-of-type::first-letter {
+                                    float: left;
+                                    font-family: var(--font-display, 'Playfair Display', serif);
+                                    font-size: 5.5rem;
+                                    line-height: 4rem;
+                                    padding-top: 0.5rem;
+                                    padding-right: 0.75rem;
+                                    font-weight: 700;
+                                    color: #D600B2;
+                                }
+                            `}</style>
+                            <div className="article-content" dangerouslySetInnerHTML={{ __html: article.content || '' }} />
+                        </article>
+
+                        {/* Social Share Inlined */}
+                        <div className="mt-16 py-8 border-t border-b border-gray-100 dark:border-gray-800 flex flex-col md:flex-row items-center justify-between gap-8">
+                            <div>
+                                <h4 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 md:mb-0">Share this story</h4>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <a 
+                                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-12 h-12 rounded-full bg-[#1877F2] text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-blue-500/20"
+                                >
+                                    <span className="material-icons text-xl">facebook</span>
+                                </a>
+                                <a 
+                                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(article.title)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-12 h-12 rounded-full bg-[#1DA1F2] text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-sky-500/20"
+                                >
+                                    <span className="material-icons text-xl">share</span>
+                                </a>
+                                <a 
+                                    href={`https://wa.me/?text=${encodeURIComponent(`${article.title} - ${window.location.href}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-green-500/20"
+                                >
+                                    <span className="material-icons text-xl">chat</span>
+                                </a>
+                                <button 
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(window.location.href);
+                                        alert('Link copied to clipboard!');
+                                    }}
+                                    className="w-12 h-12 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white flex items-center justify-center hover:bg-primary hover:text-white transition-all"
+                                >
+                                    <span className="material-icons text-xl">link</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Sidebar */}
+                    <aside className="lg:w-4/12 space-y-12">
+                        {/* Premium Placement Ad */}
+                        <div className="bg-slate-50 dark:bg-white/5 rounded-3xl p-8 border border-gray-100 dark:border-gray-800 text-center">
+                            <span className="inline-block px-3 py-1 mb-4 border border-gray-200 dark:border-gray-700 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-400">Advertisement</span>
+                            <div className="aspect-square bg-gray-200 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-6">
+                                <span className="text-gray-400 font-display text-lg italic">Premium Brand Space</span>
+                            </div>
+                            <h4 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Partner with Rwanda Women Magazine</h4>
+                            <p className="text-sm text-gray-500 mb-6">Reach over 50,000 monthly professional readers.</p>
+                            <button className="w-full py-3 rounded-full bg-primary text-white font-bold text-sm uppercase tracking-widest hover:bg-primary-dark transition-colors">Media Kit</button>
+                        </div>
+
+                        {/* Related Stories */}
+                        <div className="space-y-8">
+                            <h3 className="font-display text-2xl font-bold flex items-center gap-3">
+                                <span className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                                    <span className="material-icons text-sm">trending_up</span>
+                                </span>
+                                Related Stories
+                            </h3>
+                            <div className="space-y-6">
+                                {[1, 2, 3].map((i) => (
+                                    <div key={i} className="flex gap-4 group cursor-pointer">
+                                        <div className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden">
+                                            <img src={`https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?q=80&w=200&auto=format&fit=crop&sig=${i}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Related" />
+                                        </div>
+                                        <div className="flex-1 py-1">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">Empowerment</span>
+                                            <h4 className="font-bold text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2">The Future of Women Leadership in East Africa</h4>
+                                            <span className="text-[10px] text-gray-400 mt-2 block uppercase tracking-widest">May 4, 2026</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Newsletter Mini */}
+                        <div className="bg-primary rounded-3xl p-8 text-white relative overflow-hidden group">
+                            <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
+                            <h4 className="text-2xl font-bold mb-4 relative z-10 font-display">Daily Intelligence</h4>
+                            <p className="text-primary-light text-sm mb-6 relative z-10 leading-relaxed opacity-90">Get the best stories delivered directly to your inbox every morning.</p>
+                            <div className="relative z-10 space-y-3">
+                                <input type="email" placeholder="Email Address" className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 focus:outline-none focus:bg-white/20 transition-all placeholder:text-white/50 text-sm" />
+                                <button className="w-full bg-white text-primary font-bold py-3 rounded-xl text-sm uppercase tracking-widest hover:bg-gray-100 transition-colors shadow-xl">Subscribe</button>
+                            </div>
                         </div>
                     </aside>
-
-                    {/* Article Body */}
-                    <article className="col-span-1 lg:col-span-8 font-serif text-lg leading-loose text-gray-800 dark:text-gray-300 space-y-8">
-                        <div dangerouslySetInnerHTML={{ __html: article.content || '' }} />
-                    </article>
                 </div>
 
                 {/* Author Info */}
