@@ -146,61 +146,58 @@ const Article: React.FC<ArticleProps> = () => {
                 ></div>
             </div>
 
-            {/* Article Header */}
-            <header className="max-w-4xl mx-auto px-6 pt-10 md:pt-16 pb-8 text-center">
-                <div className="inline-block px-3 py-1 mb-6 border border-primary/20 rounded-full bg-primary/5 text-[10px] md:text-xs font-bold uppercase tracking-widest text-primary">
-                    {article.category?.name || 'News'}
-                </div>
-                <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-bold leading-tight mb-8 text-gray-900 dark:text-white">
+        <div className="pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Breadcrumbs */}
+            <nav className="flex mb-8 text-xs font-medium text-gray-400 uppercase tracking-widest" aria-label="Breadcrumb">
+                <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+                <span className="mx-2">/</span>
+                <Link to={`/category/${article.category?.slug}`} className="hover:text-primary transition-colors">{article.category?.name || 'News'}</Link>
+            </nav>
+
+            {/* Article Title & Meta */}
+            <header className="mb-10">
+                <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8 text-gray-900 dark:text-white max-w-5xl">
                     {article.title}
                 </h1>
                 
-                <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm font-medium text-gray-500 mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex flex-wrap items-center gap-6 text-sm font-medium text-gray-500 mb-8 border-b border-gray-100 dark:border-gray-800 pb-8">
                     <div className="flex items-center">
-                        {article.author?.profileImage ? (
-                            <img src={article.author.profileImage} className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-3 object-cover shadow-sm" alt={article.author.fullName} />
-                        ) : (
-                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mr-3">{article.author?.fullName?.charAt(0) || 'A'}</div>
-                        )}
-                        <div className="text-left">
-                            <span className="block text-[10px] uppercase tracking-wider text-gray-400">Written by</span>
-                            <span className="text-gray-900 dark:text-white font-bold text-xs md:text-sm">{article.author?.fullName || 'Unknown'}</span>
-                        </div>
+                        <span className="text-[10px] uppercase tracking-wider text-gray-400 mr-2">By</span>
+                        <span className="text-gray-900 dark:text-white font-bold">{article.author?.fullName || 'Unknown'}</span>
                     </div>
-                    <div className="h-8 w-px bg-gray-200 dark:bg-gray-800 hidden md:block"></div>
-                    <div className="text-left">
-                        <span className="block text-[10px] uppercase tracking-wider text-gray-400">Published</span>
-                        <span className="text-gray-900 dark:text-white font-bold text-xs md:text-sm">{new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                    <div className="w-1 h-1 rounded-full bg-gray-300"></div>
+                    <div>
+                        <span className="text-gray-900 dark:text-white">{new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                     </div>
-                    <div className="h-8 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block"></div>
-                    <div className="text-left">
-                        <span className="block text-[10px] uppercase tracking-wider text-gray-400">Reading Time</span>
-                        <span className="text-gray-900 dark:text-white font-bold text-xs md:text-sm">5 min read</span>
+                    <div className="w-1 h-1 rounded-full bg-gray-300"></div>
+                    <div>
+                        <span className="text-gray-900 dark:text-white">5 min read</span>
                     </div>
                 </div>
             </header>
 
-            {/* Featured Image */}
-            <div className="max-w-6xl mx-auto px-4 mb-12 md:mb-16">
-                <div className="relative rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 aspect-video md:aspect-[21/9]">
-                    <img 
-                        src={article.featuredImage || fallbackImage} 
-                        alt={article.title} 
-                        className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700" 
-                    />
-                </div>
-                {article.excerpt && (
-                    <p className="mt-8 text-lg md:text-2xl text-gray-500 font-serif italic text-center max-w-3xl mx-auto leading-relaxed px-4">
-                        "{article.excerpt}"
-                    </p>
-                )}
-            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                {/* Main Column */}
+                <div className="lg:col-span-8 min-w-0">
+                    {/* Featured Image */}
+                    <div className="mb-12">
+                        <div className="relative rounded-2xl overflow-hidden shadow-xl aspect-video bg-gray-100">
+                            <img 
+                                src={article.featuredImage || fallbackImage} 
+                                alt={article.title} 
+                                className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700" 
+                            />
+                        </div>
+                        {article.excerpt && (
+                            <div className="mt-10 p-8 bg-slate-50 dark:bg-white/5 rounded-2xl border-l-4 border-primary">
+                                <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 font-serif italic leading-relaxed">
+                                    {article.excerpt}
+                                </p>
+                            </div>
+                        )}
+                    </div>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
-                    {/* Main Content Column */}
-                    <div className="lg:col-span-8 min-w-0">
-                        <article className="prose prose-sm md:prose-lg dark:prose-invert prose-primary max-w-none font-serif text-base md:text-lg leading-relaxed text-gray-800 dark:text-gray-300 overflow-hidden break-words">
+                    <article className="prose prose-sm md:prose-lg dark:prose-invert prose-primary max-w-none font-serif text-base md:text-lg leading-relaxed text-gray-800 dark:text-gray-300 overflow-hidden break-words">
                             <style>{`
                                 .article-content p:first-of-type::first-letter {
                                     float: left;
@@ -461,7 +458,6 @@ const Article: React.FC<ArticleProps> = () => {
                         )}
                     </div>
                 </section>
-            </main>
         </div>
     );
 };
