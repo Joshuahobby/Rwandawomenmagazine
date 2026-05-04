@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { Article as ArticleType, Comment as CommentType } from '../types';
 import api from '../services/api';
@@ -19,6 +19,13 @@ const Article: React.FC<ArticleProps> = () => {
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const [commentFeedback, setCommentFeedback] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
     const [readingProgress, setReadingProgress] = useState(0);
+    const progressRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (progressRef.current) {
+            progressRef.current.style.width = `${readingProgress}%`;
+        }
+    }, [readingProgress]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -134,8 +141,8 @@ const Article: React.FC<ArticleProps> = () => {
             {/* Reading Progress Bar */}
             <div className="fixed top-0 left-0 w-full h-1 z-[1001] bg-gray-100 dark:bg-gray-800">
                 <div 
+                    ref={progressRef}
                     className="h-full bg-primary shadow-[0_0_10px_rgba(214,0,178,0.5)] transition-all duration-150 ease-out"
-                    style={{ width: `${readingProgress}%` }}
                 ></div>
             </div>
 
