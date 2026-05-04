@@ -458,6 +458,7 @@ const Article: React.FC<ArticleProps> = () => {
                         )}
                     </div>
                 </section>
+            </div>
         </div>
     );
 };
