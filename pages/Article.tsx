@@ -181,11 +181,11 @@ const Article: React.FC<ArticleProps> = () => {
                 <div className="lg:col-span-8 min-w-0">
                     {/* Featured Image */}
                     <div className="mb-12">
-                        <div className="relative rounded-2xl overflow-hidden shadow-xl aspect-video bg-gray-100">
+                        <div className="relative rounded-2xl overflow-hidden shadow-xl bg-gray-100">
                             <img 
                                 src={article.featuredImage || fallbackImage} 
                                 alt={article.title} 
-                                className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700" 
+                                className="w-full h-auto object-cover transform hover:scale-105 transition-transform duration-700" 
                             />
                         </div>
                         {article.excerpt && (
