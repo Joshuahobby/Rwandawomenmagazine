@@ -2,22 +2,25 @@
   "version": 2,
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api"
+      "src": "/api/(.*)",
+      "dest": "/api"
     },
     {
-      "source": "/uploads/(.*)",
-      "destination": "/uploads/$1"
+      "src": "/uploads/(.*)",
+      "dest": "/uploads/$1"
     },
     {
-      "source": "/wp-content/(.*)",
-      "destination": "/wp-content/$1"
+      "src": "/wp-content/(.*)",
+      "dest": "/wp-content/$1"
     },
     {
-      "source": "/((?!api|uploads|wp-content).*)",
-      "destination": "/index.html"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/index.html"
     }
   ]
 }
