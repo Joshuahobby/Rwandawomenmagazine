@@ -304,32 +304,6 @@ const Article: React.FC<ArticleProps> = () => {
                         </div>
                     </aside>
                 </div>
-
-                {/* Author Info */}
-                <div className="max-w-4xl mx-auto mt-16 border-t border-gray-200 dark:border-gray-800 pt-16">
-                    <div className="bg-white dark:bg-white/5 p-8 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-8">
-                        <div className="shrink-0 relative">
-                            {article.author?.profileImage ? (
-                                <img src={article.author.profileImage} className="w-24 h-24 rounded-full object-cover border-4 border-background-light dark:border-background-dark shadow-md" alt={article.author.fullName} />
-                            ) : (
-                                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-bold text-gray-500">{article.author?.fullName?.charAt(0)}</div>
-                            )}
-                            <div className="absolute bottom-0 right-0 bg-primary text-white p-1 rounded-full border-2 border-white dark:border-background-dark">
-                                <span className="material-icons text-xs block">verified</span>
-                            </div>
-                        </div>
-                        <div className="text-center md:text-left">
-                            <h3 className="font-display text-xl font-bold text-gray-900 dark:text-white mb-2">About {article.author?.fullName}</h3>
-                            <p className="font-sans text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4">
-                                {article.author?.bio || "Writer for Rwanda Women Magazine. Covering stories that matter."}
-                            </p>
-                            <div className="flex justify-center md:justify-start space-x-4 text-sm font-medium">
-                                <button className="text-gray-400 hover:text-primary transition-colors cursor-pointer">Follow</button>
-                                <span className="text-gray-300">•</span>
-                                <Link to="/" className="text-gray-400 hover:text-primary transition-colors cursor-pointer decoration-none">More Articles</Link>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Comments */}
