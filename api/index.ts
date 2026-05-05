@@ -1,14 +1,18 @@
-// Vercel Serverless Entry Point
-// ─────────────────────────────
-// Uses CommonJS require() intentionally: Vercel serverless functions expect
-// a CJS module.exports for the API handler. Do NOT convert to ESM import.
-
+let app;
 try {
     const appModule = require('../server/app');
-    const app = appModule.default || appModule;
-
-    module.exports = app;
+    app = appModule.default || appModule;
 } catch (error) {
-    console.error("Fatal error during startup:", error);
-    throw error;
+    console.error("FATAL ERROR DURING STARTUP:", error);
+    // Provide a fallback app that returns the error to the client
+    app = require('express')();
+    app.all('*', (req, res) => {
+        res.status(500).json({
+            error: "FUNCTION_INVOCATION_FAILED details",
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        });
+    });
 }
+
+export default app;
