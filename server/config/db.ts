@@ -6,7 +6,7 @@ const dbUrl = env.DATABASE_URL;
 if (!dbUrl) {
     console.error('❌ [DB] DATABASE_URL is undefined. Check Vercel environment variables.');
 } else {
-    const maskedUrl = dbUrl.replace(/:\\/\\/[^:]+:[^@]+@/, '://***:***@');
+    const maskedUrl = dbUrl.replace(/(postgresql|postgres):\/\/[^:@]+:[^@]+@/, '$1://***:***@');
     console.log(`🔌 [DB] Initializing Prisma with: ${maskedUrl}`);
 }
 
