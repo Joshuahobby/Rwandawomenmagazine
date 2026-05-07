@@ -21,11 +21,21 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 //   1. DIRECT_URL
 //   2. DATABASE_URL_UNPOOLED / DATABASE_POSTGRES_URL_NON_POOLING
 //   3. POSTGRES_URL_NON_POOLING
-const DATABASE_URL =
+let DATABASE_URL =
     process.env.DATABASE_URL ||
     process.env.DATABASE_POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL;
+
+// Auto-convert Neon direct URL to pooled URL for Vercel serverless
+// This allows the Vercel Neon integration to work out-of-the-box without manual env var overrides.
+if (DATABASE_URL && DATABASE_URL.includes('.neon.tech') && !DATABASE_URL.includes('-pooler')) {
+    DATABASE_URL = DATABASE_URL.replace('.aws.neon.tech', '-pooler.aws.neon.tech');
+    if (!DATABASE_URL.includes('pgbouncer=true')) {
+        DATABASE_URL += (DATABASE_URL.includes('?') ? '&' : '?') + 'pgbouncer=true';
+    }
+    console.log('🔄 [ENV] Automatically converted Neon direct URL to pooled URL for serverless compatibility.');
+}
 
 const DIRECT_URL =
     process.env.DIRECT_URL ||
