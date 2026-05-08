@@ -18,7 +18,6 @@ import nominationsRoutes from './routes/nominations.routes';
 import votesRoutes from './routes/votes.routes';
 import webhooksRoutes from './routes/webhooks.routes';
 import settingsRoutes from './routes/settings.routes';
-import { generateSitemap } from './controllers/sitemap.controller';
 import { initMonitoring, setupErrorHandler } from './services/monitoring.service';
 
 initMonitoring();
@@ -54,9 +53,6 @@ app.use('/api/settings', settingsRoutes);
 
 // Serve uploaded files - point to the public directory where they now reside
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')));
-
-// Sitemap
-app.get('/api/sitemap', generateSitemap);
 
 // Serve static files from the React app (dist)
 app.use(express.static(path.join(__dirname, '../dist')));
