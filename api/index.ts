@@ -14,5 +14,4 @@ try {
         });
     });
 }
-
-export default app;
+module.exports = app;
