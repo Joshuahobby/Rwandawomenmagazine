@@ -1,4 +1,4 @@
-let app;
+let app: any;
 try {
     const appModule = require('../server/app');
     app = appModule.default || appModule;
@@ -6,7 +6,7 @@ try {
     console.error("FATAL ERROR DURING STARTUP:", error);
     // Provide a fallback app that returns the error to the client
     app = require('express')();
-    app.all('(.*)', (req, res) => {
+    app.all('(.*)', (req: any, res: any) => {
         res.status(500).json({
             error: "FUNCTION_INVOCATION_FAILED details",
             message: error instanceof Error ? error.message : String(error),
