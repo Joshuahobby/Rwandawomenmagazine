@@ -22,7 +22,7 @@ const SEO: React.FC<SEOProps> = ({
     const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
 
     return (
-        <Helmet>
+        <>
             {/* Standard metadata */}
             <title>{fullTitle}</title>
             <meta name="description" content={description} />
@@ -41,7 +41,7 @@ const SEO: React.FC<SEOProps> = ({
             <meta name="twitter:title" content={fullTitle} />
             <meta name="twitter:description" content={description} />
             <meta name="twitter:image" content={image} />
-        </Helmet>
+        </>
     );
 };
 

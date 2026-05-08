@@ -39,11 +39,9 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <HelmetProvider>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </HelmetProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>

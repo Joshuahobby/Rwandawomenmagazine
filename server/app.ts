@@ -56,7 +56,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')));
 
 // Sitemap
-app.get('/sitemap.xml', generateSitemap);
+app.get('/api/sitemap', generateSitemap);
 
 // Serve static files from the React app (dist)
 app.use(express.static(path.join(__dirname, '../dist')));
