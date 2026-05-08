@@ -1,17 +1,6 @@
-let app: any;
-try {
-    const appModule = require('../server/app');
-    app = appModule.default || appModule;
-} catch (error) {
-    console.error("FATAL ERROR DURING STARTUP:", error);
-    // Provide a fallback app that returns the error to the client
-    app = require('express')();
-    app.all('(.*)', (req: any, res: any) => {
-        res.status(500).json({
-            error: "FUNCTION_INVOCATION_FAILED details",
-            message: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined
-        });
-    });
-}
-module.exports = app;
+import express from 'express';
+import app from '../server/app';
+
+// This is the Vercel serverless entry point.
+// We use ESM import/export which is supported by @vercel/node.
+export default app;
