@@ -88,7 +88,7 @@ app.use('/api', (_req, res) => {
 });
 
 // For any other non-API request, send back React's index.html file.
-app.get('(.*)', (req, res) => {
+app.get('*', (req, res) => {
     // If it's an API request that reached here, it means it didn't match any route
     if (req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'API endpoint not found' });
