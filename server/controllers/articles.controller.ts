@@ -27,18 +27,31 @@ export const statusSchema = z.object({
     status: z.enum(['draft', 'review', 'published', 'archived']),
 });
 
+import { getCache, setCache, cacheKeys } from '../services/cache.service';
+
 // GET /api/articles — public, paginated, filterable
 export const listArticles = async (req: Request, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = Math.max(1, Math.min(parseInt(req.query.limit as string) || 12, 50));
         const skip = (page - 1) * limit;
-        console.log(`[API] listArticles: page=${page}, limit=${limit}, category=${req.query.category}`);
         const categorySlug = req.query.category as string;
         const tagSlug = req.query.tag as string;
         const featured = req.query.featured === 'true';
         const status = (req.query.status as string) || 'published';
         const search = req.query.search as string;
+
+        // Generate a cache key based on query parameters
+        const cacheKey = `articles_list_p${page}_l${limit}_c${categorySlug || ''}_t${tagSlug || ''}_f${featured}_s${status}_q${search || ''}`;
+        
+        // Try to get from cache first
+        const cachedResponse = getCache<{ articles: any[], pagination: any }>(cacheKey);
+        if (cachedResponse && !search) { // Don't cache search results for now to keep it simple
+            console.log(`[CACHE] Serving articles list from cache: ${cacheKey}`);
+            return res.json(cachedResponse);
+        }
+
+        console.log(`[API] listArticles: Fetching from DB for key: ${cacheKey}`);
 
         const where: Prisma.ArticleWhereInput = { status: status as ArticleStatus };
         if (categorySlug) where.category = { slug: categorySlug };
@@ -66,7 +79,7 @@ export const listArticles = async (req: Request, res: Response) => {
             prisma.article.count({ where }),
         ]);
 
-        return res.json({
+        const responseData = {
             articles: articles.map((a) => ({
                 ...a,
                 tags: a.tags?.map((t: { tag: { id: number; name: string; slug: string } }) => t.tag) || [],
@@ -77,7 +90,14 @@ export const listArticles = async (req: Request, res: Response) => {
                 total,
                 totalPages: Math.ceil(total / limit),
             },
-        });
+        };
+
+        // Cache the result for 5 minutes if not a search
+        if (!search) {
+            setCache(cacheKey, responseData);
+        }
+
+        return res.json(responseData);
     } catch (error) {
         console.error('List articles error detail:', error);
         return res.status(500).json({
@@ -139,6 +159,8 @@ export const getArticle = async (req: Request, res: Response) => {
     }
 };
 
+import { getCache, setCache, invalidateCache, clearCache, cacheKeys } from '../services/cache.service';
+
 // POST /api/articles
 export const createArticle = async (req: AuthRequest, res: Response) => {
     try {
@@ -177,6 +199,9 @@ export const createArticle = async (req: AuthRequest, res: Response) => {
             data: articleData,
             include: { category: true, author: { select: { id: true, fullName: true } }, tags: { include: { tag: true } } },
         });
+
+        // Invalidate article lists on create
+        clearCache();
 
         return res.status(201).json({
             ...article,
@@ -244,6 +269,9 @@ export const updateArticle = async (req: AuthRequest, res: Response) => {
             include: { category: true, author: { select: { id: true, fullName: true } }, tags: { include: { tag: true } } },
         });
 
+        // Invalidate specific article and list
+        clearCache();
+
         return res.json({
             ...article,
             tags: article.tags.map((t) => t.tag),
@@ -270,6 +298,8 @@ export const updateStatus = async (req: AuthRequest, res: Response) => {
             data: updateData,
         });
 
+        clearCache();
+
         return res.json(article);
     } catch (_error) {
         return res.status(500).json({ error: 'Failed to update status' });
@@ -284,6 +314,9 @@ export const deleteArticle = async (req: Request, res: Response) => {
             where: { id },
             data: { status: 'archived' },
         });
+        
+        clearCache();
+        
         return res.json({ message: 'Article archived' });
     } catch (_error) {
         return res.status(500).json({ error: 'Failed to archive article' });

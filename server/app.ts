@@ -18,6 +18,10 @@ import nominationsRoutes from './routes/nominations.routes';
 import votesRoutes from './routes/votes.routes';
 import webhooksRoutes from './routes/webhooks.routes';
 import settingsRoutes from './routes/settings.routes';
+import { generateSitemap } from './controllers/sitemap.controller';
+import { initMonitoring, setupErrorHandler } from './services/monitoring.service';
+
+initMonitoring();
 
 const app = express();
 
@@ -50,6 +54,9 @@ app.use('/api/settings', settingsRoutes);
 
 // Serve uploaded files - point to the public directory where they now reside
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')));
+
+// Sitemap
+app.get('/sitemap.xml', generateSitemap);
 
 // Serve static files from the React app (dist)
 app.use(express.static(path.join(__dirname, '../dist')));
@@ -102,6 +109,9 @@ app.get('*', (req, res) => {
         }
     });
 });
+
+// Sentry error handler (must be before custom error handler)
+setupErrorHandler(app);
 
 // Error handler — Express requires all 4 args to identify this as an error handler
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {

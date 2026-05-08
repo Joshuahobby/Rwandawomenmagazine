@@ -44,12 +44,14 @@ const DIRECT_URL =
     process.env.POSTGRES_URL_NON_POOLING ||
     process.env.POSTGRES_URL;
 
-if (!DATABASE_URL) {
-    console.error(
-        '❌ [ENV] No DATABASE_URL found. Set it in Vercel Environment Variables.\n' +
-        '   It must be the POOLED Neon connection string (hostname contains -pooler).\n' +
-        '   Example: postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/db?pgbouncer=true&sslmode=require'
-    );
+const IS_PROD = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+
+if (!DATABASE_URL && IS_PROD) {
+    throw new Error('❌ [ENV] Missing DATABASE_URL in production!');
+}
+
+if (!process.env.JWT_SECRET && IS_PROD) {
+    throw new Error('❌ [ENV] Missing JWT_SECRET in production! This is a critical security risk.');
 }
 
 export const env = {
@@ -62,4 +64,5 @@ export const env = {
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
     APP_URL: process.env.APP_URL || 'https://rwandawomenmagazine.rw',
+    NODE_ENV: process.env.NODE_ENV || 'development',
 };

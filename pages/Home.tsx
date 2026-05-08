@@ -4,26 +4,68 @@ import api from '../services/api';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import VotingBanner from '../components/VotingBanner';
+import { useQuery } from '@tanstack/react-query';
+import SEO from '../components/SEO';
 
 interface HomeProps {
 }
 
 const Home: React.FC<HomeProps> = () => {
-  const [featuredArticle, setFeaturedArticle] = useState<Article | null>(null);
-  const [latestArticles, setLatestArticles] = useState<Article[]>([]);
-  const [leadershipArticles, setLeadershipArticles] = useState<Article[]>([]);
-  const [businessArticles, setBusinessArticles] = useState<Article[]>([]);
-  const [cultureArticles, setCultureArticles] = useState<Article[]>([]);
-  const [healthArticles, setHealthArticles] = useState<Article[]>([]);
-  const [techArticles, setTechArticles] = useState<Article[]>([]);
-  const [educationArticles, setEducationArticles] = useState<Article[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
   // Newsletter state
   const [email, setEmail] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
+
+  // Fetcher function
+  const fetchArticles = async (params: string) => {
+    const { data } = await api.get(`/articles?${params}`);
+    return data.articles || [];
+  };
+
+  // Queries
+  const { data: featuredArticleData, isLoading: isFeaturedLoading } = useQuery({
+    queryKey: ['articles', 'featured'],
+    queryFn: () => fetchArticles('featured=true&limit=1'),
+  });
+
+  const { data: latestArticles = [], isLoading: isLatestLoading } = useQuery({
+    queryKey: ['articles', 'latest'],
+    queryFn: () => fetchArticles('limit=4'),
+  });
+
+  const { data: leadershipArticles = [], isLoading: isLeadershipLoading } = useQuery({
+    queryKey: ['articles', 'leadership'],
+    queryFn: () => fetchArticles('category=leadership-empowerment&limit=3'),
+  });
+
+  const { data: businessArticles = [], isLoading: isBusinessLoading } = useQuery({
+    queryKey: ['articles', 'business'],
+    queryFn: () => fetchArticles('category=business-economy&limit=4'),
+  });
+
+  const { data: cultureArticles = [], isLoading: isCultureLoading } = useQuery({
+    queryKey: ['articles', 'culture'],
+    queryFn: () => fetchArticles('category=culture-heritage&limit=3'),
+  });
+
+  const { data: healthArticles = [], isLoading: isHealthLoading } = useQuery({
+    queryKey: ['articles', 'health'],
+    queryFn: () => fetchArticles('category=health-wellness&limit=3'),
+  });
+
+  const { data: techArticles = [], isLoading: isTechLoading } = useQuery({
+    queryKey: ['articles', 'tech'],
+    queryFn: () => fetchArticles('category=tech-innovation&limit=3'),
+  });
+
+  const { data: educationArticles = [], isLoading: isEducationLoading } = useQuery({
+    queryKey: ['articles', 'education'],
+    queryFn: () => fetchArticles('category=education&limit=3'),
+  });
+
+  const featuredArticle = featuredArticleData?.[0] || null;
+  const isLoading = isFeaturedLoading || isLatestLoading || isLeadershipLoading || isBusinessLoading || isCultureLoading || isHealthLoading || isTechLoading || isEducationLoading;
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,55 +94,6 @@ const Home: React.FC<HomeProps> = () => {
       setIsSubscribing(false);
     }
   };
-
-  useEffect(() => {
-    const fetchHomeData = async () => {
-      try {
-        const validCategories = [
-          { key: 'featured', url: '/articles?featured=true&limit=1' },
-          { key: 'latest', url: '/articles?limit=4' },
-          { key: 'leadership', url: '/articles?category=leadership-empowerment&limit=3' },
-          { key: 'business', url: '/articles?category=business-economy&limit=4' },
-          { key: 'culture', url: '/articles?category=culture-heritage&limit=3' },
-          { key: 'health', url: '/articles?category=health-wellness&limit=3' },
-          { key: 'tech', url: '/articles?category=tech-innovation&limit=3' },
-          { key: 'education', url: '/articles?category=education&limit=3' }
-        ];
-
-        const results = await Promise.allSettled(validCategories.map(cat => api.get(cat.url)));
-
-        results.forEach((result, index) => {
-          const categoryKey = validCategories[index].key;
-          if (result.status === 'fulfilled') {
-            const articles = result.value.data.articles || [];
-            switch (categoryKey) {
-              case 'featured': setFeaturedArticle(articles[0] || null); break;
-              case 'latest': setLatestArticles(articles); break;
-              case 'leadership': setLeadershipArticles(articles); break;
-              case 'business': setBusinessArticles(articles); break;
-              case 'culture': setCultureArticles(articles); break;
-              case 'health': setHealthArticles(articles); break;
-              case 'tech': setTechArticles(articles); break;
-              case 'education': setEducationArticles(articles); break;
-            }
-          } else {
-            console.error(`Failed to fetch ${categoryKey}:`, result.reason);
-          }
-        });
-
-
-      } catch (error) {
-        console.error('Failed to fetch home data:', error);
-        if (axios.isAxiosError(error)) {
-          console.error('Axios error details:', error.response?.data);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchHomeData();
-  }, []);
 
   if (isLoading) {
     return (
@@ -147,12 +140,9 @@ const Home: React.FC<HomeProps> = () => {
         <span className="text-[10px] text-gray-500">{new Date(article.publishedAt || article.createdAt).toLocaleDateString()}</span>
       </div>
       <h4 className={`font-display text-lg font-medium leading-snug group-hover:text-primary transition-colors ${dark ? 'text-white' : 'text-text-light dark:text-text-dark'}`}>{article.title}</h4>
-    </Link>
-  );
-
   return (
     <div className="animate-fade-in font-sans">
-
+      <SEO />
       {/* Voting Banner */}
       <VotingBanner />
 

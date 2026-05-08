@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { Article as ArticleType, Comment as CommentType } from '../types';
 import api from '../services/api';
+import SEO from '../components/SEO';
 
 interface ArticleProps {
 }
@@ -140,6 +141,14 @@ const Article: React.FC<ArticleProps> = () => {
 
     return (
         <div className="animate-fade-in focus:outline-none">
+            <SEO 
+                title={article.title}
+                description={article.excerpt || undefined}
+                image={article.featuredImage || undefined}
+                type="article"
+                author={article.author?.fullName}
+                url={`https://rwandawomenmagazine.rw/article/${article.slug}`}
+            />
             {/* Reading Progress Bar */}
             <div className="fixed top-0 left-0 w-full h-1 z-[1001] bg-gray-100 dark:bg-gray-800">
                 <div 
