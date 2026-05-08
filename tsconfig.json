@@ -16,6 +16,7 @@
     ],
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -30,5 +31,8 @@
     // "allowImportingTsExtensions": true, // Remove this if we want to emit standard JS
     "outDir": "./dist",
     "noEmit": false
-  }
+  },
+  "exclude": [
+    "*.config.ts"
+  ]
 }
