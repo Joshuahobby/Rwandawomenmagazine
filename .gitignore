@@ -34,3 +34,6 @@ backend-dist/
 test-output.txt
 
 .vercel
+/playwright-report/
+/test-results/
+
