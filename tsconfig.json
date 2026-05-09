@@ -30,7 +30,7 @@
     },
     // "allowImportingTsExtensions": true, // Remove this if we want to emit standard JS
     "outDir": "./dist",
-    "noEmit": false
+    "noEmit": true
   },
   "exclude": [
     "*.config.ts"
