@@ -65,6 +65,17 @@ export const getViewStats = async (req: Request, res: Response) => {
         const since = new Date();
         since.setDate(since.getDate() - days);
 
+        // Get daily aggregate for chart
+        const dailyViews = await prisma.$queryRaw`
+            SELECT 
+                DATE_TRUNC('day', viewed_at) as date,
+                COUNT(*)::int as count
+            FROM article_views
+            WHERE viewed_at >= ${since}
+            GROUP BY 1
+            ORDER BY 1 ASC
+        `;
+
         const views = await prisma.articleView.groupBy({
             by: ['articleId'],
             where: { viewedAt: { gte: since } },
@@ -85,8 +96,13 @@ export const getViewStats = async (req: Request, res: Response) => {
             article: articles.find((a) => a.id === v.articleId),
         }));
 
-        return res.json({ period: `${days}d`, topArticles: enriched });
+        return res.json({ 
+            period: `${days}d`, 
+            topArticles: enriched,
+            dailyViews 
+        });
     } catch (error) {
+        console.error('Failed to fetch view stats:', error);
         return res.status(500).json({ error: 'Failed to fetch view stats' });
     }
 };

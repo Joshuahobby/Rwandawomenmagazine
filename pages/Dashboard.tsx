@@ -16,6 +16,8 @@ import UsersManager from '../components/UsersManager';
 import DashboardSettings from '../components/DashboardSettings';
 import EmailSettingsManager from '../components/EmailSettingsManager';
 
+import AnalyticsChart from '../components/AnalyticsChart';
+
 const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
     void navigate; // Acknowledging navigate if unused in some paths
     const { user, logout } = useAuth();
@@ -27,6 +29,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
         viewTrend: '0%'
     });
     const [recentArticles, setRecentArticles] = useState([]);
+    const [dailyViews, setDailyViews] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -34,8 +37,13 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const response = await api.get('/analytics/dashboard');
-                const data = response.data;
+                const [statsRes, viewsRes] = await Promise.all([
+                    api.get('/analytics/dashboard'),
+                    api.get('/analytics/views?period=30d')
+                ]);
+                
+                const data = statsRes.data;
+                const viewsData = viewsRes.data;
 
                 setStats({
                     totalArticles: data.publishedArticles || 0,
@@ -45,6 +53,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                 });
 
                 setRecentArticles(data.recentArticles || []);
+                setDailyViews(viewsData.dailyViews || []);
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
             } finally {
@@ -281,6 +290,23 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                                 <h3 className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Monthly Views</h3>
                                 <p className="text-3xl font-bold text-slate-900 dark:text-white font-display">{(stats.monthlyViews / 1000).toFixed(1)}k</p>
                             </div>
+                        </div>
+
+                        {/* Analytics Chart */}
+                        <div className="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-sm border border-slate-100 dark:border-white/5 mb-10">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">Traffic Overview</h3>
+                                    <p className="text-sm text-slate-500">Platform-wide page views over the last 30 days.</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-white/5 px-3 py-1 rounded-full">
+                                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                                        Real-time
+                                    </span>
+                                </div>
+                            </div>
+                            <AnalyticsChart data={dailyViews} />
                         </div>
 
                         {/* Recent Activity */}

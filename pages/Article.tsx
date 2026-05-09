@@ -4,6 +4,7 @@ import type { Article as ArticleType, Comment as CommentType } from '../types';
 import api from '../services/api';
 import SEO from '../components/SEO';
 import { ArticleSkeleton } from '../components/Skeleton';
+import { optimizeImage } from '../utils/image';
 
 interface ArticleProps {
 }
@@ -152,7 +153,7 @@ const Article: React.FC<ArticleProps> = () => {
             {/* Article Hero Section */}
             <section className="relative h-[70vh] w-full overflow-hidden">
                 <img 
-                    src={article.featuredImage || fallbackImage} 
+                    src={optimizeImage(article.featuredImage, 1920, 1080)} 
                     alt={article.title}
                     className="w-full h-full object-cover"
                 />
@@ -210,7 +211,7 @@ const Article: React.FC<ArticleProps> = () => {
                                 <Link key={rel.id} to={`/article/${rel.slug}`} className="group block text-inherit decoration-none">
                                     <div className="aspect-[4/3] overflow-hidden rounded-2xl mb-4 bg-gray-100 dark:bg-gray-800">
                                         <img 
-                                            src={rel.featuredImage || fallbackImage} 
+                                            src={optimizeImage(rel.featuredImage, 600, 450)} 
                                             alt={rel.title}
                                             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                                         />

@@ -9,9 +9,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import * as Sentry from "@sentry/react";
 
-if (process.env.NODE_ENV === 'production') {
+const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
+
+if (SENTRY_DSN && process.env.NODE_ENV === 'production') {
   Sentry.init({
-    dsn: "https://example-dsn@sentry.io/123", // Placeholder, user will set in env
+    dsn: SENTRY_DSN,
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration(),

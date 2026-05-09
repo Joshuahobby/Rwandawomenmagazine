@@ -7,6 +7,7 @@ import VotingBanner from '../components/VotingBanner';
 import { useQuery } from '@tanstack/react-query';
 import SEO from '../components/SEO';
 import { FeaturedSkeleton, ArticleCardSkeleton } from '../components/Skeleton';
+import { optimizeImage } from '../utils/image';
 
 interface HomeProps {
 }
@@ -109,8 +110,6 @@ const Home: React.FC<HomeProps> = () => {
     );
   }
 
-  const fallbackImage = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop";
-
   // Reusable: Section header
   const SectionHeader = ({ title, viewAllPath, dark = false }: { title: string; viewAllPath: string; dark?: boolean }) => (
     <div className={`flex justify-between items-end mb-10 border-b pb-4 ${dark ? 'border-gray-700' : 'border-gray-200 dark:border-gray-700'}`}>
@@ -125,7 +124,7 @@ const Home: React.FC<HomeProps> = () => {
   const ArticleCardHorizontal: React.FC<{ article: Article }> = ({ article }) => (
     <Link to={`/article/${article.slug}`} className="flex gap-4 group cursor-pointer text-inherit decoration-none">
       <div className="w-1/3 aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
-        <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-500" src={article.featuredImage || fallbackImage} />
+        <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-500" src={optimizeImage(article.featuredImage, 400, 400)} />
       </div>
       <div className="w-2/3 flex flex-col justify-center">
         <span className="text-[10px] font-bold uppercase text-gray-400 mb-1 block">{article.category?.name}</span>
@@ -167,9 +166,7 @@ const Home: React.FC<HomeProps> = () => {
 
       <div className="container mx-auto px-4 py-8 lg:py-12">
 
-        {/* ═══════════════════════════════════════════════════════════════
-            HERO STORIES GRID
-        ═══════════════════════════════════════════════════════════════ */}
+        {/* HERO STORIES GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-20">
           {/* Column 1: Title + Vertical Story */}
           <div className="lg:col-span-2">
@@ -179,7 +176,7 @@ const Home: React.FC<HomeProps> = () => {
             {latestArticles[0] && (
               <Link to={`/article/${latestArticles[0].slug}`} className="group cursor-pointer block text-inherit decoration-none">
                 <div className="aspect-[3/4] overflow-hidden mb-4 relative bg-gray-100 dark:bg-gray-800">
-                  <img alt={latestArticles[0].title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={latestArticles[0].featuredImage || fallbackImage} />
+                  <img alt={latestArticles[0].title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={optimizeImage(latestArticles[0].featuredImage, 400, 600)} />
                 </div>
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-[10px] font-bold uppercase tracking-widest border border-gray-300 dark:border-gray-600 px-2 py-0.5 text-text-light dark:text-text-dark">{latestArticles[0].category?.name}</span>
@@ -197,7 +194,7 @@ const Home: React.FC<HomeProps> = () => {
             {featuredArticle && (
               <Link to={`/article/${featuredArticle.slug}`} className="h-full flex flex-col group cursor-pointer text-inherit decoration-none">
                 <div className="flex-grow relative overflow-hidden mb-6 aspect-[4/3] lg:aspect-auto bg-gray-100 dark:bg-gray-800">
-                  <img alt={featuredArticle.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={featuredArticle.featuredImage || fallbackImage} />
+                  <img alt={featuredArticle.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={optimizeImage(featuredArticle.featuredImage, 1200, 800)} />
                   <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 text-xs font-bold uppercase tracking-widest">Featured</div>
                 </div>
                 <div className="border-l-2 border-primary pl-4">
@@ -224,10 +221,6 @@ const Home: React.FC<HomeProps> = () => {
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════════════════════════
-            CATEGORY SECTIONS
-        ═══════════════════════════════════════════════════════════════ */}
-        
         {/* Section: Leadership & Empowerment */}
         <section className="mb-24">
           <SectionHeader title="Leadership" viewAllPath="/category/leadership-empowerment" />
@@ -235,7 +228,7 @@ const Home: React.FC<HomeProps> = () => {
             {leadershipArticles.map((article) => (
               <Link key={article.id} to={`/article/${article.slug}`} className="group cursor-pointer block text-inherit decoration-none">
                 <div className="aspect-[16/9] overflow-hidden mb-5 bg-gray-100 dark:bg-gray-800">
-                  <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={article.featuredImage || fallbackImage} />
+                  <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={optimizeImage(article.featuredImage, 800, 450)} />
                 </div>
                 <h3 className="font-display text-2xl font-bold mb-2 group-hover:text-primary transition-colors text-text-light dark:text-text-dark italic">{article.title}</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 italic">{article.excerpt}</p>
@@ -252,7 +245,7 @@ const Home: React.FC<HomeProps> = () => {
               {businessArticles.map((article) => (
                 <Link key={article.id} to={`/article/${article.slug}`} className="group cursor-pointer block text-inherit decoration-none">
                   <div className="aspect-square overflow-hidden mb-5 bg-gray-800">
-                    <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100" src={article.featuredImage || fallbackImage} />
+                    <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100" src={optimizeImage(article.featuredImage, 400, 400)} />
                   </div>
                   <h3 className="font-display text-xl font-bold mb-2 group-hover:text-primary transition-colors text-white italic">{article.title}</h3>
                 </Link>
@@ -270,7 +263,7 @@ const Home: React.FC<HomeProps> = () => {
                 <div key={article.id}>
                    <Link to={`/article/${article.slug}`} className="group cursor-pointer block text-inherit decoration-none">
                     <div className="aspect-[4/3] overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
-                      <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={article.featuredImage || fallbackImage} />
+                      <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={optimizeImage(article.featuredImage, 600, 450)} />
                     </div>
                     <h3 className="font-display text-2xl font-bold mb-2 group-hover:text-primary transition-colors text-text-light dark:text-text-dark italic">{article.title}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 italic">{article.excerpt}</p>
@@ -289,9 +282,7 @@ const Home: React.FC<HomeProps> = () => {
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════════════════════════
-            NEWSLETTER SECTION
-        ═══════════════════════════════════════════════════════════════ */}
+        {/* NEWSLETTER SECTION */}
         <section className="bg-primary py-20 rounded-[4rem] text-white text-center px-4 mb-24 shadow-2xl shadow-primary/20">
           <div className="max-w-2xl mx-auto">
             <span className="text-xs font-bold uppercase tracking-[0.4em] mb-4 block opacity-80">STAY INFORMED</span>
