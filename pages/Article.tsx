@@ -151,31 +151,40 @@ const Article: React.FC<ArticleProps> = () => {
             </div>
 
             {/* Article Hero Section */}
-            <section className="relative h-[70vh] w-full overflow-hidden">
-                <img 
-                    src={optimizeImage(article.featuredImage, 1920, 1080)} 
-                    alt={article.title}
-                    className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/80"></div>
+            <section className="relative w-full">
+                {/* Featured Image - shown in full, never cropped */}
+                <div className="relative w-full" style={{ maxHeight: '75vh' }}>
+                    <img 
+                        src={optimizeImage(article.featuredImage, 1920)} 
+                        alt={article.title}
+                        className="w-full h-auto block"
+                        style={{ maxHeight: '75vh', width: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+                    />
+                    {/* Strong gradient overlay for title readability */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/85"></div>
+                </div>
                 
-                <div className="absolute inset-0 flex flex-col justify-end pb-20">
-                    <div className="max-w-4xl mx-auto px-4 w-full text-white text-center">
-                        <Link to={`/category/${article.category.slug}`} className="inline-block px-4 py-1.5 bg-primary text-white rounded-full text-xs font-bold uppercase tracking-widest mb-6 hover:bg-primary-dark transition-colors decoration-none">
+                {/* Title overlay positioned at bottom of image */}
+                <div className="absolute bottom-0 left-0 right-0 pb-10 md:pb-16 pt-20">
+                    <div className="max-w-4xl mx-auto px-6 md:px-8 w-full text-white text-center">
+                        <Link to={`/category/${article.category.slug}`} className="inline-block px-5 py-2 bg-primary text-white rounded-full text-xs font-bold uppercase tracking-widest mb-5 hover:bg-primary-dark transition-colors decoration-none shadow-lg">
                             {article.category.name}
                         </Link>
-                        <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-black leading-[1.1] mb-6 drop-shadow-2xl italic tracking-tighter">
+                        <h1 
+                            className="font-display text-3xl md:text-5xl lg:text-6xl font-black leading-[1.15] mb-5 tracking-tight"
+                            style={{ textShadow: '0 2px 8px rgba(0,0,0,0.7), 0 4px 24px rgba(0,0,0,0.5)' }}
+                        >
                             {article.title}
                         </h1>
-                        <div className="flex items-center justify-center gap-6 text-sm font-medium opacity-90">
+                        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm font-medium" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
                             <div className="flex items-center gap-2">
                                 <span className="material-icons text-primary text-lg">person</span>
-                                <span className="uppercase tracking-widest">{article.author?.fullName || 'Rwanda Women Editorial'}</span>
+                                <span className="uppercase tracking-widest text-xs md:text-sm">{article.author?.fullName || 'Rwanda Women Editorial'}</span>
                             </div>
-                            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+                            <div className="w-1 h-1 bg-white/50 rounded-full hidden md:block"></div>
                             <div className="flex items-center gap-2">
                                 <span className="material-icons text-primary text-lg">schedule</span>
-                                <span className="uppercase tracking-widest">{new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                                <span className="uppercase tracking-widest text-xs md:text-sm">{new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                             </div>
                         </div>
                     </div>
@@ -183,10 +192,10 @@ const Article: React.FC<ArticleProps> = () => {
             </section>
 
             {/* Article Content */}
-            <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-10 pb-24">
-                <article className="bg-white dark:bg-slate-900 shadow-2xl rounded-[3rem] p-8 md:p-16">
+            <div className="max-w-4xl mx-auto px-4 md:px-6 -mt-12 relative z-10 pb-24">
+                <article className="bg-white dark:bg-slate-900 shadow-2xl rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 lg:p-16 overflow-hidden">
                     <div 
-                        className="prose prose-lg dark:prose-invert max-w-none font-serif leading-relaxed text-slate-700 dark:text-slate-300 first-letter:text-7xl first-letter:font-black first-letter:text-primary first-letter:mr-3 first-letter:float-left italic"
+                        className="article-content prose prose-lg dark:prose-invert max-w-none font-serif leading-relaxed text-slate-700 dark:text-slate-300 first-letter:text-7xl first-letter:font-black first-letter:text-primary first-letter:mr-3 first-letter:float-left"
                         dangerouslySetInnerHTML={{ __html: article.content }}
                     />
                     
