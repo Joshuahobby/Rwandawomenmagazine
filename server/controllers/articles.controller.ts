@@ -53,16 +53,17 @@ export const listArticles = async (req: Request, res: Response) => {
 
         console.log(`[API] listArticles: Fetching from DB for key: ${cacheKey}`);
 
+        const VALID_STATUSES: ArticleStatus[] = ['draft', 'review', 'published', 'archived'];
         const where: Prisma.ArticleWhereInput = {};
+
         if (statusParam === 'all') {
-            // Dashboard "all" filter: show everything except archived
-            where.status = { not: 'archived' as ArticleStatus };
-        } else if (statusParam) {
-            // Specific status filter (draft, review, published, archived)
+            // Dashboard "all" filter: show draft, review, published (exclude archived)
+            where.status = { in: ['draft', 'review', 'published'] };
+        } else if (statusParam && VALID_STATUSES.includes(statusParam as ArticleStatus)) {
             where.status = statusParam as ArticleStatus;
         } else {
-            // No status param: default to published (public-facing pages)
-            where.status = 'published' as ArticleStatus;
+            // Default for public pages or un recognized status
+            where.status = 'published';
         }
         if (categorySlug) where.category = { slug: categorySlug };
         if (featured) where.isFeatured = true;
