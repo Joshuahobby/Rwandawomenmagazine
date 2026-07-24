@@ -105,23 +105,27 @@ const Editor: React.FC<EditorProps> = ({ navigate, articleId }) => {
         };
 
         try {
+            let savedArticle;
             if (articleId) {
-                await api.put(`/articles/${articleId}`, payload);
-                if (isPublish && status !== 'published') {
-                    const statusRes = await api.patch(`/articles/${articleId}/status`, { status: 'published' });
-                    setPublishedUrl(`${window.location.origin}/article/${statusRes.data.slug}`);
-                }
+                const res = await api.put(`/articles/${articleId}`, payload);
+                savedArticle = res.data;
             } else {
                 const res = await api.post('/articles', payload);
-                if (isPublish) {
-                    const statusRes = await api.patch(`/articles/${res.data.id}/status`, { status: 'published' });
-                    setPublishedUrl(`${window.location.origin}/article/${statusRes.data.slug}`);
-                }
+                savedArticle = res.data;
             }
+
+            if (isPublish && savedArticle?.slug) {
+                setPublishedUrl(`${window.location.origin}/article/${savedArticle.slug}`);
+            }
+
             navigate('DASHBOARD');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save article:', error);
-            alert('Failed to save article');
+            const message = error?.response?.data?.error
+                || error?.response?.data?.details
+                || error?.message
+                || 'Failed to save article';
+            alert(typeof message === 'string' ? message : 'Failed to save article. Please try again.');
         } finally {
             setIsSaving(false);
         }

@@ -37,3 +37,4 @@ test-output.txt
 /playwright-report/
 /test-results/
 
+.env*

@@ -4,6 +4,7 @@ import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
 import { Prisma, ArticleStatus } from '@prisma/client';
 import { generateSlug } from '../services/slug';
+import { getCache, setCache, invalidateCache, clearCache, cacheKeys } from '../services/cache.service';
 
 export const createArticleSchema = z.object({
     title: z.string().min(1).max(300),
@@ -13,6 +14,7 @@ export const createArticleSchema = z.object({
     categoryId: z.number().int().positive(),
     isFeatured: z.boolean().optional(),
     tags: z.array(z.number().int()).optional(),
+    status: z.enum(['draft', 'review', 'published', 'archived']).optional(),
     seo: z.object({
         metaTitle: z.string().optional(),
         metaDescription: z.string().optional(),
@@ -27,8 +29,6 @@ export const statusSchema = z.object({
     status: z.enum(['draft', 'review', 'published', 'archived']),
 });
 
-import { getCache, setCache, cacheKeys } from '../services/cache.service';
-
 // GET /api/articles — public, paginated, filterable
 export const listArticles = async (req: Request, res: Response) => {
     try {
@@ -38,11 +38,11 @@ export const listArticles = async (req: Request, res: Response) => {
         const categorySlug = req.query.category as string;
         const tagSlug = req.query.tag as string;
         const featured = req.query.featured === 'true';
-        const status = (req.query.status as string) || 'published';
+        const statusParam = req.query.status as string | undefined;
         const search = req.query.search as string;
 
         // Generate a cache key based on query parameters
-        const cacheKey = `articles_list_p${page}_l${limit}_c${categorySlug || ''}_t${tagSlug || ''}_f${featured}_s${status}_q${search || ''}`;
+        const cacheKey = `articles_list_p${page}_l${limit}_c${categorySlug || ''}_t${tagSlug || ''}_f${featured}_s${statusParam || 'published'}_q${search || ''}`;
         
         // Try to get from cache first
         const cachedResponse = getCache<{ articles: any[], pagination: any }>(cacheKey);
@@ -53,7 +53,17 @@ export const listArticles = async (req: Request, res: Response) => {
 
         console.log(`[API] listArticles: Fetching from DB for key: ${cacheKey}`);
 
-        const where: Prisma.ArticleWhereInput = { status: status as ArticleStatus };
+        const where: Prisma.ArticleWhereInput = {};
+        if (statusParam === 'all') {
+            // Dashboard "all" filter: show everything except archived
+            where.status = { not: 'archived' as ArticleStatus };
+        } else if (statusParam) {
+            // Specific status filter (draft, review, published, archived)
+            where.status = statusParam as ArticleStatus;
+        } else {
+            // No status param: default to published (public-facing pages)
+            where.status = 'published' as ArticleStatus;
+        }
         if (categorySlug) where.category = { slug: categorySlug };
         if (featured) where.isFeatured = true;
         if (tagSlug) where.tags = { some: { tag: { slug: tagSlug } } };
@@ -159,7 +169,7 @@ export const getArticle = async (req: Request, res: Response) => {
     }
 };
 
-import { getCache, setCache, invalidateCache, clearCache, cacheKeys } from '../services/cache.service';
+// Cache utilities imported at top of file
 
 // POST /api/articles
 export const createArticle = async (req: AuthRequest, res: Response) => {
@@ -217,7 +227,7 @@ export const createArticle = async (req: AuthRequest, res: Response) => {
 export const updateArticle = async (req: AuthRequest, res: Response) => {
     try {
         const id = req.params.id as string;
-        const { title, excerpt, content, featuredImage, categoryId, isFeatured, tags, seo } = req.body;
+        const { title, excerpt, content, featuredImage, categoryId, isFeatured, tags, seo, status } = req.body;
 
         const existing = await prisma.article.findUnique({ where: { id } });
         if (!existing) {
@@ -245,6 +255,12 @@ export const updateArticle = async (req: AuthRequest, res: Response) => {
         if (featuredImage !== undefined) updateData.featuredImage = featuredImage;
         if (categoryId) updateData.category = { connect: { id: categoryId } };
         if (isFeatured !== undefined) updateData.isFeatured = isFeatured;
+        if (status) {
+            updateData.status = status;
+            if (status === 'published' && existing.status !== 'published') {
+                updateData.publishedAt = new Date();
+            }
+        }
 
         // Update tags
         if (tags) {

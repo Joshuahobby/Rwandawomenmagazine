@@ -16,7 +16,7 @@ const ArticlesList: React.FC<ArticlesListProps> = ({ onEdit }) => {
     const fetchArticles = async (page = 1) => {
         setIsLoading(true);
         try {
-            let url = `/articles?page=${page}&limit=10&status=${filter === 'all' ? '' : filter}`;
+            let url = `/articles?page=${page}&limit=10&status=${filter}`;
             if (searchTerm) url += `&search=${searchTerm}`;
 
             const response = await api.get(url);

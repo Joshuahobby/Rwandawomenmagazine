@@ -132,8 +132,6 @@ const Article: React.FC<ArticleProps> = () => {
         );
     }
 
-    const fallbackImage = "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?q=80&w=2938&auto=format&fit=crop";
-
     return (
         <div className="animate-fade-in focus:outline-none">
             <SEO 
@@ -196,7 +194,7 @@ const Article: React.FC<ArticleProps> = () => {
                 <article className="bg-white dark:bg-slate-900 shadow-2xl rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 lg:p-16 overflow-hidden">
                     <div 
                         className="article-content prose prose-lg dark:prose-invert max-w-none font-serif leading-relaxed text-slate-700 dark:text-slate-300 first-letter:text-7xl first-letter:font-black first-letter:text-primary first-letter:mr-3 first-letter:float-left"
-                        dangerouslySetInnerHTML={{ __html: article.content }}
+                        dangerouslySetInnerHTML={{ __html: article.content || '' }}
                     />
                     
                     {/* Tags / Meta */}

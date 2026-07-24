@@ -215,7 +215,7 @@ const Home: React.FC<HomeProps> = () => {
 
           {/* Column 3: Secondary Featured Stories */}
           <div className="lg:col-span-4 space-y-8 flex flex-col">
-            {latestArticles.slice(1, 4).map((article) => (
+            {latestArticles.slice(1, 4).map((article: Article) => (
               <ArticleCardHorizontal key={article.id} article={article} />
             ))}
           </div>
@@ -225,7 +225,7 @@ const Home: React.FC<HomeProps> = () => {
         <section className="mb-24">
           <SectionHeader title="Leadership" viewAllPath="/category/leadership-empowerment" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            {leadershipArticles.map((article) => (
+            {leadershipArticles.map((article: Article) => (
               <Link key={article.id} to={`/article/${article.slug}`} className="group cursor-pointer block text-inherit decoration-none">
                 <div className="aspect-[16/9] overflow-hidden mb-5 bg-gray-100 dark:bg-gray-800">
                   <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" src={optimizeImage(article.featuredImage, 800, 450)} />
@@ -242,7 +242,7 @@ const Home: React.FC<HomeProps> = () => {
           <div className="container mx-auto">
             <SectionHeader title="Business" viewAllPath="/category/business-economy" dark />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {businessArticles.map((article) => (
+              {businessArticles.map((article: Article) => (
                 <Link key={article.id} to={`/article/${article.slug}`} className="group cursor-pointer block text-inherit decoration-none">
                   <div className="aspect-square overflow-hidden mb-5 bg-gray-800">
                     <img alt={article.title} className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100" src={optimizeImage(article.featuredImage, 400, 400)} />
@@ -259,7 +259,7 @@ const Home: React.FC<HomeProps> = () => {
           <div className="lg:col-span-8">
             <SectionHeader title="Culture" viewAllPath="/category/culture-heritage" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {cultureArticles.slice(0, 2).map((article) => (
+              {cultureArticles.slice(0, 2).map((article: Article) => (
                 <div key={article.id}>
                    <Link to={`/article/${article.slug}`} className="group cursor-pointer block text-inherit decoration-none">
                     <div className="aspect-[4/3] overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
@@ -275,7 +275,7 @@ const Home: React.FC<HomeProps> = () => {
           <div className="lg:col-span-4 bg-gray-50 dark:bg-gray-900/50 p-8 rounded-[2.5rem]">
             <SectionHeader title="Health" viewAllPath="/category/health-wellness" />
             <div className="space-y-8">
-              {healthArticles.map((article) => (
+              {healthArticles.map((article: Article) => (
                 <ArticleListItem key={article.id} article={article} />
               ))}
             </div>
@@ -322,7 +322,7 @@ const Home: React.FC<HomeProps> = () => {
           <div>
             <SectionHeader title="Tech" viewAllPath="/category/tech-innovation" />
             <div className="space-y-6">
-              {techArticles.map((article) => (
+              {techArticles.map((article: Article) => (
                 <ArticleCardHorizontal key={article.id} article={article} />
               ))}
             </div>
@@ -330,7 +330,7 @@ const Home: React.FC<HomeProps> = () => {
           <div>
             <SectionHeader title="Education" viewAllPath="/category/education" />
             <div className="space-y-6">
-              {educationArticles.map((article) => (
+              {educationArticles.map((article: Article) => (
                 <ArticleCardHorizontal key={article.id} article={article} />
               ))}
             </div>

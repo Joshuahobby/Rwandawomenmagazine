@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import * as Sentry from "@sentry/react";
 
-const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
+const SENTRY_DSN = (import.meta as any)?.env?.VITE_SENTRY_DSN || process.env.VITE_SENTRY_DSN;
 
 if (SENTRY_DSN && process.env.NODE_ENV === 'production') {
   Sentry.init({
