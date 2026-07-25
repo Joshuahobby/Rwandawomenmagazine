@@ -25,6 +25,15 @@ initMonitoring();
 
 const app = express();
 
+// Trust Vercel's single reverse-proxy hop so req.ip resolves the real client
+// IP from X-Forwarded-For, not Vercel's own internal edge address. Without
+// this, req.ip is never falsy, so the "|| x-forwarded-for" fallbacks in
+// fraud.middleware.ts and votes.controller.ts never actually run — every
+// voter would resolve to the same internal IP, breaking both fraud detection
+// and vote-dedup identity hashing. Harmless locally: with no proxy in front,
+// req.ip still falls back to the direct socket address.
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));

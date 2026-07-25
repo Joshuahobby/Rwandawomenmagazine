@@ -4,16 +4,17 @@ import {
     updateStatus, deleteArticle, getRevisions,
     createArticleSchema, updateArticleSchema, statusSchema,
 } from '../controllers/articles.controller';
-import { authenticate } from '../middleware/auth';
+import { authenticate, optionalAuthenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/roles';
 import { validate } from '../middleware/validate';
 
 const router = Router();
 
-// Public
-router.get('/', listArticles);
-router.get('/id/:id', getArticleById);
-router.get('/:slug', getArticle);
+// Public, but optionalAuthenticate lets signed-in staff see unpublished work.
+// Anonymous callers get the published site only (enforced in the controllers).
+router.get('/', optionalAuthenticate, listArticles);
+router.get('/id/:id', optionalAuthenticate, getArticleById);
+router.get('/:slug', optionalAuthenticate, getArticle);
 
 // Auth required
 router.post('/', authenticate, requireRole('Author', 'Editor'), validate(createArticleSchema), createArticle);

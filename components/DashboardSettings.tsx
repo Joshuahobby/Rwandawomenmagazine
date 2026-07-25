@@ -24,7 +24,7 @@ const DashboardSettings: React.FC<DashboardSettingsProps> = ({ navigate }) => {
                         <p className="text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
                         <div className="mt-2 flex items-center gap-2">
                             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                                {user?.role.name}
+                                {user?.role}
                             </span>
                         </div>
                     </div>

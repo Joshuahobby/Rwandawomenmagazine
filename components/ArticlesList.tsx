@@ -16,8 +16,10 @@ const ArticlesList: React.FC<ArticlesListProps> = ({ onEdit }) => {
     const fetchArticles = async (page = 1) => {
         setIsLoading(true);
         try {
-            let url = `/articles?page=${page}&limit=10&status=${filter === 'all' ? '' : filter}`;
-            if (searchTerm) url += `&search=${searchTerm}`;
+            // 'all' is an explicit server-side filter — sending an empty status
+            // makes the API fall back to its public 'published' default.
+            let url = `/articles?page=${page}&limit=10&status=${filter}`;
+            if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
 
             const response = await api.get(url);
             setArticles(response.data.articles);
@@ -38,7 +40,7 @@ const ArticlesList: React.FC<ArticlesListProps> = ({ onEdit }) => {
             try {
                 await api.delete(`/articles/${id}`);
                 fetchArticles(pagination.page);
-            } catch (error) {
+            } catch (_error) {
                 alert('Failed to delete article');
             }
         }

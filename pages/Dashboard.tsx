@@ -193,7 +193,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                             {!isSidebarCollapsed && (
                                 <div className="overflow-hidden">
                                     <p className="text-sm font-medium text-white truncate">{user?.fullName}</p>
-                                    <p className="text-xs text-slate-400 truncate">{user?.role.name}</p>
+                                    <p className="text-xs text-slate-400 truncate">{user?.role}</p>
                                 </div>
                             )}
                         </div>

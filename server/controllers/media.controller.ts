@@ -68,7 +68,7 @@ export const listMedia = async (req: Request, res: Response) => {
         ]);
 
         return res.json({ media, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to fetch media' });
     }
 };

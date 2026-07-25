@@ -58,7 +58,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect, selectionMode = f
         try {
             await api.delete(`/media/${id}`);
             fetchMedia(pagination.page);
-        } catch (error) {
+        } catch (_error) {
             alert('Failed to delete media');
         }
     };

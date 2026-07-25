@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Layout from './components/Layout';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
@@ -26,7 +26,6 @@ const Voting = React.lazy(() => import('./pages/Voting'));
 export default function App() {
   const navigateHook = useNavigate();
   const location = useLocation();
-  const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const { isAuthenticated, isLoading } = useAuth();
   
   useEffect(() => {
@@ -39,10 +38,6 @@ export default function App() {
   }, [location.pathname]);
 
   const navigate = (page: PageView, slugOrId?: string | null) => {
-    if (slugOrId && page === 'EDITOR') {
-      setEditingArticleId(slugOrId);
-    }
-
     switch (page) {
       case 'HOME': navigateHook('/'); break;
       case 'ARTICLE': navigateHook(`/article/${slugOrId}`); break;
@@ -100,14 +95,16 @@ export default function App() {
         </ProtectedRoute>
       } />
 
+      {/* Editor reads the article id from the URL via useParams — the route is
+          the single source of truth, so /editor is always a fresh article. */}
       <Route path="/editor" element={
         <ProtectedRoute>
-          <Editor navigate={navigate} articleId={editingArticleId} />
+          <Editor navigate={navigate} />
         </ProtectedRoute>
       } />
       <Route path="/editor/:id" element={
         <ProtectedRoute>
-          <Editor navigate={navigate} articleId={location.pathname.split('/').pop() || editingArticleId} />
+          <Editor navigate={navigate} />
         </ProtectedRoute>
       } />
 

@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { PageView } from '../types';
 import api from '../services/api';
-// import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
+import { sanitizeArticleHtml } from '../utils/sanitize';
 import MediaLibrary from '../components/MediaLibrary';
 
 interface EditorProps {
     navigate: (view: PageView, id?: string) => void; // eslint-disable-line
-    articleId?: string | null;
 }
 
 interface Category {
@@ -21,7 +22,12 @@ interface Tag {
     name: string;
 }
 
-const Editor: React.FC<EditorProps> = ({ navigate, articleId }) => {
+const Editor: React.FC<EditorProps> = ({ navigate }) => {
+    // The URL owns which article is open; /editor (no id) is always a new one.
+    const { id: articleId } = useParams<{ id: string }>();
+    const { user } = useAuth();
+    const canPublish = user?.role === 'Editor' || user?.role === 'Admin';
+
     const [title, setTitle] = useState('');
     const [excerpt, setExcerpt] = useState('');
     const [content, setContent] = useState('');
@@ -93,6 +99,12 @@ const Editor: React.FC<EditorProps> = ({ navigate, articleId }) => {
 
         setIsSaving(true);
 
+        // Authors cannot publish, so their publish action submits for review
+        // instead of firing a request the API will reject.
+        const nextStatus = isPublish
+            ? (canPublish ? 'published' : 'review')
+            : (articleId ? status : 'draft');
+
         const payload = {
             title,
             excerpt,
@@ -101,27 +113,28 @@ const Editor: React.FC<EditorProps> = ({ navigate, articleId }) => {
             categoryId: Number(categoryId),
             tags,
             isFeatured,
-            status: isPublish ? 'published' : (articleId ? status : 'draft')
+            status: nextStatus
         };
 
         try {
-            if (articleId) {
-                await api.put(`/articles/${articleId}`, payload);
-                if (isPublish && status !== 'published') {
-                    const statusRes = await api.patch(`/articles/${articleId}/status`, { status: 'published' });
-                    setPublishedUrl(`${window.location.origin}/article/${statusRes.data.slug}`);
-                }
-            } else {
-                const res = await api.post('/articles', payload);
-                if (isPublish) {
-                    const statusRes = await api.patch(`/articles/${res.data.id}/status`, { status: 'published' });
-                    setPublishedUrl(`${window.location.origin}/article/${statusRes.data.slug}`);
-                }
+            const res = articleId
+                ? await api.put(`/articles/${articleId}`, payload)
+                : await api.post('/articles', payload);
+
+            const saved = res.data;
+            setStatus(saved.status);
+            if (saved.status === 'published') {
+                setPublishedUrl(`${window.location.origin}/article/${saved.slug}`);
+            }
+            if (isPublish && !canPublish) {
+                alert('Submitted for review — an Editor will publish it.');
             }
             navigate('DASHBOARD');
         } catch (error) {
             console.error('Failed to save article:', error);
-            alert('Failed to save article');
+            const message = (error as { response?: { data?: { error?: string } } })
+                ?.response?.data?.error;
+            alert(message || 'Failed to save article');
         } finally {
             setIsSaving(false);
         }
@@ -180,7 +193,9 @@ const Editor: React.FC<EditorProps> = ({ navigate, articleId }) => {
                                 className="px-6 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:bg-primary-dark shadow-lg shadow-primary/20 transition-all disabled:opacity-50 flex items-center gap-2"
                             >
                                 <span className="material-icons-round text-sm">publish</span>
-                                {articleId && status === 'published' ? 'Update' : 'Publish'}
+                                {articleId && status === 'published'
+                                    ? 'Update'
+                                    : canPublish ? 'Publish' : 'Submit for Review'}
                             </button>
                         </>
                     )}
@@ -210,7 +225,7 @@ const Editor: React.FC<EditorProps> = ({ navigate, articleId }) => {
                                     </div>
                                 )}
                                 <article className="font-serif text-lg md:text-xl leading-[1.8] text-slate-800 dark:text-slate-200 prose dark:prose-invert max-w-none">
-                                    <div dangerouslySetInnerHTML={{ __html: content }} />
+                                    <div dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(content) }} />
                                 </article>
                             </div>
                         ) : (

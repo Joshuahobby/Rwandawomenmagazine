@@ -20,7 +20,7 @@ const Home: React.FC<HomeProps> = () => {
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
 
   // Fetcher function
-  const fetchArticles = async (params: string) => {
+  const fetchArticles = async (params: string): Promise<Article[]> => {
     const { data } = await api.get(`/articles?${params}`);
     return data.articles || [];
   };

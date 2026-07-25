@@ -4,9 +4,10 @@ interface User {
     id: string;
     fullName: string;
     email: string;
-    role: {
-        name: string;
-    };
+    // The auth endpoints return the role name flattened to a string
+    // (see auth.controller.ts: `role: user.role.name`), not a nested object.
+    role: string;
+    profileImage?: string | null;
 }
 
 interface AuthContextType {

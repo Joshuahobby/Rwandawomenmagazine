@@ -16,7 +16,7 @@ export const listCategories = async (_req: Request, res: Response) => {
             include: { _count: { select: { articles: true } } },
         });
         return res.json(categories);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to fetch categories' });
     }
 };
@@ -30,7 +30,7 @@ export const createCategory = async (req: Request, res: Response) => {
             data: { name, slug, description, color },
         });
         return res.status(201).json(category);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to create category' });
     }
 };
@@ -49,7 +49,7 @@ export const updateCategory = async (req: Request, res: Response) => {
             data,
         });
         return res.json(category);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to update category' });
     }
 };
@@ -58,7 +58,7 @@ export const deleteCategory = async (req: Request, res: Response) => {
     try {
         await prisma.category.delete({ where: { id: parseInt(req.params.id as string) } });
         return res.json({ message: 'Category deleted' });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to delete category' });
     }
 };

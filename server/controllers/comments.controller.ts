@@ -20,7 +20,7 @@ export const createComment = async (req: Request, res: Response) => {
             data: { articleId, name, email, comment },
         });
         return res.status(201).json(newComment);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to post comment' });
     }
 };
@@ -55,7 +55,7 @@ export const approveComment = async (req: Request, res: Response) => {
             data: { isApproved: true },
         });
         return res.json(comment);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to approve comment' });
     }
 };
@@ -64,7 +64,7 @@ export const deleteComment = async (req: Request, res: Response) => {
     try {
         await prisma.comment.delete({ where: { id: req.params.id as string } });
         return res.json({ message: 'Comment deleted' });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to delete comment' });
     }
 };

@@ -14,7 +14,7 @@ export const listTags = async (_req: Request, res: Response) => {
             include: { _count: { select: { articles: true } } },
         });
         return res.json(tags);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to fetch tags' });
     }
 };
@@ -25,7 +25,7 @@ export const createTag = async (req: Request, res: Response) => {
         const slug = generateSlug(name);
         const tag = await prisma.tag.create({ data: { name, slug } });
         return res.status(201).json(tag);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to create tag' });
     }
 };
@@ -34,7 +34,7 @@ export const deleteTag = async (req: Request, res: Response) => {
     try {
         await prisma.tag.delete({ where: { id: parseInt(req.params.id as string) } });
         return res.json({ message: 'Tag deleted' });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to delete tag' });
     }
 };

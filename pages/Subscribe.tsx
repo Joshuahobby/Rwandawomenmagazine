@@ -5,7 +5,7 @@ interface SubscribeProps {
   navigate: (page: PageView) => void;
 }
 
-const Subscribe: React.FC<SubscribeProps> = ({ navigate }) => {
+const Subscribe: React.FC<SubscribeProps> = ({ navigate: _navigate }) => {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row animate-fade-in font-display">
         {/* Left Visual */}

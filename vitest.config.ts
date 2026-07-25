@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, configDefaults } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
@@ -14,6 +14,10 @@ export default defineConfig({
             exclude: ['node_modules/', 'tests/setup.ts'],
         },
         include: ['**/*.{test,spec}.{ts,tsx}'],
+        // tests/e2e holds Playwright specs (`npm run test:e2e`). They import
+        // @playwright/test, which cannot run under Vitest — left in, they crash
+        // the worker and the whole suite reports "no tests".
+        exclude: [...configDefaults.exclude, 'tests/e2e/**'],
     },
     resolve: {
         alias: {

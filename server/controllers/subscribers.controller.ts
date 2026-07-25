@@ -20,7 +20,7 @@ export const subscribe = async (req: Request, res: Response) => {
             data: { email, source: source || 'website' },
         });
         return res.status(201).json({ message: 'Subscribed successfully', id: subscriber.id });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Subscription failed' });
     }
 };
@@ -40,7 +40,7 @@ export const listSubscribers = async (req: Request, res: Response) => {
         ]);
 
         return res.json({ subscribers, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to fetch subscribers' });
     }
 };
@@ -52,7 +52,7 @@ export const unsubscribe = async (req: Request, res: Response) => {
             data: { isActive: false },
         });
         return res.json({ message: 'Unsubscribed' });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to unsubscribe' });
     }
 };

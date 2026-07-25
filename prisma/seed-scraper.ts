@@ -30,8 +30,8 @@ async function downloadImage(url: string, filename: string): Promise<string | nu
 function slugify(text: string) {
     return text.toString().toLowerCase()
         .replace(/\s+/g, '-')           // Replace spaces with -
-        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+        .replace(/[^\w-]+/g, '')        // Remove all non-word chars
+        .replace(/--+/g, '-')           // Replace multiple - with single -
         .replace(/^-+/, '')             // Trim - from start of text
         .replace(/-+$/, '');            // Trim - from end of text
 }
@@ -97,9 +97,6 @@ async function scrape() {
                     // Parse date
                     let date = new Date(dateStr);
                     if (isNaN(date.getTime())) date = new Date();
-
-                    const authorName = $$('.author').text().trim() || $$('.entry-author').text().trim() || 'RWM Editorial';
-
 
                     // Feature Image
                     const imgUrl = $$('article img').first().attr('src');

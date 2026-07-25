@@ -14,7 +14,7 @@ export const listUsers = async (_req: Request, res: Response) => {
             orderBy: { createdAt: 'desc' },
         });
         return res.json(users);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to fetch users' });
     }
 };
@@ -62,7 +62,7 @@ export const updateUser = async (req: Request, res: Response) => {
             bio: user.bio,
             _count: { articles: await prisma.article.count({ where: { authorId: user.id } }) }
         });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to update user' });
     }
 };
@@ -73,7 +73,7 @@ export const listRoles = async (_req: Request, res: Response) => {
             orderBy: { name: 'asc' },
         });
         return res.json(roles);
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to fetch roles' });
     }
 };

@@ -258,7 +258,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
               <div className="flex items-center gap-3">
                 <div className="hidden md:flex flex-col items-end">
                   <span className="text-[10px] font-bold text-text-light dark:text-text-dark uppercase">{user?.fullName}</span>
-                  <span className="text-[8px] text-gray-500 uppercase tracking-widest">{user?.role.name}</span>
+                  <span className="text-[8px] text-gray-500 uppercase tracking-widest">{user?.role}</span>
                 </div>
                 <button onClick={handleLogout} className="text-gray-400 hover:text-primary transition-colors" title="Logout">
                   <span className="material-icons text-xl">logout</span>

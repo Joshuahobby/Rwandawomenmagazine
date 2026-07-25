@@ -13,7 +13,7 @@ export const trackView = async (req: Request, res: Response) => {
         });
 
         return res.status(201).json({ message: 'View recorded' });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to record view' });
     }
 };
@@ -52,7 +52,7 @@ export const getDashboardStats = async (_req: Request, res: Response) => {
             totalSubscribers,
             recentArticles,
         });
-    } catch (error) {
+    } catch (_error) {
         return res.status(500).json({ error: 'Failed to fetch dashboard stats' });
     }
 };
