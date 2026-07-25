@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "npx prisma migrate deploy && npx prisma generate && vite build",
+    "build": "prisma generate && vite build",
     "postinstall": "prisma generate",
     "preview": "vite preview",
     "server": "tsx watch server/index.ts",

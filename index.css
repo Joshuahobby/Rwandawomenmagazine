@@ -316,21 +316,118 @@ h4,
 .article-content {
     word-wrap: break-word;
     overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
+/* Images must never exceed container */
 .article-content img {
-    max-width: 100%;
-    height: auto;
+    max-width: 100% !important;
+    width: auto;
+    height: auto !important;
     border-radius: 1rem;
-    margin: 2.5rem 0;
+    margin: 2rem 0;
+    display: block;
+    object-fit: contain;
+}
+
+/* Iframes (YouTube, embeds, etc.) */
+.article-content iframe {
+    max-width: 100% !important;
+    border-radius: 0.75rem;
+    margin: 2rem 0;
+}
+
+/* Video elements */
+.article-content video {
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: 0.75rem;
+    margin: 2rem 0;
+}
+
+/* Tables must scroll horizontally if too wide */
+.article-content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin: 2rem 0;
+}
+
+/* Pre-formatted text and code blocks */
+.article-content pre {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border-radius: 0.75rem;
+    margin: 2rem 0;
+}
+
+.article-content code {
+    word-break: break-all;
 }
 
 .article-content p {
     margin-bottom: 1.5rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* Long URLs or unbreakable strings */
+.article-content a {
+    word-break: break-all;
+    overflow-wrap: break-word;
 }
 
 .article-content h2, .article-content h3 {
     margin-top: 2.5rem;
     margin-bottom: 1rem;
     font-weight: 700;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.article-content h1, .article-content h4, .article-content h5, .article-content h6 {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* Any div inside article content (common from CMS editors) */
+.article-content div {
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+/* Blockquotes */
+.article-content blockquote {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* Embedded content wrappers */
+.article-content figure {
+    max-width: 100%;
+    margin: 2rem 0;
+}
+
+.article-content figure img {
+    max-width: 100% !important;
+}
+
+/* Lists */
+.article-content ul, .article-content ol {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    padding-left: 1.5rem;
+}
+
+/* Catch-all for any element with inline width */
+.article-content * {
+    max-width: 100%;
+    box-sizing: border-box;
 }

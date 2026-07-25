@@ -123,18 +123,23 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
 
             const saved = res.data;
             setStatus(saved.status);
-            if (saved.status === 'published') {
+            if (saved.status === 'published' && saved.slug) {
                 setPublishedUrl(`${window.location.origin}/article/${saved.slug}`);
             }
             if (isPublish && !canPublish) {
                 alert('Submitted for review — an Editor will publish it.');
             }
+
             navigate('DASHBOARD');
         } catch (error) {
             console.error('Failed to save article:', error);
-            const message = (error as { response?: { data?: { error?: string } } })
-                ?.response?.data?.error;
-            alert(message || 'Failed to save article');
+            // Surface the API's own message (e.g. the 403 explaining that only
+            // Editors may publish) rather than a generic failure string.
+            const err = error as { response?: { data?: { error?: string; details?: string } }; message?: string };
+            const message = err?.response?.data?.error
+                || err?.response?.data?.details
+                || err?.message;
+            alert(typeof message === 'string' && message ? message : 'Failed to save article. Please try again.');
         } finally {
             setIsSaving(false);
         }

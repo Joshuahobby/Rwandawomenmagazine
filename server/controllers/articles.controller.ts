@@ -115,8 +115,12 @@ export const listArticles = async (req: AuthRequest, res: Response) => {
 
         console.log(`[API] listArticles: Fetching from DB for key: ${cacheKey}`);
 
+        // 'all' is the dashboard's working view: everything still in play,
+        // excluding archived. Archived stays reachable via ?status=archived.
         const where: Prisma.ArticleWhereInput =
-            status === 'all' ? {} : { status: status as ArticleStatus };
+            status === 'all'
+                ? { status: { in: ['draft', 'review', 'published'] } }
+                : { status: status as ArticleStatus };
         if (categorySlug) where.category = { slug: categorySlug };
         if (featured) where.isFeatured = true;
         if (tagSlug) where.tags = { some: { tag: { slug: tagSlug } } };
