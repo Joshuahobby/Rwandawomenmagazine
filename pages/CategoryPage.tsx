@@ -90,7 +90,7 @@ const CategoryPage: React.FC<CategoryPageProps> = () => {
                         <span className="material-icons text-4xl opacity-80">{meta.icon}</span>
                         <span className="text-[10px] font-bold uppercase tracking-widest bg-white/20 px-3 py-1">Category</span>
                     </div>
-                    <h1 className="font-display text-5xl lg:text-7xl font-black uppercase leading-[0.85] tracking-tighter mb-6">
+                    <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl font-black uppercase leading-[0.85] tracking-tighter mb-6 break-words">
                         {meta.label}
                     </h1>
                     <p className="text-lg text-white/80 max-w-2xl leading-relaxed">
