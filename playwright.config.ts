@@ -8,7 +8,10 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: process.env.APP_URL || 'http://localhost:5173',
+    // Must match the Vite dev server port in vite.config.ts (3000). This was
+    // 5173 (Vite's default), so webServer waited for a port that never opened
+    // and every e2e run timed out before a single test executed.
+    baseURL: process.env.APP_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
   },
   projects: [
@@ -19,7 +22,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npm run dev:all',
-    url: 'http://localhost:5173',
+    url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

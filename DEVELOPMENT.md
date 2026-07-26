@@ -24,7 +24,7 @@ Each environment has its own configuration and database connection.
 
 | Environment | Branch | URL (Example) | Database | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
-| **Local** | N/A | `localhost:5173` | Local/Dev DB | Daily development and testing. |
+| **Local** | N/A | `localhost:3000` | Local/Dev DB | Daily development and testing. |
 | **Preview** | `feature/*`, `develop` | `*-git-develop-*.vercel.app` | Staging DB | Testing features before integration. |
 | **Production** | `main` | `rwandawomenmagazine.rw` | Production DB | Live user-facing platform. |
 

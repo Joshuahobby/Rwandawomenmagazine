@@ -65,5 +65,7 @@ GitFlow lite: `main` is production (deploys live), `develop` is integration (Ver
 
 ## Notes
 
-- The README's AI Studio / `GEMINI_API_KEY` instructions are leftover scaffolding; the real setup is in DEVELOPMENT.md.
-- Backend API tests live in `server/tests/api.test.ts` (supertest), frontend tests in `tests/`, e2e specs in `tests/e2e/` — the Vitest include pattern picks up `*.test.ts(x)` anywhere.
+- **Adding a server dependency:** the Vercel function is bundled as CommonJS, so any package (or transitive dep) without a CJS entry point crashes *every* API route on cold start with `ERR_REQUIRE_ESM`. A local `require()` does **not** catch this — Node 22.12+ allows requiring ESM, so it passes locally and fails in production. `"type": "module"` alone is not the tell either: `zod` and `axios` are ESM and fine, because their `exports` maps expose a `require` condition. Frontend-only deps are unaffected.
+- **Article HTML is sanitized twice, by design:** `server/services/sanitize.ts` (js-xss) on write and `utils/sanitize.ts` (DOMPurify) on render, both driven by the shared allowlist in `utils/sanitizePolicy.ts`. The render-side pass is what neutralizes content stored before sanitization existed — don't remove it as redundant. Tests hold both engines to the same attack matrix.
+- Backend API tests live in `server/tests/` (supertest), frontend tests in `tests/`, e2e specs in `tests/e2e/`. Vitest picks up `*.test.ts(x)` anywhere but excludes `tests/e2e/**` (those are Playwright and crash the Vitest worker).
+- Tests run against the real database in `DATABASE_URL`, so keep them to reads and rejection paths unless that points at a throwaway DB.
