@@ -10,8 +10,14 @@ module.exports = {
     darkMode: 'class',
     theme: {
         extend: {
+            screens: {
+                // Above Tailwind's 2xl (1536px) — large desktops, TVs and ultrawides.
+                '3xl': '1792px',
+                '4xl': '2200px',
+            },
             colors: {
                 primary: "#d800b4", // Vibrant pink from prompt
+                "primary-dark": "#a80090", // Hover/active state for primary
                 "background-light": "#fdfbf7", // Warm off-white
                 "background-dark": "#1a1a1a", // Soft black
                 "surface-light": "#f4f1ea",

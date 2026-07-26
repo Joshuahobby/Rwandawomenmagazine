@@ -24,3 +24,23 @@ export const optimizeImage = (url: string | null | undefined, width?: number, he
 
     return `${parts[0]}/upload/${transformations.join(',')}/${parts[1]}`;
 };
+
+/** Candidate widths for responsive article imagery, phone through 4K. */
+export const RESPONSIVE_WIDTHS = [480, 768, 1024, 1440, 1920, 2560];
+
+/**
+ * Builds a `srcSet` string so the browser can pick the cheapest image that fits.
+ * Non-Cloudinary URLs yield the same href at every width, which is harmless —
+ * the browser simply reuses one candidate.
+ *
+ * @param url The original image URL
+ * @param widths Candidate widths in pixels
+ * @returns A `srcSet` value, or undefined when there is no URL to transform
+ */
+export const buildSrcSet = (
+    url: string | null | undefined,
+    widths: number[] = RESPONSIVE_WIDTHS
+): string | undefined => {
+    if (!url || !url.includes('cloudinary.com')) return undefined;
+    return widths.map((w) => `${optimizeImage(url, w)} ${w}w`).join(', ');
+};
