@@ -36,5 +36,11 @@ test-output.txt
 .vercel
 /playwright-report/
 /test-results/
+/coverage/
+
+# Throwaway debug scripts — keep one-off DB pokes and probes out of the repo.
+# Use `npm run db:studio` for data inspection and GET /api/health for
+# connectivity rather than committing ad-hoc scripts.
+/scratch/
 
 .env*
