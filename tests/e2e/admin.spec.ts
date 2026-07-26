@@ -1,5 +1,18 @@
 import { test, expect } from '@playwright/test';
 
+/**
+ * The logged-in specs below need an admin account that actually exists in the
+ * database the dev server is pointed at.
+ *
+ * The defaults are the seeded dev credentials (see prisma/seed.ts), so these
+ * pass against a freshly seeded local or staging database. They will NOT pass
+ * when DATABASE_URL points at production, where those seeded credentials
+ * rightly do not exist — the login returns 401 and the redirect never happens.
+ *
+ * To run them elsewhere, supply real credentials via the environment rather
+ * than hardcoding any here:
+ *   ADMIN_EMAIL=... ADMIN_PASSWORD=... npm run test:e2e
+ */
 test.describe('Admin Authentication & Dashboard', () => {
   test('should login successfully as admin and view dashboard', async ({ page }) => {
     // 1. Navigate to Login Page

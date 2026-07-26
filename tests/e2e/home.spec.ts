@@ -15,9 +15,13 @@ test('homepage has correct title and essential elements', async ({ page }) => {
   const mainContent = page.locator('main');
   await expect(mainContent).toBeVisible();
 
-  // Check for articles (assuming they have a class or tag like 'article' or inside a grid)
-  // Based on common patterns, let's wait for the API data to render
-  const articleCards = page.locator('article, .article-card, [data-testid="article-card"]');
-  // Wait up to 10 seconds for articles to appear
-  await expect(articleCards.first()).toBeVisible({ timeout: 10000 });
+  // Articles are rendered as links to /article/<slug> (see pages/Home.tsx) —
+  // there is no <article> tag or .article-card class on this page, which is
+  // what the original selector guessed at, so it never matched.
+  const articleLinks = page.locator('a[href^="/article/"]');
+  await expect(articleLinks.first()).toBeVisible({ timeout: 15000 });
+
+  // The homepage is built from several category queries, so a healthy render
+  // means many cards, not just one — this would catch the API returning empty.
+  expect(await articleLinks.count()).toBeGreaterThan(1);
 });
