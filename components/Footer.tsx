@@ -8,7 +8,9 @@ export const Footer: React.FC<FooterProps> = () => {
   return (
     <footer className="bg-background-light dark:bg-background-dark py-12 border-t border-gray-200 dark:border-gray-800 text-xs">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-12">
+        {/* Side by side only from lg: at md the 320px brand block plus a
+            four-column link grid does not fit the container. */}
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-12">
 
           <div className="max-w-xs">
             <Link
@@ -22,7 +24,7 @@ export const Footer: React.FC<FooterProps> = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 md:gap-16">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 lg:gap-12 min-w-0">
             <div className="flex flex-col gap-3">
               <h4 className="font-bold uppercase tracking-widest mb-2">Menu</h4>
               <Link className="text-left text-gray-500 dark:text-gray-400 hover:text-primary decoration-none" to="/">Home</Link>
@@ -41,7 +43,8 @@ export const Footer: React.FC<FooterProps> = () => {
             <div className="flex flex-col gap-3">
               <h4 className="font-bold uppercase tracking-widest mb-2">Contact</h4>
               <p className="text-gray-500 dark:text-gray-400">CHIC Building, Kigali, Rwanda</p>
-              <p className="text-gray-500 dark:text-gray-400">management.thousandhillsevents@gmail.com</p>
+              {/* Long unbroken address: must be allowed to wrap in a narrow column. */}
+              <p className="text-gray-500 dark:text-gray-400 break-words">management.thousandhillsevents@gmail.com</p>
               <p className="text-gray-500 dark:text-gray-400">0735993326</p>
             </div>
             <div className="flex flex-col gap-3">

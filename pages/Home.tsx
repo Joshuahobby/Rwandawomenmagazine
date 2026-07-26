@@ -286,7 +286,7 @@ const Home: React.FC<HomeProps> = () => {
         <section className="bg-primary py-20 rounded-[4rem] text-white text-center px-4 mb-24 shadow-2xl shadow-primary/20">
           <div className="max-w-2xl mx-auto">
             <span className="text-xs font-bold uppercase tracking-[0.4em] mb-4 block opacity-80">STAY INFORMED</span>
-            <h2 className="font-display text-5xl lg:text-6xl font-black mb-8 italic tracking-tighter">DAILY INTELLIGENCE</h2>
+            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black mb-8 italic tracking-tighter break-words">DAILY INTELLIGENCE</h2>
             <p className="text-lg mb-10 opacity-90 font-serif italic">Join 5,000+ subscribers receiving our curated narrative on leadership, business, and heritage.</p>
             
             {subscribed ? (
