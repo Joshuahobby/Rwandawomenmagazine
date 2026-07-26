@@ -313,10 +313,13 @@ h4,
 }
 
 /* ─── Article Content Styles ─── */
+/* `overflow-wrap: break-word` only breaks a word that would otherwise overflow.
+   `word-break: break-word` is deliberately NOT used on prose elements — it
+   hyphenlessly splits ordinary words mid-line. It is kept only on links and
+   code, where unbreakable strings are common. */
 .article-content {
     word-wrap: break-word;
     overflow-wrap: break-word;
-    word-break: break-word;
     max-width: 100%;
     overflow-x: hidden;
 }
@@ -373,7 +376,6 @@ h4,
 .article-content p {
     margin-bottom: 1.5rem;
     overflow-wrap: break-word;
-    word-break: break-word;
 }
 
 /* Long URLs or unbreakable strings */
@@ -387,12 +389,10 @@ h4,
     margin-bottom: 1rem;
     font-weight: 700;
     overflow-wrap: break-word;
-    word-break: break-word;
 }
 
 .article-content h1, .article-content h4, .article-content h5, .article-content h6 {
     overflow-wrap: break-word;
-    word-break: break-word;
 }
 
 /* Any div inside article content (common from CMS editors) */
@@ -405,7 +405,6 @@ h4,
 .article-content blockquote {
     max-width: 100%;
     overflow-wrap: break-word;
-    word-break: break-word;
 }
 
 /* Embedded content wrappers */
@@ -422,7 +421,6 @@ h4,
 .article-content ul, .article-content ol {
     max-width: 100%;
     overflow-wrap: break-word;
-    word-break: break-word;
     padding-left: 1.5rem;
 }
 
