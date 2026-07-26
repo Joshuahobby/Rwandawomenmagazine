@@ -1,41 +1,15 @@
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'dompurify';
+import { ALLOWED_TAGS, ALLOWED_ATTR } from './sanitizePolicy';
 
 /**
- * Article bodies are authored in Quill and rendered with dangerouslySetInnerHTML,
- * so anything outside Quill's own output is an injection attempt rather than
- * authored content. This allowlist mirrors the editor's toolbar (see the
- * `modules` config in pages/Editor.tsx).
+ * Browser-side sanitizer, applied at render.
  *
- * Shared deliberately: the same list must apply on write (server) and on render
- * (client), otherwise content stored before sanitization existed still fires.
- */
-const ALLOWED_TAGS = [
-    'p', 'br', 'hr', 'span', 'div',
-    'strong', 'b', 'em', 'i', 'u', 's', 'sub', 'sup',
-    'blockquote', 'code', 'pre',
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'ul', 'ol', 'li',
-    'a', 'img',
-    'table', 'thead', 'tbody', 'tr', 'th', 'td',
-    // Quill's video button emits an iframe embed. Cross-origin iframes cannot
-    // read this origin's localStorage, so this does not reopen token theft.
-    'iframe',
-];
-
-const ALLOWED_ATTR = [
-    'href', 'target', 'rel', 'title',
-    'src', 'alt', 'width', 'height',
-    // No `style`: DOMPurify passes CSS through untouched, which allows
-    // url(javascript:...) and background-image exfiltration. The Editor's
-    // toolbar has no colour/align buttons, so Quill emits classes, not styles.
-    'class',
-    'allow', 'allowfullscreen', 'frameborder',
-    'colspan', 'rowspan',
-];
-
-/**
- * Strips scripts, event handlers and dangerous URL schemes from article HTML.
- * Returns a string in every case, including for null/undefined input.
+ * The server already sanitizes on write, so this is defence in depth — and the
+ * part that neutralizes payloads stored before sanitization existed.
+ *
+ * Uses DOMPurify directly (not isomorphic-dompurify): this module is only ever
+ * imported by React components, so a real DOM is always available and no jsdom
+ * shim is needed. See utils/sanitizePolicy.ts for why that matters.
  */
 export function sanitizeArticleHtml(dirty: string | null | undefined): string {
     if (!dirty) return '';

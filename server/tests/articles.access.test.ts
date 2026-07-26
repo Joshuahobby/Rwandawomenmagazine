@@ -41,13 +41,13 @@ describe('Article access control', () => {
             expect(res.status).toBe(401);
             expect(res.body.articles).toBeUndefined();
         }
-    }, 20000);
+    }, 30000);
 
     it('still serves the published list anonymously', async () => {
         const res = await request(app).get('/api/articles');
         expect(res.status).toBe(200);
         expect(Array.isArray(res.body.articles)).toBe(true);
-    }, 20000);
+    }, 30000);
 
     it('rejects an unknown status filter with 400, not 500', async () => {
         // Regression: the unchecked cast reached Prisma, which threw, and the
@@ -62,7 +62,7 @@ describe('Article access control', () => {
         const res = await request(app).get('/api/articles?page=-2');
         expect(res.status).toBe(200);
         expect(res.body.pagination.page).toBe(1);
-    }, 20000);
+    }, 30000);
 
     it('no longer exposes public self-registration', async () => {
         // Regression: this endpoint accepted a caller-chosen roleId.

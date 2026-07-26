@@ -6,7 +6,7 @@ import { Prisma, ArticleStatus } from '@prisma/client';
 import { generateSlug, generateUniqueSlug } from '../services/slug';
 import { getCache, setCache, clearCache } from '../services/cache.service';
 import { sendPrismaError } from '../services/errors';
-import { sanitizeArticleHtml } from '../../utils/sanitize';
+import { sanitizeArticleHtml } from '../services/sanitize';
 import { optionalHttpUrl } from '../services/validators';
 
 const ARTICLE_STATUSES = ['draft', 'review', 'published', 'archived'] as const;

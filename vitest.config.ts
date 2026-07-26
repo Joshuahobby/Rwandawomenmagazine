@@ -8,6 +8,12 @@ export default defineConfig({
         globals: true,
         environment: 'jsdom',
         setupFiles: ['./tests/setup.ts'],
+        // The default 5s is too tight here: the API tests hit a remote Neon
+        // instance, and jsdom environment setup alone can take ~10s when files
+        // run in parallel. A gate that flakes gets ignored, so set the headroom
+        // globally rather than per test.
+        testTimeout: 30000,
+        hookTimeout: 30000,
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json', 'html'],
