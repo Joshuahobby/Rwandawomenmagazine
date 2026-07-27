@@ -1,4 +1,5 @@
 import api from '../services/api';
+import { compressImage } from './imageCompression';
 
 /**
  * Inline article images go to Cloudinary, never into the article body.
@@ -30,8 +31,13 @@ export const EDITOR_IMAGE_MIMETYPES = [
     'image/webp',
 ];
 
-/** Matches the multer limit, so oversized files fail fast with a real message. */
-export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+/**
+ * The real ceiling is Vercel's, not multer's: the platform rejects request
+ * bodies over 4.5MB before Express ever sees them, so the route's 10MB limit is
+ * unreachable in production. Anything still above this after compression fails
+ * fast with a message instead of an opaque network error.
+ */
+export const MAX_IMAGE_BYTES = 4.4 * 1024 * 1024;
 
 /**
  * The upload endpoint derives the file type from the *extension* of the
@@ -72,12 +78,19 @@ export function uploadErrorMessage(error: unknown): string {
  * dropping the image on the floor.
  */
 export async function uploadEditorImage(file: File): Promise<string> {
-    if (file.size > MAX_IMAGE_BYTES) {
-        throw new Error(`"${file.name}" is ${(file.size / 1024 / 1024).toFixed(1)}MB — the limit is 10MB.`);
+    // Shrink first: a straight-off-the-phone photo exceeds the upload ceiling,
+    // and failing it untouched would be a pointless dead end for the author.
+    const { file: toUpload } = await compressImage(file);
+
+    if (toUpload.size > MAX_IMAGE_BYTES) {
+        throw new Error(
+            `"${file.name}" is ${(toUpload.size / 1024 / 1024).toFixed(1)}MB, over the 4.4MB upload limit. `
+            + 'Try exporting it at a smaller size.',
+        );
     }
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', toUpload);
 
     const res = await api.post('/media', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },

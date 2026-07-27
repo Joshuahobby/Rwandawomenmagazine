@@ -1,18 +1,22 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
+import type QuillType from 'quill';
 import 'react-quill-new/dist/quill.snow.css';
 import { PageView } from '../types';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { sanitizeArticleHtml } from '../utils/sanitize';
-import {
-    EDITOR_IMAGE_MIMETYPES,
-    uploadDataUriImages,
-    uploadEditorImage,
-    uploadErrorMessage,
-} from '../utils/quillImageUpload';
+import { EDITOR_IMAGE_MIMETYPES, uploadDataUriImages, uploadErrorMessage } from '../utils/quillImageUpload';
+import { normalizeEditorHtml } from '../utils/editorContent';
+import '../utils/quillFormats';
 import MediaLibrary from '../components/MediaLibrary';
+import ImageToolbar from '../components/editor/ImageToolbar';
+import SeoPanel, { EMPTY_SEO, SeoFields } from '../components/editor/SeoPanel';
+import EditorStatusBar from '../components/editor/EditorStatusBar';
+import { useEditorImages } from '../components/editor/useEditorImages';
+import { useToasts, ToastStack } from '../components/editor/useToasts';
+import { useAutosave, readDraft, clearDraft } from '../components/editor/useAutosave';
 
 interface EditorProps {
     navigate: (view: PageView, id?: string) => void; // eslint-disable-line
@@ -28,6 +32,21 @@ interface Tag {
     name: string;
 }
 
+/** Everything the autosave snapshot needs to restore a session. */
+interface DraftShape {
+    title: string;
+    excerpt: string;
+    content: string;
+    featuredImage: string;
+    categoryId: number | '';
+    tags: number[];
+    isFeatured: boolean;
+    seo: SeoFields;
+}
+
+/** Which field the media library modal is currently choosing an image for. */
+type MediaTarget = 'featured' | 'inline' | 'ogImage' | null;
+
 const Editor: React.FC<EditorProps> = ({ navigate }) => {
     // The URL owns which article is open; /editor (no id) is always a new one.
     const { id: articleId } = useParams<{ id: string }>();
@@ -42,51 +61,53 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
     const [tags, setTags] = useState<number[]>([]);
     const [isFeatured, setIsFeatured] = useState(false);
     const [status, setStatus] = useState<'draft' | 'review' | 'published' | 'archived'>('draft');
+    const [seo, setSeo] = useState<SeoFields>(EMPTY_SEO);
+    const [slug, setSlug] = useState('');
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [availableTags, setAvailableTags] = useState<Tag[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [showMediaLibrary, setShowMediaLibrary] = useState(false);
+    const [mediaTarget, setMediaTarget] = useState<MediaTarget>(null);
     const [previewMode, setPreviewMode] = useState(false);
+    const [focusMode, setFocusMode] = useState(false);
     const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
-    const [uploadingImages, setUploadingImages] = useState(0);
+    const [recoverable, setRecoverable] = useState<DraftShape | null>(null);
 
     const quillRef = useRef<ReactQuill>(null);
+    const { toasts, notify, dismiss } = useToasts();
 
-    /**
-     * Uploads files and drops the resulting Cloudinary URLs into the body.
-     *
-     * Every inline image goes through here rather than through Quill's own
-     * handlers, which embed base64 the write-side sanitizer then strips —
-     * see utils/quillImageUpload.ts.
-     */
-    const insertUploadedImages = useCallback(async (files: File[], atIndex?: number) => {
-        const editor = quillRef.current?.getEditor();
-        if (!editor || files.length === 0) return;
-
-        // getSelection(true) focuses the editor, which matters after the file
-        // dialog or a drop has taken focus away from it.
-        let index = atIndex ?? editor.getSelection(true)?.index ?? editor.getLength();
-
-        setUploadingImages(n => n + files.length);
-        let pending = files.length;
+    // react-quill throws rather than returning null when the editor is not yet
+    // instantiated, so every caller goes through this guard.
+    const getQuill = useCallback((): QuillType | null => {
         try {
-            for (const file of files) {
-                const url = await uploadEditorImage(file);
-                editor.insertEmbed(index, 'image', url, 'user');
-                index += 1;
-                editor.setSelection(index, 0, 'silent');
-                pending -= 1;
-                setUploadingImages(n => Math.max(0, n - 1));
-            }
-        } catch (error) {
-            console.error('Inline image upload failed:', error);
-            setUploadingImages(n => Math.max(0, n - pending));
-            alert(uploadErrorMessage(error));
+            return quillRef.current?.getEditor() ?? null;
+        } catch {
+            return null;
         }
     }, []);
 
+    const images = useEditorImages(getQuill, notify.error);
+
+    const draft: DraftShape = useMemo(
+        () => ({ title, excerpt, content, featuredImage, categoryId, tags, isFeatured, seo }),
+        [title, excerpt, content, featuredImage, categoryId, tags, isFeatured, seo],
+    );
+    const autosave = useAutosave(articleId, draft, { enabled: !isLoading });
+
+    const applyDraft = useCallback((data: DraftShape) => {
+        setTitle(data.title);
+        setExcerpt(data.excerpt);
+        setContent(data.content);
+        setFeaturedImage(data.featuredImage);
+        setCategoryId(data.categoryId);
+        setTags(data.tags);
+        setIsFeatured(data.isFeatured);
+        setSeo(data.seo ?? EMPTY_SEO);
+    }, []);
+
+    // `modules` is a "dirty prop" in react-quill-new: a new object identity tears
+    // the editor down and rebuilds it, so this must stay referentially stable.
     const pickAndUploadImage = useCallback(() => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -94,38 +115,53 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
         input.multiple = true;
         input.addEventListener('change', () => {
             const files = Array.from(input.files || []);
-            if (files.length > 0) void insertUploadedImages(files);
+            if (files.length > 0) void images.uploadAndInsert(files);
         });
         input.click();
-    }, [insertUploadedImages]);
+    }, [images]);
 
-    // `modules` is a "dirty prop" in react-quill-new: a new object identity tears
-    // the editor down and rebuilds it, so this must stay referentially stable.
+    const imagesRef = useRef(images);
+    imagesRef.current = images;
+    const pickRef = useRef(pickAndUploadImage);
+    pickRef.current = pickAndUploadImage;
+
     const modules = useMemo(() => ({
         toolbar: {
             container: [
-                [{ 'header': [1, 2, 3, false] }],
+                // Body headings start at h2: the article template already renders
+                // the title as the page's h1, and a second one competes with it.
+                [{ 'header': [2, 3, 4, false] }],
                 ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote', 'code-block'],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+                [{ 'align': [] }],
+                ['blockquote', 'code-block', 'divider'],
                 ['link', 'image', 'video'],
-                ['clean']
+                [{ 'script': 'sub' }, { 'script': 'super' }],
+                ['clean'],
             ],
             handlers: {
-                image: pickAndUploadImage,
+                image: () => pickRef.current(),
+                divider: function (this: { quill: QuillType }) {
+                    const quill = this.quill;
+                    const index = quill.getSelection(true)?.index ?? quill.getLength();
+                    quill.insertEmbed(index, 'divider', true, 'user');
+                    quill.setSelection(index + 1, 0, 'silent');
+                },
             },
         },
         // Quill routes pasted and dropped image files through the uploader
-        // module. Its default handler base64-encodes them; this one uploads.
-        // The default mimetype list is png/jpeg only, so a pasted webp or gif
-        // was previously ignored outright — nothing was inserted at all.
+        // module. Its default handler base64-encodes them, which the write-side
+        // sanitizer then strips; this one uploads instead. The default mimetype
+        // list is png/jpeg only, so a pasted webp or gif was previously ignored
+        // outright — nothing was inserted at all.
         uploader: {
             mimetypes: EDITOR_IMAGE_MIMETYPES,
             handler: (range: { index: number } | null, files: File[]) => {
-                void insertUploadedImages(files, range?.index);
+                void imagesRef.current.uploadAndInsert(files, range?.index);
             },
         },
-    }), [pickAndUploadImage, insertUploadedImages]);
+        clipboard: { matchVisual: false },
+    }), []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -148,23 +184,41 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
                     setTags(art.tags?.map((t: { id: number }) => t.id) || []);
                     setIsFeatured(art.isFeatured);
                     setStatus(art.status);
+                    setSlug(art.slug || '');
+                    setSeo({
+                        metaTitle: art.seoMeta?.metaTitle || '',
+                        metaDescription: art.seoMeta?.metaDescription || '',
+                        keywords: art.seoMeta?.keywords || '',
+                        ogImage: art.seoMeta?.ogImage || '',
+                    });
 
                     if (art.status === 'published') {
                         setPublishedUrl(`${window.location.origin}/article/${art.slug}`);
                     }
                 }
+
+                // Offer the local snapshot rather than applying it: silently
+                // overwriting what the server holds is how authors lose edits
+                // they made somewhere else.
+                const stored = readDraft<DraftShape>(articleId);
+                if (stored?.data) setRecoverable(stored.data);
             } catch (error) {
                 console.error('Failed to fetch editor data:', error);
+                notify.error('Could not load the editor. Check your connection and reload.');
             } finally {
                 setIsLoading(false);
             }
         };
         fetchData();
-    }, [articleId]);
+    }, [articleId, notify]);
 
     const handleSave = async (isPublish: boolean = false) => {
-        if (!title || !categoryId) {
-            alert('Please provide a title and category');
+        if (!title.trim()) {
+            notify.error('Give the article a title before saving.');
+            return;
+        }
+        if (!categoryId) {
+            notify.error('Choose a category before saving.');
             return;
         }
 
@@ -180,11 +234,15 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
             if (swept.uploaded > 0) {
                 contentToSave = swept.html;
                 setContent(swept.html);
+                notify.info(`Uploaded ${swept.uploaded} embedded image${swept.uploaded > 1 ? 's' : ''}.`);
             }
+            // Undo Quill's `&nbsp;`-for-every-space encoding, which otherwise
+            // stops long paragraphs wrapping on the published page.
+            contentToSave = normalizeEditorHtml(contentToSave);
         } catch (error) {
             console.error('Failed to upload embedded images:', error);
             setIsSaving(false);
-            alert(`${uploadErrorMessage(error)}\n\nNothing was saved — your article is still open.`);
+            notify.error(`${uploadErrorMessage(error)}\n\nNothing was saved — your article is still open.`);
             return;
         }
 
@@ -194,6 +252,7 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
             ? (canPublish ? 'published' : 'review')
             : (articleId ? status : 'draft');
 
+        const hasSeo = Object.values(seo).some(value => value.trim() !== '');
         const payload = {
             title,
             excerpt,
@@ -202,7 +261,8 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
             categoryId: Number(categoryId),
             tags,
             isFeatured,
-            status: nextStatus
+            status: nextStatus,
+            ...(hasSeo ? { seo } : {}),
         };
 
         try {
@@ -212,11 +272,17 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
 
             const saved = res.data;
             setStatus(saved.status);
+            if (saved.slug) setSlug(saved.slug);
             if (saved.status === 'published' && saved.slug) {
                 setPublishedUrl(`${window.location.origin}/article/${saved.slug}`);
             }
+
+            // The server now holds this content, so the local snapshot is spent.
+            autosave.markClean();
+            clearDraft(articleId);
+
             if (isPublish && !canPublish) {
-                alert('Submitted for review — an Editor will publish it.');
+                notify.success('Submitted for review — an Editor will publish it.');
             }
 
             navigate('DASHBOARD');
@@ -228,10 +294,22 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
             const message = err?.response?.data?.error
                 || err?.response?.data?.details
                 || err?.message;
-            alert(typeof message === 'string' && message ? message : 'Failed to save article. Please try again.');
+            notify.error(typeof message === 'string' && message ? message : 'Failed to save article. Please try again.');
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleLeave = () => {
+        if (autosave.isDirty && !window.confirm('You have unsaved changes. Leave the editor anyway?')) return;
+        navigate('DASHBOARD');
+    };
+
+    const handleMediaSelect = (url: string) => {
+        if (mediaTarget === 'featured') setFeaturedImage(url);
+        else if (mediaTarget === 'ogImage') setSeo(current => ({ ...current, ogImage: url }));
+        else if (mediaTarget === 'inline') images.insertUrl(url);
+        setMediaTarget(null);
     };
 
     const toggleTag = (tagId: number) => {
@@ -254,17 +332,27 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
             {/* Toolbar */}
             <header className="h-16 bg-surface-light dark:bg-surface-dark border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 z-20 shrink-0">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('DASHBOARD')} className="text-slate-400 hover:text-primary transition-colors">
+                    <button onClick={handleLeave} title="Back to dashboard" className="text-slate-400 hover:text-primary transition-colors">
                         <span className="material-icons-round text-2xl">arrow_back</span>
                     </button>
                     <div className="flex flex-col">
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{articleId ? 'Edit Article' : 'New Article'}</span>
                         <span className="text-sm font-medium text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                            Rwanda Women Magazine <span className={`w-1.5 h-1.5 rounded-full ${isSaving ? 'bg-orange-400 animate-pulse' : 'bg-green-400'}`}></span>
+                            Rwanda Women Magazine
+                            <span className={`w-1.5 h-1.5 rounded-full ${isSaving ? 'bg-orange-400 animate-pulse' : autosave.isDirty ? 'bg-slate-300' : 'bg-green-400'}`}></span>
                         </span>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
+                    {!previewMode && (
+                        <button
+                            onClick={() => setFocusMode(!focusMode)}
+                            title={focusMode ? 'Show settings' : 'Focus mode'}
+                            className={`px-3 py-2 rounded-lg text-sm transition-all ${focusMode ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                        >
+                            <span className="material-icons-round text-lg">{focusMode ? 'fullscreen_exit' : 'fullscreen'}</span>
+                        </button>
+                    )}
                     <button
                         onClick={() => setPreviewMode(!previewMode)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${previewMode ? 'bg-primary/10 text-primary border border-primary/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
@@ -296,6 +384,28 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
                 </div>
             </header>
 
+            {/* Recovered draft prompt */}
+            {recoverable && !previewMode && (
+                <div className="flex flex-wrap items-center gap-3 border-b border-orange-500/20 bg-orange-500/5 px-6 py-3 text-sm">
+                    <span className="material-icons-round text-orange-500 text-lg">history</span>
+                    <p className="flex-1 text-orange-900/80 dark:text-orange-300/80">
+                        An unsaved local draft of this article was found. Restore it?
+                    </p>
+                    <button
+                        onClick={() => { applyDraft(recoverable); setRecoverable(null); }}
+                        className="rounded-lg bg-orange-500 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:bg-orange-600"
+                    >
+                        Restore
+                    </button>
+                    <button
+                        onClick={() => { clearDraft(articleId); setRecoverable(null); }}
+                        className="rounded-lg px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-orange-700/70 transition-colors hover:bg-orange-500/10 dark:text-orange-300/70"
+                    >
+                        Discard
+                    </button>
+                </div>
+            )}
+
             <main className="flex-1 flex overflow-hidden">
                 {/* Editor Area */}
                 <section className="flex-1 flex flex-col relative overflow-hidden bg-white dark:bg-[#1a0b16] shadow-sm m-4 rounded-2xl border border-slate-200 dark:border-slate-800 transition-all duration-500">
@@ -318,7 +428,9 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
                                         <img src={featuredImage} alt="Preview" className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105" />
                                     </div>
                                 )}
-                                <article className="font-serif text-lg md:text-xl leading-[1.8] text-slate-800 dark:text-slate-200 prose dark:prose-invert max-w-none">
+                                {/* Same classes the article page uses, so the preview
+                                    reflects the real layout rather than an approximation. */}
+                                <article className="article-content font-serif text-lg md:text-xl leading-[1.8] text-slate-800 dark:text-slate-200 prose dark:prose-invert max-w-none">
                                     <div dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(content) }} />
                                 </article>
                             </div>
@@ -345,6 +457,8 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
                                     onChange={(e) => setExcerpt(e.target.value)}
                                 />
 
+                                <ImageToolbar images={images} />
+
                                 <div className="editor-container relative rounded-xl overflow-hidden border border-slate-100 dark:border-white/5 shadow-inner bg-slate-50/50 dark:bg-black/20">
                                     <ReactQuill
                                         ref={quillRef}
@@ -355,22 +469,38 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
                                         className="min-h-[400px]"
                                         placeholder="Start telling your story..."
                                     />
-                                    {uploadingImages > 0 && (
-                                        <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-full bg-slate-900/90 px-4 py-2 text-white shadow-lg animate-fade-in">
-                                            <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest">
-                                                Uploading {uploadingImages} image{uploadingImages > 1 ? 's' : ''}
-                                            </span>
-                                        </div>
-                                    )}
+                                </div>
+
+                                <div className="mt-4 flex flex-wrap items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaTarget('inline')}
+                                        className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-colors hover:border-primary/40 hover:text-primary dark:border-white/10"
+                                    >
+                                        <span className="material-icons-round text-sm">photo_library</span>
+                                        Insert from library
+                                    </button>
+                                    <p className="text-[11px] text-slate-400">
+                                        Drag, paste or use the toolbar to add images — they upload automatically.
+                                    </p>
                                 </div>
                             </div>
                         )}
                     </div>
+
+                    {!previewMode && (
+                        <EditorStatusBar
+                            content={content}
+                            isDirty={autosave.isDirty}
+                            isSaving={isSaving}
+                            draftSavedAt={autosave.savedAt}
+                            uploading={images.uploading}
+                        />
+                    )}
                 </section>
 
                 {/* Sidebar Settings */}
-                {!previewMode && (
+                {!previewMode && !focusMode && (
                     <aside className="w-80 bg-background-light dark:bg-[#120710] border-l border-slate-200 dark:border-white/5 flex flex-col overflow-y-auto">
                         <div className="p-6 space-y-8">
                             {publishedUrl && (
@@ -386,7 +516,7 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
                                         <button
                                             onClick={() => {
                                                 navigator.clipboard.writeText(publishedUrl);
-                                                alert('URL copied to clipboard!');
+                                                notify.success('URL copied to clipboard.');
                                             }}
                                             className="p-1 hover:bg-primary/20 rounded text-primary transition-colors"
                                         >
@@ -433,7 +563,7 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
                                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 font-display">Featured Image</h3>
                                 <div
                                     className="w-full aspect-[16/10] bg-slate-50 dark:bg-black/40 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center overflow-hidden relative group transition-all hover:border-primary/50"
-                                    onClick={() => setShowMediaLibrary(true)}
+                                    onClick={() => setMediaTarget('featured')}
                                 >
                                     {featuredImage ? (
                                         <>
@@ -476,42 +606,41 @@ const Editor: React.FC<EditorProps> = ({ navigate }) => {
                                 </div>
                             </div>
 
-                            <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 flex items-start gap-4">
-                                <span className="material-icons-round text-orange-500 text-lg">lightbulb</span>
-                                <p className="text-[10px] text-orange-800/70 dark:text-orange-400/70 leading-relaxed font-medium">
-                                    High-quality articles with clear headings and a featured image perform 80% better in engagement.
-                                </p>
-                            </div>
+                            <SeoPanel
+                                seo={seo}
+                                onChange={setSeo}
+                                fallbackTitle={title}
+                                fallbackDescription={excerpt}
+                                slug={slug}
+                            />
                         </div>
                     </aside>
                 )}
             </main>
 
             {/* Media Library Modal */}
-            {showMediaLibrary && (
+            {mediaTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-white dark:bg-surface-dark w-full max-w-4xl h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
                         <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-white/5">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Select Media</h3>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                                {mediaTarget === 'inline' ? 'Insert Into Article' : 'Select Media'}
+                            </h3>
                             <button
-                                onClick={() => setShowMediaLibrary(false)}
+                                onClick={() => setMediaTarget(null)}
                                 className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors"
                             >
                                 <span className="material-icons text-slate-500">close</span>
                             </button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-6">
-                            <MediaLibrary
-                                selectionMode={true}
-                                onSelect={(url) => {
-                                    setFeaturedImage(url);
-                                    setShowMediaLibrary(false);
-                                }}
-                            />
+                            <MediaLibrary selectionMode={true} onSelect={handleMediaSelect} />
                         </div>
                     </div>
                 </div>
             )}
+
+            <ToastStack toasts={toasts} onDismiss={dismiss} />
         </div>
     );
 };
