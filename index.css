@@ -324,15 +324,62 @@ h4,
     overflow-x: hidden;
 }
 
-/* Images must never exceed container */
+/* Images must never exceed container.
+   `width` is deliberately NOT forced to auto: the editor sets a width attribute
+   (50%/75%) to size an image, and a CSS width would override that presentational
+   hint and silently flatten every image back to full bleed. */
 .article-content img {
     max-width: 100% !important;
-    width: auto;
     height: auto !important;
     border-radius: 1rem;
     margin: 2rem 0;
     display: block;
     object-fit: contain;
+}
+
+/* Quill applies alignment to the image's paragraph, not the image. Since the
+   image is display:block, text-align alone does nothing — the margins do. */
+.article-content .ql-align-center img,
+.ql-editor .ql-align-center img {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.article-content .ql-align-right img,
+.ql-editor .ql-align-right img {
+    margin-left: auto;
+    margin-right: 0;
+}
+
+.article-content .ql-align-left img,
+.ql-editor .ql-align-left img {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+/* Match the editor to the published result, so what an author sizes and aligns
+   is what they get. */
+.ql-editor img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+    display: block;
+    margin: 1.5rem 0;
+}
+
+/* The selected image gets a visible ring — without it, clicking an image to
+   reveal its controls has no feedback at all. */
+.ql-editor img::selection {
+    background: transparent;
+}
+
+.article-content hr,
+.ql-editor hr {
+    border: none;
+    border-top: 2px solid currentColor;
+    opacity: 0.12;
+    margin: 3rem auto;
+    width: 40%;
 }
 
 /* Iframes (YouTube, embeds, etc.) */

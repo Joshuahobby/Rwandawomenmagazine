@@ -100,10 +100,21 @@ describe('uploadEditorImage', () => {
         expect(post).toHaveBeenCalledOnce();
     });
 
-    it('rejects an oversized file without spending a round trip', async () => {
-        const huge = new File([new Uint8Array(11 * 1024 * 1024)], 'big.png', { type: 'image/png' });
-        await expect(uploadEditorImage(huge)).rejects.toThrow(/limit is 10MB/);
+    it('rejects a file still too large after compression, without a round trip', async () => {
+        // Compression is attempted first; jsdom cannot decode, so it falls back
+        // to the original — the same path a file that simply will not shrink takes.
+        vi.spyOn(window, 'Image').mockImplementation(function (this: HTMLImageElement) {
+            setTimeout(() => this.onerror?.(new Event('error')), 0);
+            return this;
+        } as unknown as typeof Image);
+
+        const huge = new File([new Uint8Array(6 * 1024 * 1024)], 'big.png', { type: 'image/png' });
+
+        // The ceiling is Vercel's 4.5MB request-body cap, not multer's 10MB —
+        // the platform rejects the body before Express ever sees it.
+        await expect(uploadEditorImage(huge)).rejects.toThrow(/4.4MB upload limit/);
         expect(post).not.toHaveBeenCalled();
+        vi.restoreAllMocks();
     });
 
     it('fails loudly when the API returns no URL', async () => {
